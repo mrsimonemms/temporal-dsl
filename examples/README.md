@@ -23,6 +23,7 @@ A collection of examples
 | [Listen](./listen/) | Configure listeners |
 | [Money Transfer](./money-transfer/) | Temporal's world-famous Money Transfer Demo, in Serverless Workflow form - uses Docker Compose |
 | [Query](./query/) | Configure query listener |
+| [Raise](./raise/) | Raise an error |
 | [Signal](./signal/) | Configure signal listener |
 
 ## Running

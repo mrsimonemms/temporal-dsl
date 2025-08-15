@@ -96,9 +96,6 @@ func validateTaskSupported(task *model.TaskItem) error {
 	if openapi := task.AsCallOpenAPITask(); openapi != nil {
 		return fmt.Errorf("%w: openapi", ErrUnsupportedTask)
 	}
-	if raise := task.AsRaiseTask(); raise != nil {
-		return fmt.Errorf("%w: raise", ErrUnsupportedTask)
-	}
 	if run := task.AsRunTask(); run != nil {
 		return fmt.Errorf("%w: run", ErrUnsupportedTask)
 	}
