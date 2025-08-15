@@ -25,6 +25,7 @@ A collection of examples
 | [Query](./query/) | Configure query listener |
 | [Raise](./raise/) | Raise an error |
 | [Signal](./signal/) | Configure signal listener |
+| [Switch](./switch/) |Perform a switch statement |
 
 ## Running
 

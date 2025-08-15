@@ -49,9 +49,6 @@ func validateTaskSupported(task *model.TaskItem) error {
 	if run := task.AsRunTask(); run != nil {
 		return fmt.Errorf("%w: run", ErrUnsupportedTask)
 	}
-	if switchTask := task.AsSwitchTask(); switchTask != nil {
-		return fmt.Errorf("%w: switch", ErrUnsupportedTask)
-	}
 	if try := task.AsTryTask(); try != nil {
 		return fmt.Errorf("%w: try", ErrUnsupportedTask)
 	}

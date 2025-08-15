@@ -74,7 +74,7 @@ func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input HTTPData) (map[s
 
 		logger.Debug("Check if task can be run", "name", task.Key)
 		// Check for and run any if statement
-		if toRun, err := CheckIfStatement(task.TaskBase, vars); err != nil {
+		if toRun, err := CheckIfStatement(task.TaskBase.If, vars); err != nil {
 			logger.Error("Error checking if statement", "error", err)
 			return nil, err
 		} else if !toRun {
@@ -89,6 +89,59 @@ func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input HTTPData) (map[s
 	}
 
 	return output, nil
+}
+
+// buildWorkflowTask convert the individual tasks to Temporal
+func (w *Workflow) buildWorkflowTask(item *model.TaskItem) (
+	task TemporalWorkflowFunc,
+	taskType string,
+	additionalWorkflows []*TemporalWorkflow,
+	err error,
+) {
+	if do := item.AsDoTask(); do != nil {
+		additionalWorkflows, err = doTaskImpl(do, item, w)
+		taskType = "DoTask"
+	}
+
+	if fork := item.AsForkTask(); fork != nil {
+		task, err = forkTaskImpl(fork, item, w)
+		taskType = "ForkTask"
+	}
+
+	if http := item.AsCallHTTPTask(); http != nil {
+		task = httpTaskImpl(http, item.Key)
+		taskType = "CallHTTP"
+	}
+
+	if listen := item.AsListenTask(); listen != nil {
+		task, err = listenTaskImpl(listen, item.Key)
+		taskType = "ListenTask"
+	}
+
+	if raise := item.AsRaiseTask(); raise != nil {
+		task = raiseTaskImpl(raise, item.Key)
+		taskType = "RaiseTask"
+	}
+
+	if set := item.AsSetTask(); set != nil {
+		task = setTaskImpl(set)
+		taskType = "SetTask"
+	}
+
+	if switchTask := item.AsSwitchTask(); switchTask != nil {
+		task, err = setSwitchImpl(switchTask, item.Key)
+		taskType = "SwitchTask"
+	}
+
+	if wait := item.AsWaitTask(); wait != nil {
+		task = waitTaskImpl(wait)
+		taskType = "WaitTask"
+	}
+
+	return task,
+		taskType,
+		additionalWorkflows,
+		err
 }
 
 func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*TemporalWorkflow, error) {
@@ -108,50 +161,13 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 
 	// Iterate over the task list to build out our workflow(s)
 	for _, item := range *tasks {
-		var task TemporalWorkflowFunc
-		var taskType string
-		var err error
-		var additionalWorkflows []*TemporalWorkflow
-
-		if http := item.AsCallHTTPTask(); http != nil {
-			task = httpTaskImpl(http, item.Key)
-			taskType = "CallHTTP"
-		}
-
-		if do := item.AsDoTask(); do != nil {
-			additionalWorkflows, err = doTaskImpl(do, item, w)
-			taskType = "DoTask"
-			wfs = append(wfs, additionalWorkflows...)
-		}
-
-		if fork := item.AsForkTask(); fork != nil {
-			task, err = forkTaskImpl(fork, item, w)
-			taskType = "ForkTask"
-		}
-
-		if listen := item.AsListenTask(); listen != nil {
-			task, err = listenTaskImpl(listen, item.Key)
-			taskType = "ListenTask"
-		}
-
-		if raise := item.AsRaiseTask(); raise != nil {
-			task = raiseTaskImpl(raise, item.Key)
-			taskType = "RaiseTask"
-		}
-
-		if set := item.AsSetTask(); set != nil {
-			task = setTaskImpl(set)
-			taskType = "SetTask"
-		}
-
-		if wait := item.AsWaitTask(); wait != nil {
-			task = waitTaskImpl(wait)
-			taskType = "WaitTask"
-		}
-
+		task, taskType, additionalWorkflows, err := w.buildWorkflowTask(item)
 		if err != nil {
 			return nil, err
 		}
+
+		// Register additional workflows
+		wfs = append(wfs, additionalWorkflows...)
 
 		if taskType != "" {
 			log.Debug().Str("key", item.Key).Str("type", taskType).Msg("Task detected")

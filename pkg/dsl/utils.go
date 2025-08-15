@@ -31,11 +31,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func CheckIfStatement(task *model.TaskBase, input *Variables) (toRun bool, err error) {
-	if task.If != nil {
+func CheckIfStatement(ifStatement *model.RuntimeExpression, input *Variables) (toRun bool, err error) {
+	if ifStatement != nil {
 		var query *gojq.Query
 
-		expression := model.SanitizeExpr(task.If.String())
+		expression := model.SanitizeExpr(ifStatement.String())
 		query, err = gojq.Parse(expression)
 		if err != nil {
 			err = fmt.Errorf("unable to parse if statement as expression: %w", err)
