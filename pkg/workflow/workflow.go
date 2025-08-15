@@ -130,6 +130,11 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 			taskType = "ListenTask"
 		}
 
+		if raise := item.AsRaiseTask(); raise != nil {
+			task = raiseTaskImpl(raise, item.Key)
+			taskType = "RaiseTask"
+		}
+
 		if set := item.AsSetTask(); set != nil {
 			task = setTaskImpl(set)
 			taskType = "SetTask"

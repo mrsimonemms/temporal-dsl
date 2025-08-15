@@ -112,6 +112,13 @@
                   # Timeout - runs forever if not sent
                   timeout: 30s
       - withdraw: *withdraw
+      - bug:
+          if: '${ ._tw_workflow_type_name == "AccountTransferWorkflowRecoverableFailure" }'
+          raise:
+            error:
+              type: https://go.dev/panic
+              status: 500 # Ignore for panic
+              detail: Simulated bug - fix me!
       - updateState:
           set:
             stateProgressPercentage: 50

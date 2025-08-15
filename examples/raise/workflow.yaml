@@ -1,0 +1,21 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: ignored # Ignored by Temporal
+  name: raise # Workflow name
+  version: 0.0.1
+  title: Serverless Workflow
+  summary: Raise a bug
+timeout:
+  after:
+    minutes: 1
+do:
+  - wait:
+      wait:
+        seconds: 1
+  - bug:
+      raise:
+        error:
+          type: https://serverlessworkflow.io/spec/1.0.0/errors/communication
+          status: 400
