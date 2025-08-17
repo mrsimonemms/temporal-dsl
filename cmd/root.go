@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"os"
@@ -117,6 +118,12 @@ var rootCmd = &cobra.Command{
 			if err := wf.Validate(); err != nil {
 				log.Fatal().Err(err).Msg("Failed validation")
 			}
+		}
+
+		log.Info().Msg("Upserting schedules")
+		ctx := context.Background()
+		if err := tw.UpsertSchedule(ctx, c, wf); err != nil {
+			log.Fatal().Err(err).Msg("Error upserting Temporal schedules")
 		}
 
 		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})

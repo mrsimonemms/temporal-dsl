@@ -1,0 +1,20 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: ignored # Ignored by Temporal
+  name: schedule # Workflow name
+  version: 0.0.1
+  title: Serverless Workflow
+  summary: Schedule the tasks to be triggered automatically
+timeout:
+  after:
+    minutes: 1
+schedule:
+  # every:
+  #   seconds: 10
+  cron: "* * * * *"
+do:
+  - wait:
+      wait:
+        seconds: 5
