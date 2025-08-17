@@ -14,8 +14,8 @@
 
 FROM golang AS builder
 ARG GIT_COMMIT
-ARG GIT_REPO="github.com/mrsimonemms/temporal-serverless-workflow"
-ARG PROJECT_NAME="temporal-serverless-workflow"
+ARG GIT_REPO="github.com/mrsimonemms/temporal-dsl"
+ARG PROJECT_NAME="temporal-dsl"
 ARG VERSION
 ENV CGO_ENABLED=0
 ENV GOOS=linux

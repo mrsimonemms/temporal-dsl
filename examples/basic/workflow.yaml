@@ -14,7 +14,7 @@ do:
   - step1:
       set:
         # Set a variable from an envvar
-        envvar: "{{ .TSW_EXAMPLE_ENVVAR }}"
+        envvar: "{{ .TDSL_EXAMPLE_ENVVAR }}"
         "{{ uuidv4 }}": some value
         uuid: "{{ uuidv4 }}"
         object:

@@ -1,9 +1,9 @@
-# Temporal Serverless Workflow
+# Temporal DSL
 
 <!-- markdownlint-disable-next-line MD013 MD034 -->
-[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/temporal-serverless-workflow?cache-control=no-cache)](https://goreportcard.com/report/github.com/mrsimonemms/temporal-serverless-workflow)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/temporal-dsl?cache-control=no-cache)](https://goreportcard.com/report/github.com/mrsimonemms/temporal-dsl)
 
-Build [Temporal](https://temporal.io) workflows with [Serverless Workflow](https://serverlessworkflow.io)
+Build [Temporal](https://temporal.io) workflows from YAML
 
 <!-- toc -->
 
@@ -115,8 +115,8 @@ variable methods - if you set an `userId` variable, this can be retrieved by
 adding `{{ .userId }}` in your schema definition.
 
 Environment variables are also used, provided that the match the prefix - by default,
-this is `TSW_`. These can also be parsed - the variable `TSW_EXAMPLE_ENVVAR`
-would be retrieved by adding `{{ .TSW_EXAMPLE_ENVVAR }}` to your schema definition.
+this is `TDSL_`. These can also be parsed - the variable `TDSL_EXAMPLE_ENVVAR`
+would be retrieved by adding `{{ .TDSL_EXAMPLE_ENVVAR }}` to your schema definition.
 
 ## Future developments
 
@@ -137,48 +137,6 @@ roadmap for the project based on the
 [DSL Reference doc](https://github.com/serverlessworkflow/specification/blob/v1.0.0/dsl-reference.md).
 
 This project currently only supports DSL `1.0.0`.
-
-| Feature | State |
-| --- | --- |
-| Workflow Document | ✅ |
-| Workflow Use | 🟡 |
-| Workflow Schedule | ❌ |
-| Task Call | 🟡 |
-| Task Do | ✅ |
-| Task Emit | ❌ |
-| Task For | ❌ |
-| Task Fork | 🟡 |
-| Task Listen | 🟡 |
-| Task Raise | ❌ |
-| Task Run | ❌ |
-| Task Set | ✅ |
-| Task Switch | ✅ |
-| Task Try | ❌ |
-| Task Wait | ✅ |
-| Lifecycle Events | ❌ |
-| External Resource | ❌ |
-| Authentication | ❌ |
-| Catalog | ❌ |
-| Extension | ❌ |
-| Error | ❌ |
-| Event Consumption Strategies | ❌ |
-| Retry | ❌ |
-| Input | ❌ |
-| Output | ❌ |
-| Export | ❌ |
-| Timeout | ❌ |
-| Duration | ❌ |
-| Endpoint | ❌ |
-| HTTP Response | ❌ |
-| HTTP Request | ❌ |
-| URI Template | ❌ |
-| Container Lifetime | ❌ |
-| Process Result | ❌ |
-| AsyncAPI Server | ❌ |
-| AsyncAPI Outbound Message | ❌ |
-| AsyncAPI Subscription | ❌ |
-| Workflow Definition Reference | ✅ |
-| Subscription Iterator | ❌ |
 
 ## Contributing
 

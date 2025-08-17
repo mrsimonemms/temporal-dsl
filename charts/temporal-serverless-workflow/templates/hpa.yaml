@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "temporal-serverless-workflow.fullname" . }}
+  name: {{ include "temporal-dsl.fullname" . }}
   labels:
-    {{- include "temporal-serverless-workflow.labels" . | nindent 4 }}
+    {{- include "temporal-dsl.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "temporal-serverless-workflow.fullname" . }}
+    name: {{ include "temporal-dsl.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

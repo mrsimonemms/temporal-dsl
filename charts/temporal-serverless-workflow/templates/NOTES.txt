@@ -1,5 +1,5 @@
 Deployed
 ========
 
-App: {{ include "temporal-serverless-workflow.fullname" . }}
+App: {{ include "temporal-dsl.fullname" . }}
 Namespace: {{ .Release.Namespace }}

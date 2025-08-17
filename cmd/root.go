@@ -23,7 +23,7 @@ import (
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
-	tsw "github.com/mrsimonemms/temporal-serverless-workflow/pkg/workflow"
+	tw "github.com/mrsimonemms/temporal-dsl/pkg/workflow"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -50,9 +50,9 @@ var rootOpts struct {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "temporal-serverless-workflow",
+	Use:     "temporal-dsl",
 	Version: Version,
-	Short:   "Build Temporal workflows with Serverless Workflow",
+	Short:   "Build Temporal workflows from YAML",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		level, err := zerolog.ParseLevel(rootOpts.LogLevel)
 		if err != nil {
@@ -107,7 +107,7 @@ var rootCmd = &cobra.Command{
 		defer c.Close()
 
 		// Load the workflow file
-		wf, err := tsw.LoadFromFile(rootOpts.FilePath, rootOpts.EnvPrefix)
+		wf, err := tw.LoadFromFile(rootOpts.FilePath, rootOpts.EnvPrefix)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error loading workflow")
 		}
@@ -178,7 +178,7 @@ func init() {
 		"Path to workflow file",
 	)
 
-	viper.SetDefault("env_prefix", "TSW")
+	viper.SetDefault("env_prefix", "TDSL")
 	rootCmd.Flags().StringVar(
 		&rootOpts.EnvPrefix,
 		"env-prefix",

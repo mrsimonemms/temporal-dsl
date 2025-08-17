@@ -1,4 +1,4 @@
-# Default values for temporal-serverless-workflow.
+# Default values for temporal-dsl.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -30,7 +30,7 @@ envvars:
   #   value: "true"
   # - name: LOG_LEVEL
   #   value: trace
-  # - name: TSW_EXAMPLE_ENVVAR
+  # - name: TDSL_EXAMPLE_ENVVAR
   #   value: some-value
 
 workflow:
@@ -67,7 +67,7 @@ workflow:
 
 image:
   # -- Image repositiory
-  repository: ghcr.io/mrsimonemms/temporal-serverless-workflow
+  repository: ghcr.io/mrsimonemms/temporal-dsl
   # -- Image pull policy
   pullPolicy: IfNotPresent
   # -- Image tag - defaults to the chart's `Version` if not set

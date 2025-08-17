@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
-	"github.com/mrsimonemms/temporal-serverless-workflow/pkg/workflow"
+	"github.com/mrsimonemms/temporal-dsl/pkg/workflow"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 )
