@@ -1,6 +1,8 @@
 # Temporal DSL
 
-<!-- markdownlint-disable-next-line MD013 MD034 -->
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg?style=flat)](https://github.com/mrsimonemms/temporal-dsl/issues)
+[![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/mrsimonemms/temporal-dsl/blob/master/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/mrsimonemms/temporal-dsl?label=Release)](https://github.com/mrsimonemms/temporal-dsl/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/temporal-dsl)](https://goreportcard.com/report/github.com/mrsimonemms/temporal-dsl)
 
 Build [Temporal](https://temporal.io) workflows from YAML
