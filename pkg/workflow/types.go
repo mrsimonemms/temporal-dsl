@@ -68,6 +68,10 @@ func (w *Workflow) Activities() *activities {
 	return &activities{}
 }
 
+func (w *Workflow) Schedule() *model.Schedule {
+	return w.wf.Schedule
+}
+
 func (w *Workflow) WorkflowName() string {
 	return w.wf.Document.Name
 }
