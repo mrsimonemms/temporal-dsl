@@ -56,7 +56,10 @@ func validateTaskSupported(task *model.TaskItem) error {
 		return fmt.Errorf("%w: openapi", ErrUnsupportedTask)
 	}
 	if run := task.AsRunTask(); run != nil {
-		return fmt.Errorf("%w: run", ErrUnsupportedTask)
+		// Only Workflow tasks are implemented
+		if run.Run.Workflow == nil {
+			return fmt.Errorf("%w: run", ErrUnsupportedTask)
+		}
 	}
 	if try := task.AsTryTask(); try != nil {
 		return fmt.Errorf("%w: try", ErrUnsupportedTask)

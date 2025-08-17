@@ -162,6 +162,11 @@ func (w *Workflow) buildWorkflowTask(item *model.TaskItem) (
 		taskType = "RaiseTask"
 	}
 
+	if run := item.AsRunTask(); run != nil {
+		task, err = runTaskImpl(run, item.Key)
+		taskType = "RunTask"
+	}
+
 	if set := item.AsSetTask(); set != nil {
 		task = setTaskImpl(set)
 		taskType = "SetTask"
