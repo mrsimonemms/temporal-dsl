@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "temporal-serverless-workflow.fullname" . }}
+  name: {{ include "temporal-dsl.fullname" . }}
   labels:
-    {{- include "temporal-serverless-workflow.labels" . | nindent 4 }}
+    {{- include "temporal-dsl.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "temporal-serverless-workflow.selectorLabels" . | nindent 6 }}
+      {{- include "temporal-dsl.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "temporal-serverless-workflow.labels" . | nindent 8 }}
+        {{- include "temporal-dsl.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,7 +27,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "temporal-serverless-workflow.serviceAccountName" . }}
+      serviceAccountName: {{ include "temporal-dsl.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

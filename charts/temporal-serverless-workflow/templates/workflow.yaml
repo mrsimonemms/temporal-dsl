@@ -4,7 +4,7 @@ kind: Secret
 metadata:
   name: {{ .Values.workflow.secret }}
   labels:
-    {{- include "temporal-serverless-workflow.labels" . | nindent 4 }}
+    {{- include "temporal-dsl.labels" . | nindent 4 }}
 data:
   workflow.yaml: |
     {{ .Values.workflow.inline | toYaml | b64enc }}

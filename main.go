@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/mrsimonemms/temporal-serverless-workflow/cmd"
+import "github.com/mrsimonemms/temporal-dsl/cmd"
 
 func main() {
 	cmd.Execute()

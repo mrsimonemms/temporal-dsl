@@ -153,7 +153,7 @@ jobs:
         if: steps.branch-name.outputs.is_tag == 'true'
         uses: appany/helm-oci-chart-releaser@v0.5.0
         with:
-          name: temporal-serverless-workflow
+          name: temporal-dsl
           registry: ghcr.io
           repository: ${{ github.actor }}/charts
           tag: ${{ steps.branch-name.outputs.tag }}

@@ -1,8 +1,8 @@
-# temporal-serverless-workflow
+# temporal-dsl
 
 ![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
-Build Temporal workflows with Serverless Workflow
+Build Temporal workflows from YAML
 
 ## Values
 
@@ -17,7 +17,7 @@ Build Temporal workflows with Serverless Workflow
 | envvars | string | `nil` | Additional environment variables |
 | fullnameOverride | string | `""` | String to fully override names |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
-| image.repository | string | `"ghcr.io/mrsimonemms/temporal-serverless-workflow"` | Image repositiory |
+| image.repository | string | `"ghcr.io/mrsimonemms/temporal-dsl"` | Image repositiory |
 | image.tag | string | `""` | Image tag - defaults to the chart's `Version` if not set |
 | imagePullSecrets | list | `[]` | Docker registry secret names |
 | nameOverride | string | `""` | String to partially override name |

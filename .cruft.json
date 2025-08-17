@@ -4,10 +4,10 @@
   "checkout": "main",
   "context": {
     "cookiecutter": {
-      "project_name": "temporal-serverless-workflow",
-      "description": "Build Temporal workflows with Serverless Workflow",
+      "project_name": "temporal-dsl",
+      "description": "Build Temporal workflows from YAML",
       "author": "Simon Emms <simon@simonemms.com>",
-      "repo": "github.com/mrsimonemms/temporal-serverless-workflow",
+      "repo": "github.com/mrsimonemms/temporal-dsl",
       "use_viper": false,
       "_template": "https://github.com/mrsimonemms/new",
       "_commit": "31026d30d7422cb70b7dc482b946e292a6e12434"

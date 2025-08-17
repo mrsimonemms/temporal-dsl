@@ -13,15 +13,15 @@
     }
   },
   "postCreateCommand": {
-    "bootstrap": "ln -s $PWD/.cobra.yaml $HOME/.cobra.yaml && if [ ! -f \"go.mod\" ]; then go mod init \"github.com/mrsimonemms/temporal-serverless-workflow\"; fi && if [ ! -f \"main.go\" ]; then cobra-cli init && go mod tidy; fi",
+    "bootstrap": "ln -s $PWD/.cobra.yaml $HOME/.cobra.yaml && if [ ! -f \"go.mod\" ]; then go mod init \"github.com/mrsimonemms/temporal-dsl\"; fi && if [ ! -f \"main.go\" ]; then cobra-cli init && go mod tidy; fi",
     "install-air": "go install github.com/air-verse/air@latest"
   },
   "containerEnv": {
-    "CONVERTER_KEY_PATH": "/workspaces/temporal-serverless-workflow/keys.example.yaml",
-    "GIT_REPO": "github.com/mrsimonemms/temporal-serverless-workflow",
+    "CONVERTER_KEY_PATH": "/workspaces/temporal-dsl/keys.example.yaml",
+    "GIT_REPO": "github.com/mrsimonemms/temporal-dsl",
     "LOG_LEVEL": "trace",
     "TEMPORAL_ADDRESS": "localhost:7233",
-    "TSW_EXAMPLE_ENVVAR": "some-example-envvar",
+    "TDSL_EXAMPLE_ENVVAR": "some-example-envvar",
     "WORKFLOW_FILE": "./workflow.example.yaml"
   },
   "forwardPorts": [

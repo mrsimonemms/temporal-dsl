@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "temporal-serverless-workflow.fullname" . }}-test-connection"
+  name: "{{ include "temporal-dsl.fullname" . }}-test-connection"
   labels:
-    {{- include "temporal-serverless-workflow.labels" . | nindent 4 }}
+    {{- include "temporal-dsl.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test
 spec:
@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "temporal-serverless-workflow.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "temporal-dsl.fullname" . }}:{{ .Values.service.port }}']
   restartPolicy: Never

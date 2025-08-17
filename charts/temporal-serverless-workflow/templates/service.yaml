@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "temporal-serverless-workflow.fullname" . }}
+  name: {{ include "temporal-dsl.fullname" . }}
   labels:
-    {{- include "temporal-serverless-workflow.labels" . | nindent 4 }}
+    {{- include "temporal-dsl.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "temporal-serverless-workflow.selectorLabels" . | nindent 4 }}
+    {{- include "temporal-dsl.selectorLabels" . | nindent 4 }}
