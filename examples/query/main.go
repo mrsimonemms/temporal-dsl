@@ -43,7 +43,7 @@ func main() {
 	defer c.Close()
 
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: "serverless-workflow",
+		TaskQueue: "temporal-dsl",
 	}
 
 	ctx := context.Background()

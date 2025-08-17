@@ -37,7 +37,7 @@ func main() {
 	defer c.Close()
 
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: "serverless-workflow",
+		TaskQueue: "temporal-dsl",
 	}
 
 	// Map the workflow and the user ID

@@ -195,7 +195,7 @@ func init() {
 		fmt.Sprintf("log level: %s", "Set log level"),
 	)
 
-	viper.SetDefault("task_queue", "serverless-workflow")
+	viper.SetDefault("task_queue", "temporal-dsl")
 	rootCmd.Flags().StringVarP(
 		&rootOpts.TaskQueue,
 		"task-queue",

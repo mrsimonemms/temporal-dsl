@@ -1,7 +1,7 @@
 # Temporal DSL
 
 <!-- markdownlint-disable-next-line MD013 MD034 -->
-[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/temporal-dsl?cache-control=no-cache)](https://goreportcard.com/report/github.com/mrsimonemms/temporal-dsl)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/temporal-dsl)](https://goreportcard.com/report/github.com/mrsimonemms/temporal-dsl)
 
 Build [Temporal](https://temporal.io) workflows from YAML
 
