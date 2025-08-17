@@ -5,7 +5,7 @@ document:
   namespace: ignored # Ignored by Temporal
   name: multiple # Workflow name
   version: 0.0.1
-  title: Serverless Workflow
+  title: Multiple Workflows
   summary: Configure multiple Temporal workflows
 timeout:
   after:

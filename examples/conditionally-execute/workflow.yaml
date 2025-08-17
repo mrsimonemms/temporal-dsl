@@ -5,7 +5,7 @@ document:
   namespace: ignored # Ignored by Temporal
   name: conditional # Workflow name
   version: 0.0.1
-  title: Serverless Workflow
+  title: Conditional Workflow
   summary: Execute tasks conditionally
 timeout:
   after:

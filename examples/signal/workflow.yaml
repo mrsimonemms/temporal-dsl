@@ -3,7 +3,7 @@ document:
   namespace: default
   name: signal
   version: 0.0.1
-  title: Serverless Workflow
+  title: Signal Workflow
   summary: Listen for events
 do:
   - approve:

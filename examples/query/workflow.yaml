@@ -3,7 +3,7 @@ document:
   namespace: default
   name: query
   version: 0.0.1
-  title: Serverless Workflow
+  title: Query Workflow
   summary: Listen for events
 do:
   - queryState:

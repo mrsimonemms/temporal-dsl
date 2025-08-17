@@ -5,7 +5,7 @@ document:
   namespace: ignored # Ignored by Temporal
   name: basic # Workflow name
   version: 0.0.1
-  title: Serverless Workflow
+  title: Basic Workflow
   summary: An example of how to use Serverless Workflow to define Temporal Workflows
 timeout:
   after:

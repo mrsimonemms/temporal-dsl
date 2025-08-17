@@ -5,7 +5,7 @@ document:
   namespace: ignored # Ignored by Temporal
   name: raise # Workflow name
   version: 0.0.1
-  title: Serverless Workflow
+  title: Erroring Workflow
   summary: Raise a bug
 timeout:
   after:
