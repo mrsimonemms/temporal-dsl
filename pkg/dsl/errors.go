@@ -19,12 +19,14 @@ package dsl
 import "fmt"
 
 var (
-	ErrDuplicateKey          = fmt.Errorf("duplicate key found")
-	ErrInvalidType           = fmt.Errorf("invalid type given")
-	ErrNotString             = fmt.Errorf("input must be a string")
-	ErrUnsetListenIDTask     = fmt.Errorf("listen task id is not set")
-	ErrUnsetListenTypeTask   = fmt.Errorf("listen task type is not set")
-	ErrUnknownListenTypeTask = fmt.Errorf("listen task type is not known")
-	ErrUnsupportedTask       = fmt.Errorf("task not supported")
-	ErrUnsupportedDSL        = fmt.Errorf("unsupported dsl")
+	ErrDuplicateKey               = fmt.Errorf("duplicate key found")
+	ErrInvalidType                = fmt.Errorf("invalid type given")
+	ErrNotString                  = fmt.Errorf("input must be a string")
+	ErrUnknownValidationError     = fmt.Errorf("unknown validation error")
+	ErrUnsetListenIDTask          = fmt.Errorf("listen task id is not set")
+	ErrUnsetListenTypeTask        = fmt.Errorf("listen task type is not set")
+	ErrUnknownListenTypeTask      = fmt.Errorf("listen task type is not known")
+	ErrUnknownSearchAttributeType = fmt.Errorf("unknown search attribute type")
+	ErrUnsupportedTask            = fmt.Errorf("task not supported")
+	ErrUnsupportedDSL             = fmt.Errorf("unsupported dsl")
 )

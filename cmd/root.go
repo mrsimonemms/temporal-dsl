@@ -114,9 +114,12 @@ var rootCmd = &cobra.Command{
 
 		if rootOpts.Validate {
 			log.Debug().Msg("Running validation")
-			if err := wf.Validate(); err != nil {
-				log.Fatal().Err(err).Msg("Failed validation")
+			if res, err := wf.Validate(); err != nil {
+				log.Fatal().Err(err).Msg("Error validating")
+			} else if res != nil {
+				log.Fatal().Interface("validationErrors", res).Msg("Validation failed")
 			}
+			log.Debug().Msg("Validation passed")
 		}
 
 		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})

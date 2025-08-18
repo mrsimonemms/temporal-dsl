@@ -19,8 +19,17 @@ package dsl
 import (
 	"fmt"
 
+	"github.com/go-playground/locales/en"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
+
+type ValidationErrors struct {
+	Key     string
+	Message string
+}
 
 // Validation of the schema is handled separately. This validates that there is
 // nothing used we've not implemented. This should reduce over time.
@@ -55,12 +64,34 @@ func validateTaskSupported(task *model.TaskItem) error {
 	return nil
 }
 
-func (w *Workflow) Validate() error {
+func (w *Workflow) Validate() ([]ValidationErrors, error) {
+	enTrans := en.New()
+	uni := ut.New(enTrans)
+	trans, _ := uni.GetTranslator(enTrans.Locale())
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	if err := en_translations.RegisterDefaultTranslations(validate, trans); err != nil {
+		return nil, fmt.Errorf("error registering validator translations: %w", err)
+	}
+
+	// Combine validation errors
+	var vErrs []ValidationErrors
+
 	for _, task := range *w.wf.Do {
 		if err := validateTaskSupported(task); err != nil {
-			return err
+			return nil, err
+		}
+
+		if len(task.Task.GetBase().Metadata) == 0 {
+			continue
+		}
+
+		if vErr, err := validateSearchAttributes(task, validate, trans); err != nil {
+			return nil, err
+		} else if vErr != nil {
+			vErrs = append(vErrs, vErr...)
 		}
 	}
 
-	return nil
+	return vErrs, nil
 }

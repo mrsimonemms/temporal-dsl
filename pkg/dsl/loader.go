@@ -49,9 +49,5 @@ func LoadFromFile(file, envPrefix string) (*Workflow, error) {
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedDSL, dsl)
 	}
 
-	return &Workflow{
-		data:      data,
-		envPrefix: strings.ToUpper(envPrefix),
-		wf:        wf,
-	}, nil
+	return NewWorkflow(wf, data, strings.ToUpper(envPrefix)), nil
 }

@@ -34,3 +34,15 @@ const (
 )
 
 const defaultWorkflowTimeout = time.Minute * 5
+
+const MetadataSearchAttribute = "searchAttributes"
+
+const (
+	SearchAttributeDateTimeType    string = "datetime"
+	SearchAttributeKeywordListType string = "keywordlist"
+	SearchAttributeKeywordType     string = "keyword"
+	SearchAttributeTextType        string = "text"
+	SearchAttributeIntType         string = "int"
+	SearchAttributeDoubleType      string = "double"
+	SearchAttributeBooleanType     string = "bool"
+)
