@@ -60,6 +60,10 @@ func (w *Workflow) Validate() error {
 		if err := validateTaskSupported(task); err != nil {
 			return err
 		}
+
+		if err := validateMetadata(task); err != nil {
+			return err
+		}
 	}
 
 	return nil
