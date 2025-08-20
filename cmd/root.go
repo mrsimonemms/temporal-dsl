@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"os"
@@ -23,7 +24,7 @@ import (
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
-	tw "github.com/mrsimonemms/temporal-dsl/pkg/workflow"
+	"github.com/mrsimonemms/temporal-dsl/pkg/builder"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -107,21 +108,26 @@ var rootCmd = &cobra.Command{
 		defer c.Close()
 
 		// Load the workflow file
-		wf, err := tw.LoadFromFile(rootOpts.FilePath, rootOpts.EnvPrefix)
+		wf, err := builder.LoadWorkflowFile(rootOpts.FilePath)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error loading workflow")
 		}
 
 		if rootOpts.Validate {
 			log.Debug().Msg("Running validation")
-			if err := wf.Validate(); err != nil {
+			if err := builder.Validate(wf); err != nil {
 				log.Fatal().Err(err).Msg("Failed validation")
 			}
 		}
 
+		dsl, err := builder.NewTemporalBuilder(context.Background(), wf)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error generating Temporal builder")
+		}
+
 		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})
 
-		workflows, err := wf.BuildWorkflows()
+		workflows, err := dsl.BuildWorkflows()
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error building workflows")
 		}
@@ -134,7 +140,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		log.Debug().Msg("Registering activities")
-		w.RegisterActivity(wf.Activities())
+		// w.RegisterActivity(builder.GetActivities())
 
 		err = w.Run(worker.InterruptCh())
 		if err != nil {
