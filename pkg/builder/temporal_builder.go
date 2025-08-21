@@ -22,8 +22,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/serverlessworkflow/sdk-go/v3/impl"
 	swContext "github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 )
@@ -41,17 +41,43 @@ func (t *TemporalBuilder) GetActivities() *activities {
 	return &activities{}
 }
 
+func shouldRunTask(input interface{}, taskSupport TaskSupport, task *model.TaskItem) (bool, error) {
+	if task.GetBase().If != nil {
+		output, err := expr.TraverseAndEvaluateBool(task.GetBase().If.String(), input, taskSupport.GetContext())
+		if err != nil {
+			return false, model.NewErrExpression(err, task.Key)
+		}
+		return output, nil
+	}
+	return true, nil
+}
+
+func workflowBuilder(tasks *model.TaskList, name string) ([]*TemporalWorkflow, error) {
+	wfs := make([]*TemporalWorkflow, 0)
+
+	idx := 0
+	currentTask := (*tasks)[idx]
+
+	for currentTask != nil {
+		// if shouldRun, err := tasks.
+
+		idx, currentTask = tasks.Next(idx)
+	}
+
+	return wfs, nil
+}
+
 // This converts the Serverless Workflow workflows into Temporal workflows. This
 // is analogous to the Run method in impl.WorkflowRunner.
 func (t *TemporalBuilder) BuildWorkflows() ([]*TemporalWorkflow, error) {
 	wfs := make([]*TemporalWorkflow, 0)
 
-	doRunner, err := impl.NewDoTaskRunner(t.Workflow.Do)
+	workflows, err := workflowBuilder(t.Workflow.Do, t.Workflow.Document.Name)
 	if err != nil {
 		return nil, fmt.Errorf("error building workflows: %w", err)
 	}
 
-	fmt.Printf("%+v\n", doRunner)
+	wfs = append(wfs, workflows...)
 
 	return wfs, nil
 }
@@ -100,4 +126,8 @@ func LoadWorkflowFile(file string) (*model.Workflow, error) {
 	}
 
 	return wf, nil
+}
+
+func NewTaskBuilder(taskName string, task model.Task, workflowDef *model.Workflow) (any, error) {
+	return nil, fmt.Errorf("%w: type %T for task %s", ErrUnsupportedTask, task, taskName)
 }
