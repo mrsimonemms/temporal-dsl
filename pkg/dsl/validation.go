@@ -14,63 +14,13 @@
  * limitations under the License.
  */
 
-package workflow
+package dsl
 
 import (
 	"fmt"
-	"maps"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"github.com/serverlessworkflow/sdk-go/v3/parser"
 )
-
-type activities struct{}
-
-type Workflow struct {
-	data      []byte
-	envPrefix string
-	wf        *model.Workflow
-}
-
-type OutputType struct {
-	Type ResultType `json:"type"`
-	Data any        `json:"data"`
-}
-
-type HTTPData map[string]any
-
-type Variables struct {
-	Data HTTPData `json:"data"`
-}
-
-func (a *Variables) AddData(d HTTPData) {
-	if a.Data == nil {
-		a.Data = make(HTTPData)
-	}
-
-	maps.Copy(a.Data, d)
-}
-
-func (a *Variables) Clone() *Variables {
-	if a.Data == nil {
-		a.Data = make(HTTPData)
-	}
-
-	return &Variables{
-		Data: maps.Clone(a.Data),
-	}
-}
-
-func (w *Workflow) Activities() *activities {
-	return &activities{}
-}
-
-func (w *Workflow) WorkflowName() string {
-	return w.wf.Document.Name
-}
 
 // Validation of the schema is handled separately. This validates that there is
 // nothing used we've not implemented. This should reduce over time.
@@ -116,27 +66,4 @@ func (w *Workflow) Validate() error {
 	}
 
 	return nil
-}
-
-func LoadFromFile(file, envPrefix string) (*Workflow, error) {
-	data, err := os.ReadFile(filepath.Clean(file))
-	if err != nil {
-		return nil, fmt.Errorf("error loading file: %w", err)
-	}
-
-	wf, err := parser.FromYAMLSource(data)
-	if err != nil {
-		return nil, fmt.Errorf("error loading yaml: %w", err)
-	}
-
-	// Only support dsl v1.0.0 - we may support later versions
-	if dsl := wf.Document.DSL; dsl != "1.0.0" {
-		return nil, fmt.Errorf("%w: %s", ErrUnsupportedDSL, dsl)
-	}
-
-	return &Workflow{
-		data:      data,
-		envPrefix: strings.ToUpper(envPrefix),
-		wf:        wf,
-	}, nil
 }

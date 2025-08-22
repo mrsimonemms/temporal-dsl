@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-package workflow
+package dsl
 
 import (
 	"fmt"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/workflow"
 )
 
-// A Do task configures a new workflow
-func doTaskImpl(
-	do *model.DoTask,
-	task *model.TaskItem,
-	workflowInst *Workflow,
-) ([]*TemporalWorkflow, error) {
-	// This doesn't implement the if statement as it
-	// doesn't make sense to conditionally register a workflow
-	temporalWorkflows, err := workflowInst.workflowBuilder(do.Do, task.Key)
-	if err != nil {
-		return nil, fmt.Errorf("error building additional do workflows: %w", err)
-	}
+func waitTaskImpl(task *model.WaitTask) TemporalWorkflowFunc {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+		logger := workflow.GetLogger(ctx)
 
-	return temporalWorkflows, nil
+		duration := ToDuration(task.Wait)
+
+		logger.Debug("Sleeping", "duration", duration.String())
+
+		if err := workflow.Sleep(ctx, duration); err != nil {
+			return fmt.Errorf("error sleeping: %w", err)
+		}
+
+		return nil
+	}
 }

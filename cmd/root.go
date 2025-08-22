@@ -23,7 +23,7 @@ import (
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
-	tw "github.com/mrsimonemms/temporal-dsl/pkg/workflow"
+	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -107,7 +107,7 @@ var rootCmd = &cobra.Command{
 		defer c.Close()
 
 		// Load the workflow file
-		wf, err := tw.LoadFromFile(rootOpts.FilePath, rootOpts.EnvPrefix)
+		wf, err := dsl.LoadFromFile(rootOpts.FilePath, rootOpts.EnvPrefix)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error loading workflow")
 		}

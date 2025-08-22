@@ -4,8 +4,8 @@
 
 | File | Line Number | Author | Message |
 | --- | --- | --- | --- |
-| [pkg/workflow/taskCallHTTP.go](pkg/workflow/taskCallHTTP.go#L105) | 105 | Simon Emms <simon@simonemms.com> | configure the timeout |
-| [pkg/workflow/taskFork.go](pkg/workflow/taskFork.go#L32) | 32 | Simon Emms <simon@simonemms.com> | handle competing forks |
-| [pkg/workflow/taskListen.go](pkg/workflow/taskListen.go#L86) | 86 | Simon Emms <simon@simonemms.com> | allow data to be received via signal |
-| [pkg/workflow/taskListen.go](pkg/workflow/taskListen.go#L87) | 87 | Simon Emms <simon@simonemms.com> | ignore if timeout is set to 0 or "0" |
-| [pkg/workflow/taskListen.go](pkg/workflow/taskListen.go#L246) | 246 | Simon Emms <simon@simonemms.com> | figure out a way of customising the timeout |
+| [pkg/dsl/taskCallHTTP.go](pkg/dsl/taskCallHTTP.go#L105) | 105 | Simon Emms <simon@simonemms.com> | configure the timeout |
+| [pkg/dsl/taskFork.go](pkg/dsl/taskFork.go#L32) | 32 | Simon Emms <simon@simonemms.com> | handle competing forks |
+| [pkg/dsl/taskListen.go](pkg/dsl/taskListen.go#L86) | 86 | Simon Emms <simon@simonemms.com> | allow data to be received via signal |
+| [pkg/dsl/taskListen.go](pkg/dsl/taskListen.go#L87) | 87 | Simon Emms <simon@simonemms.com> | ignore if timeout is set to 0 or "0" |
+| [pkg/dsl/taskListen.go](pkg/dsl/taskListen.go#L246) | 246 | Simon Emms <simon@simonemms.com> | figure out a way of customising the timeout |

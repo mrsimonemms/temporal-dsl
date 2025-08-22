@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package workflow
+package dsl
 
 import (
 	"context"
