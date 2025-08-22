@@ -22,8 +22,6 @@ import (
 	"os"
 	"path/filepath"
 
-	swContext "github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
-	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 )
@@ -32,36 +30,53 @@ import (
 type activities struct{}
 
 type TemporalBuilder struct {
-	Workflow  *model.Workflow
-	Context   context.Context
-	RunnerCtx swContext.WorkflowContext
+	Workflow *model.Workflow
+	Context  context.Context
 }
 
 func (t *TemporalBuilder) GetActivities() *activities {
 	return &activities{}
 }
 
-func shouldRunTask(input interface{}, taskSupport TaskSupport, task *model.TaskItem) (bool, error) {
-	if task.GetBase().If != nil {
-		output, err := expr.TraverseAndEvaluateBool(task.GetBase().If.String(), input, taskSupport.GetContext())
-		if err != nil {
-			return false, model.NewErrExpression(err, task.Key)
+func hasMultipleWorkflows(tasks *model.TaskList) (hasMultiple bool) {
+	for _, task := range *tasks {
+		if do := task.AsDoTask(); do != nil {
+			// Do set - treat as multiple workflows
+			hasMultiple = true
 		}
-		return output, nil
 	}
-	return true, nil
+	return
 }
 
-func workflowBuilder(tasks *model.TaskList, name string) ([]*TemporalWorkflow, error) {
+func (t *TemporalBuilder) workflowBuilder(tasks *model.TaskList, name *string) ([]*TemporalWorkflow, error) {
+	hasMultiWorkflows := name == nil
+
 	wfs := make([]*TemporalWorkflow, 0)
 
-	idx := 0
-	currentTask := (*tasks)[idx]
+	timeout := defaultWorkflowTimeout
+	if t.Workflow.Timeout != nil && t.Workflow.Timeout.Timeout != nil && t.Workflow.Timeout.Timeout.After != nil {
+		timeout = ToDuration(t.Workflow.Timeout.Timeout.After)
+	}
 
-	for currentTask != nil {
-		// if shouldRun, err := tasks.
+	wf := &TemporalWorkflow{
+		Name:    *name,
+		Tasks:   make([]TemporalWorkflowTask, 0),
+		Timeout: timeout,
+	}
 
-		idx, currentTask = tasks.Next(idx)
+	for _, task := range *tasks {
+		var task TemporalWorkflowFunc
+		var err error
+		var additionalWorkflows []*TemporalWorkflow
+
+		if hasMultiWorkflows {
+			// Multiple workflows registered
+		}
+	}
+
+	// Add to the list of workflows if name is set
+	if !hasMultiWorkflows {
+		wfs = append(wfs, wf)
 	}
 
 	return wfs, nil
@@ -72,7 +87,19 @@ func workflowBuilder(tasks *model.TaskList, name string) ([]*TemporalWorkflow, e
 func (t *TemporalBuilder) BuildWorkflows() ([]*TemporalWorkflow, error) {
 	wfs := make([]*TemporalWorkflow, 0)
 
-	workflows, err := workflowBuilder(t.Workflow.Do, t.Workflow.Document.Name)
+	if t.Workflow.Do == nil || len(*t.Workflow.Do) == 0 {
+		return nil, ErrNoTasksDefined
+	}
+
+	// The root definition can define one or more than one workflow
+	// - Single workflow takes it's name from the DSL document.name
+	// - Multiple workflows doesn't register document.name as a workflow
+	var rootWorkflowName *string
+	if !hasMultipleWorkflows(t.Workflow.Do) {
+		rootWorkflowName = &t.Workflow.Document.Name
+	}
+
+	workflows, err := t.workflowBuilder(t.Workflow.Do, rootWorkflowName)
 	if err != nil {
 		return nil, fmt.Errorf("error building workflows: %w", err)
 	}
@@ -80,10 +107,6 @@ func (t *TemporalBuilder) BuildWorkflows() ([]*TemporalWorkflow, error) {
 	wfs = append(wfs, workflows...)
 
 	return wfs, nil
-}
-
-func (t *TemporalBuilder) GetWorkflowCtx() swContext.WorkflowContext {
-	return t.RunnerCtx
 }
 
 func (t *TemporalBuilder) GetWorkflowDef() *model.Workflow {
@@ -97,15 +120,9 @@ func (t *TemporalBuilder) GetWorkflowDef() *model.Workflow {
 //
 // This builder is designed to generate the Temporal code from the DSL
 func NewTemporalBuilder(ctx context.Context, workflow *model.Workflow) (*TemporalBuilder, error) {
-	wfContext, err := swContext.NewWorkflowContext(workflow)
-	if err != nil {
-		return nil, fmt.Errorf("error creating workflow context: %w", err)
-	}
-
 	return &TemporalBuilder{
-		Workflow:  workflow,
-		Context:   swContext.WithWorkflowContext(ctx, wfContext),
-		RunnerCtx: wfContext,
+		Workflow: workflow,
+		Context:  ctx,
 	}, nil
 }
 

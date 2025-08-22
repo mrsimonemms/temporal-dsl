@@ -20,23 +20,18 @@ import (
 	"time"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"go.temporal.io/sdk/workflow"
 )
 
-type TemporalWorkflowTask struct {
-	Key      string
-	TaskBase *model.TaskBase
-	Task     TemporalWorkflowFunc
-}
+// Converts the Serverless Workflow model.Duration to a time Duration
+func ToDuration(v *model.Duration) time.Duration {
+	inline := v.AsInline()
 
-type TemporalWorkflowFunc func(ctx workflow.Context, data *any, output *any) error
+	var duration time.Duration
+	duration += time.Millisecond * time.Duration(inline.Milliseconds)
+	duration += time.Second * time.Duration(inline.Seconds)
+	duration += time.Minute * time.Duration(inline.Minutes)
+	duration += time.Hour * time.Duration(inline.Hours)
+	duration += (time.Hour * 24) * time.Duration(inline.Days)
 
-type TemporalWorkflow struct {
-	Name    string
-	Timeout time.Duration
-	Tasks   []TemporalWorkflowTask
-}
-
-func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input map[string]any) error {
-	return nil
+	return duration
 }

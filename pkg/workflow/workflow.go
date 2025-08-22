@@ -114,6 +114,8 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 			taskType = "CallHTTP"
 		}
 
+		item.AsSwitchTask()
+
 		if do := item.AsDoTask(); do != nil {
 			additionalWorkflows, err = doTaskImpl(do, item, w)
 			taskType = "DoTask"

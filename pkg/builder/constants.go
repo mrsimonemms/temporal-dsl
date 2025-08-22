@@ -16,9 +16,15 @@
 
 package builder
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 var (
+	ErrNoTasksDefined  = fmt.Errorf("no tasks defined")
 	ErrUnsupportedTask = fmt.Errorf("task not supported")
 	ErrUnsupportedDSL  = fmt.Errorf("unsupported dsl")
 )
+
+const defaultWorkflowTimeout = time.Minute * 5

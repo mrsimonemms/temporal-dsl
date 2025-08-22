@@ -59,7 +59,6 @@ func TestNewTemporalBuilder(t *testing.T) {
 				assert.NotNil(t, r)
 				assert.Equal(t, test.Workflow, r.Workflow)
 				assert.NotNil(t, r.Context)
-				assert.NotNil(t, r.RunnerCtx)
 			}
 		})
 	}
