@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package workflow
+package dsl
 
-import "fmt"
+import "time"
 
-var (
-	ErrDuplicateKey          = fmt.Errorf("duplicate key found")
-	ErrInvalidType           = fmt.Errorf("invalid type given")
-	ErrNotString             = fmt.Errorf("input must be a string")
-	ErrUnsetListenIDTask     = fmt.Errorf("listen task id is not set")
-	ErrUnsetListenTypeTask   = fmt.Errorf("listen task type is not set")
-	ErrUnknownListenTypeTask = fmt.Errorf("listen task type is not known")
-	ErrUnsupportedTask       = fmt.Errorf("task not supported")
-	ErrUnsupportedDSL        = fmt.Errorf("unsupported dsl")
+type (
+	ErrType    string
+	ResultType string
 )
+
+const (
+	CallHTTPErr    ErrType = "CallHTTP error"
+	IfStatementErr ErrType = "IfStatement error"
+)
+
+const (
+	CallHTTPResultType ResultType = "CallHTTP"
+	ForkResultType     ResultType = "Fork"
+)
+
+const defaultWorkflowTimeout = time.Minute * 5

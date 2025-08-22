@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
-	"github.com/mrsimonemms/temporal-dsl/pkg/workflow"
+	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 )
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	we, err := c.ExecuteWorkflow(ctx, workflowOptions, "listen", workflow.HTTPData{
+	we, err := c.ExecuteWorkflow(ctx, workflowOptions, "listen", dsl.HTTPData{
 		"userId": 3,
 	})
 	if err != nil {
@@ -59,7 +59,7 @@ func main() {
 		WaitForStage: client.WorkflowUpdateStageCompleted,
 		UpdateName:   "com.fake-hospital.vitals.measurements.temperature",
 		Args: []any{
-			workflow.HTTPData{
+			dsl.HTTPData{
 				"temperature": 39,
 			},
 		},

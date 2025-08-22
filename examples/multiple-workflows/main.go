@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
-	"github.com/mrsimonemms/temporal-dsl/pkg/workflow"
+	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 )
@@ -48,7 +48,7 @@ func main() {
 
 	for w, userId := range wfs {
 		ctx := context.Background()
-		we, err := c.ExecuteWorkflow(ctx, workflowOptions, w, workflow.HTTPData{
+		we, err := c.ExecuteWorkflow(ctx, workflowOptions, w, dsl.HTTPData{
 			"userId": userId,
 		})
 		if err != nil {
@@ -58,7 +58,7 @@ func main() {
 
 		log.Info().Str("workflowId", we.GetID()).Str("runId", we.GetRunID()).Str("workflow", w).Msg("Started workflow")
 
-		var result map[string]workflow.OutputType
+		var result map[string]dsl.OutputType
 		if err := we.Get(ctx, &result); err != nil {
 			log.Fatal().Err(err).Msg("Error getting response")
 		}

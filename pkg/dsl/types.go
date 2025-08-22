@@ -14,27 +14,47 @@
  * limitations under the License.
  */
 
-package workflow
+package dsl
 
 import (
-	"fmt"
+	"maps"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"go.temporal.io/sdk/workflow"
 )
 
-func waitTaskImpl(task *model.WaitTask) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
-		logger := workflow.GetLogger(ctx)
+type activities struct{}
 
-		duration := ToDuration(task.Wait)
+type Workflow struct {
+	data      []byte
+	envPrefix string
+	wf        *model.Workflow
+}
 
-		logger.Debug("Sleeping", "duration", duration.String())
+type OutputType struct {
+	Type ResultType `json:"type"`
+	Data any        `json:"data"`
+}
 
-		if err := workflow.Sleep(ctx, duration); err != nil {
-			return fmt.Errorf("error sleeping: %w", err)
-		}
+type HTTPData map[string]any
 
-		return nil
+type Variables struct {
+	Data HTTPData `json:"data"`
+}
+
+func (a *Variables) AddData(d HTTPData) {
+	if a.Data == nil {
+		a.Data = make(HTTPData)
+	}
+
+	maps.Copy(a.Data, d)
+}
+
+func (a *Variables) Clone() *Variables {
+	if a.Data == nil {
+		a.Data = make(HTTPData)
+	}
+
+	return &Variables{
+		Data: maps.Clone(a.Data),
 	}
 }
