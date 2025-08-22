@@ -9,7 +9,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "svelte.svelte-vscode"
       ],
       "settings": {}
     }
@@ -27,6 +28,7 @@
   },
   "forwardPorts": [
     3000,
+    5173,
     7070,
     7233,
     8080,
