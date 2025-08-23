@@ -67,8 +67,12 @@ func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input HTTPData) (map[s
 	}
 
 	for _, task := range t.Tasks {
-		logger.Debug("Check if task can be run", "name", task.Key)
+		logger.Debug("Adding summary to activity context", "name", task.Key)
+		ao := workflow.GetActivityOptions(ctx)
+		ao.Summary = task.Key
+		ctx = workflow.WithActivityOptions(ctx, ao)
 
+		logger.Debug("Check if task can be run", "name", task.Key)
 		// Check for and run any if statement
 		if toRun, err := CheckIfStatement(task.TaskBase, vars); err != nil {
 			logger.Error("Error checking if statement", "error", err)
