@@ -8,7 +8,10 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": [],
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "svelte.svelte-vscode"
+      ],
       "settings": {}
     }
   },
@@ -25,6 +28,7 @@
     "WORKFLOW_FILE": "./workflow.example.yaml"
   },
   "forwardPorts": [
+    5173,
     7070,
     7233,
     8080,

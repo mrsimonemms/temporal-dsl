@@ -55,11 +55,32 @@ jobs:
 
       - uses: pre-commit/action@v3.0.1
 
+  test-ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website/ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Tests
+        run: |
+          npm run lint
+          npm run check
+
   build:
     runs-on: ubuntu-latest
     needs:
       - commitlint
       - test
+      - test-ui
     steps:
       - uses: actions/checkout@v4
         with:
@@ -91,10 +112,13 @@ jobs:
           then
             # Latest tag
             IMG_NAME="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
+            UI_IMG_NAME="ghcr.io/${GITHUB_REPOSITORY,,}/ui:latest"
             # Tag name (usually vX.Y.Z)
             IMG_NAME="${IMG_NAME},ghcr.io/${GITHUB_REPOSITORY,,}:${{ steps.branch-name.outputs.tag }}"
+            UI_IMG_NAME="${IMG_NAME},ghcr.io/${GITHUB_REPOSITORY,,}/ui:${{ steps.branch-name.outputs.tag }}"
 
             echo "image_name=${IMG_NAME}" >> "$GITHUB_OUTPUT"
+            echo "ui_image_name=${UI_IMG_NAME}" >> "$GITHUB_OUTPUT"
             echo "platforms=linux/amd64,linux/arm64" >> "$GITHUB_OUTPUT"
             echo "push=true" >> "$GITHUB_OUTPUT"
           else
@@ -106,6 +130,7 @@ jobs:
             TAG="${TAG,,}"
 
             echo "image_name=ghcr.io/${GITHUB_REPOSITORY,,}:${TAG}" >> "$GITHUB_OUTPUT"
+            echo "ui_image_name=ghcr.io/${GITHUB_REPOSITORY,,}/ui:${TAG}" >> "$GITHUB_OUTPUT"
             echo "platforms=linux/amd64" >> "$GITHUB_OUTPUT"
             echo "push=${{ github.ref == 'refs/heads/main' }}" >> "$GITHUB_OUTPUT"
           fi
@@ -118,8 +143,21 @@ jobs:
           fi
 
           echo "container_tagged_image=ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "ui_container_tagged_image=ghcr.io/${GITHUB_REPOSITORY,,}/ui:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "commit_id=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "gitRepo=github.com/${GITHUB_REPOSITORY}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push UI
+        uses: docker/build-push-action@v5
+        with:
+          context: ./website/ui
+          build-args: |
+            GIT_COMMIT=${{ steps.docker.outputs.commit_id }}
+            GIT_REPO=${{ steps.docker.outputs.gitRepo }}
+            VERSION=${{ steps.docker.outputs.version }}
+          platforms: ${{ steps.docker.outputs.platforms }}
+          push: ${{ steps.docker.outputs.push }}
+          tags: ${{ steps.docker.outputs.ui_image_name }},${{ steps.docker.outputs.ui_container_tagged_image }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
