@@ -82,6 +82,12 @@ func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input HTTPData) (map[s
 			continue
 		}
 
+		// Parse any custom search attributes
+		if err := ParseSearchAttributes(ctx, task.TaskBase, vars); err != nil {
+			logger.Error("Error parsing search attributes", "error", err)
+			return nil, err
+		}
+
 		logger.Info("Running task", "name", task.Key)
 		if err := task.Task(ctx, vars, output); err != nil {
 			return nil, err
