@@ -89,6 +89,16 @@
     do:
       - queryState: *queryState
       - setup: *setup
+      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
+      - advancedVisibility:
+          if: '${ ._tw_workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
+          metadata:
+            searchAttributes:
+              Step:
+                type: text
+                value: Validate
+          set:
+            step: validate
       - validate: *validate
       - updateState:
           set:
@@ -111,6 +121,16 @@
                   type: signal
                   # Timeout - runs forever if not sent
                   timeout: 30s
+      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
+      - advancedVisibility:
+          if: '${ ._tw_workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
+          metadata:
+            searchAttributes:
+              Step:
+                type: text
+                value: Withdraw
+          set:
+            step: withdraw
       - withdraw: *withdraw
       - bug:
           if: '${ ._tw_workflow_type_name == "AccountTransferWorkflowRecoverableFailure" }'
@@ -124,10 +144,30 @@
             stateProgressPercentage: 50
             # Set state to running - may have come from approveTransfer
             stateTransferState: running
+      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
+      - advancedVisibility:
+          if: '${ ._tw_workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
+          metadata:
+            searchAttributes:
+              Step:
+                type: text
+                value: Deposit
+          set:
+            step: deposit
       - deposit: *deposit
       - updateState:
           set:
             stateProgressPercentage: 75
+      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
+      - advancedVisibility:
+          if: '${ ._tw_workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
+          metadata:
+            searchAttributes:
+              Step:
+                type: text
+                value: SendNotification
+          set:
+            step: sendNotification
       - sendNotification: *sendNotification
       - updateState:
           set:
