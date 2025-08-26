@@ -7,6 +7,16 @@ services:
     ports:
       - 3000:3000
 
+  searchAttributes:
+    image: temporalio/temporal
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    restart: on-failure
+    depends_on:
+      temporal:
+        condition: service_healthy
+    command: operator search-attribute create --name Step --type text
+
   temporal:
     image: temporalio/temporal
     ports:
@@ -23,6 +33,7 @@ services:
       context: ../../
       target: builder
     environment:
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
       TASK_QUEUE: MoneyTransfer
       TEMPORAL_ADDRESS: temporal:7233
       WORKFLOW_FILE: ./examples/money-transfer/workflow.yaml
@@ -32,6 +43,8 @@ services:
       - server
       - temporal
     depends_on:
+      searchAttributes:
+        condition: service_completed_successfully
       temporal:
         condition: service_healthy
       # UI isn't actually linked, but allows us to run docker compose up workflow
