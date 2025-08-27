@@ -7,6 +7,7 @@ replicaCount: 1
 
 # -- Accepts any of the command line arguments
 config:
+  log-level: info
   # temporal-address: temporal:7233
 
 # -- Additional environment variables
@@ -102,26 +103,30 @@ podSecurityContext: {}
 securityContext: {}
 
 service:
-  # -- Service's type
+  # -- Service type
   type: ClusterIP
-  # -- Service's port
-  port: 3000
+  health:
+    # -- Health service port
+    port: 3000
+  metrics:
+    # -- Metrics service port
+    port: 9090
 
 # -- Configure resources available
 resources: {}
 
-# livenessProbe:
-#   httpGet:
-#     # -- Path to demonstrate app liveness
-#     path: /livez
-#     # -- Port to demonstrate app liveness
-#     port: http
-# readinessProbe:
-#   httpGet:
-#     # -- Path to demonstrate app readiness
-#     path: /livez
-#     # -- Port to demonstrate app readiness
-#     port: http
+livenessProbe:
+  httpGet:
+    # -- Path to demonstrate app liveness
+    path: /health
+    # -- Port to demonstrate app liveness
+    port: health
+readinessProbe:
+  httpGet:
+    # -- Path to demonstrate app readiness
+    path: /health
+    # -- Port to demonstrate app readiness
+    port: health
 
 autoscaling:
   # -- Autoscaling enabled

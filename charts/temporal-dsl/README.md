@@ -13,23 +13,28 @@ Build Temporal workflows from YAML
 | autoscaling.maxReplicas | int | `100` | Maximum replicas |
 | autoscaling.minReplicas | int | `1` | Minimum replicas |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | When to trigger a new replica |
-| config | string | `nil` | Accepts any of the command line arguments |
+| config | object | `{"log-level":"info"}` | Accepts any of the command line arguments |
 | envvars | string | `nil` | Additional environment variables |
 | fullnameOverride | string | `""` | String to fully override names |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | image.repository | string | `"ghcr.io/mrsimonemms/temporal-dsl"` | Image repositiory |
 | image.tag | string | `""` | Image tag - defaults to the chart's `Version` if not set |
 | imagePullSecrets | list | `[]` | Docker registry secret names |
+| livenessProbe.httpGet.path | string | `"/health"` | Path to demonstrate app liveness |
+| livenessProbe.httpGet.port | string | `"health"` | Port to demonstrate app liveness |
 | nameOverride | string | `""` | String to partially override name |
 | nodeSelector | object | `{}` | Node selector |
 | podAnnotations | object | `{}` | Pod [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) |
 | podLabels | object | `{}` | Pod [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) |
 | podSecurityContext | object | `{}` | Pod's [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context) |
+| readinessProbe.httpGet.path | string | `"/health"` | Path to demonstrate app readiness |
+| readinessProbe.httpGet.port | string | `"health"` | Port to demonstrate app readiness |
 | replicaCount | int | `1` | Number of replicas |
 | resources | object | `{}` | Configure resources available |
 | securityContext | object | `{}` | Container's security context |
-| service.port | int | `3000` | Service's port |
-| service.type | string | `"ClusterIP"` | Service's type |
+| service.health.port | int | `3000` | Health service port |
+| service.metrics.port | int | `9090` | Metrics service port |
+| service.type | string | `"ClusterIP"` | Service type |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | serviceAccount.automount | bool | `true` | Automatically mount a ServiceAccount's API credentials? |
 | serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
