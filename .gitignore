@@ -8,3 +8,5 @@ node_modules
 Thumbs.db
 .envrc
 go.work.sum
+
+values.example.yaml
