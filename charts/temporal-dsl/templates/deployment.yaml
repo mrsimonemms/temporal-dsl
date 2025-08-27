@@ -45,13 +45,20 @@ spec:
           {{- range $key, $value := .Values.config }}
             - {{ printf "--%s=%v" $key $value | quote }}
           {{- end }}
-          {{- with .Values.envvars }}
           env:
+            - name: HEALTH_LISTEN_ADDRESS
+              value: {{ printf "0.0.0.0:%.0f" .Values.service.health.port | quote }}
+            - name: METRICS_LISTEN_ADDRESS
+              value: {{ printf "0.0.0.0:%.0f" .Values.service.metrics.port | quote }}
+          {{- with .Values.envvars }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
+            - name: health
+              containerPort: {{ .Values.service.health.port }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.service.metrics.port }}
               protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:

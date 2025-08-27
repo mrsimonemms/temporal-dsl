@@ -7,9 +7,13 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.service.health.port }}
+      targetPort: health
       protocol: TCP
-      name: http
+      name: health
+    - port: {{ .Values.service.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
   selector:
     {{- include "temporal-dsl.selectorLabels" . | nindent 4 }}
