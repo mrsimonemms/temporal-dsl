@@ -35,6 +35,16 @@ type SearchAttribute struct {
 	Value any    `json:"value"` // If nil then the value is unset
 }
 
+func (v *SearchAttribute) interpolateValue(vars *Variables) error {
+	var err error
+	if s, ok := v.Value.(string); ok {
+		// Strings can be interpolated
+		v.Value, err = ParseVariables(s, vars)
+	}
+
+	return err
+}
+
 func (v *SearchAttribute) newBooleanUpdate(key string) (temporal.SearchAttributeUpdate, error) {
 	s := temporal.NewSearchAttributeKeyBool(key)
 	if v.Value == nil {
@@ -220,6 +230,11 @@ func ParseSearchAttributes(ctx workflow.Context, task *model.TaskBase, vars *Var
 	signedAttributes := make([]temporal.SearchAttributeUpdate, 0)
 
 	for k, v := range searchAttributes {
+		if err := v.interpolateValue(vars); err != nil {
+			logger.Error("Error interpolating search attribute value", "key", k, "error", err)
+			return fmt.Errorf(`error interpolating search attribute value for key "%s": %w`, k, err)
+		}
+
 		if attr, err := v.setAttribute(k); err != nil {
 			logger.Error("Error setting search attribute", "error", err)
 			return fmt.Errorf("error setting search attribute: %w", err)
