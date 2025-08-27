@@ -96,6 +96,11 @@ func TestParseSearchAttributes(t *testing.T) {
 		},
 		{
 			Name: "complete search parameters",
+			Vars: &dsl.Variables{
+				Data: dsl.HTTPData{
+					"someNumber": 33,
+				},
+			},
 			Task: &model.TaskBase{
 				Metadata: map[string]any{
 					dsl.MetadataSearchAttribute: map[string]*dsl.SearchAttribute{
@@ -154,6 +159,10 @@ func TestParseSearchAttributes(t *testing.T) {
 						"int-string-setter": {
 							Type:  dsl.SearchAttributeIntType,
 							Value: "239",
+						},
+						"int-string-variable-setter": {
+							Type:  dsl.SearchAttributeIntType,
+							Value: "{{ .someNumber }}",
 						},
 						"float-int-setter": {
 							Type:  dsl.SearchAttributeDoubleType,
@@ -250,6 +259,10 @@ func TestParseSearchAttributes(t *testing.T) {
 				"int-string-setter": {
 					fn:    getInt,
 					value: int64(239),
+				},
+				"int-string-variable-setter": {
+					fn:    getInt,
+					value: int64(33),
 				},
 				"float-int-setter": {
 					fn:    getFloat,

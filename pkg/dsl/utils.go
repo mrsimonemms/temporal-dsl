@@ -140,6 +140,10 @@ func Interpolate(input any, data *Variables) (outputValue any, err error) {
 
 // Parses a string with variables
 func ParseVariables(input string, data *Variables) (string, error) {
+	if data == nil {
+		return input, nil
+	}
+
 	t, err := template.New("values").
 		Funcs(sprig.FuncMap()).
 		Parse(input)

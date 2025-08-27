@@ -28,9 +28,9 @@ do:
           call:
             type: text
             value: getUser
-        userId:
-          type: int
-          value: "{{ .userId }}"
+          userId:
+            type: int
+            value: "{{ .userId }}"
       with:
         method: get
         endpoint: https://jsonplaceholder.typicode.com/users/{{ .userId }}
