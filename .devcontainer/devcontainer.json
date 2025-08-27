@@ -25,9 +25,11 @@
     "WORKFLOW_FILE": "./workflow.example.yaml"
   },
   "forwardPorts": [
+    3000,
     7070,
     7233,
     8080,
-    8233
+    8233,
+    9090
   ]
 }
