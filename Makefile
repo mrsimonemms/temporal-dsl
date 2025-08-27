@@ -13,6 +13,8 @@
 # limitations under the License.
 
 EXAMPLES = ./examples
+TMP_IMG ?= ttl.sh/temporal-dsl
+TMP_IMG_TAG ?= 24h
 
 cruft-update:
 ifeq (,$(wildcard .cruft.json))
@@ -21,6 +23,33 @@ else
 	@cruft check || cruft update --skip-apply-ask --refresh-private-variables
 endif
 .PHONY: cruft-update
+
+helm_img:
+	@docker build -t ${TMP_IMG}:${TMP_IMG_TAG} .
+	@docker push ${TMP_IMG}:${TMP_IMG_TAG}
+.PHONY: helm_img
+
+helm:
+# Put your custom values in here
+	@touch values.example.yaml
+	@helm upgrade \
+		--atomic \
+		--cleanup-on-fail \
+		--create-namespace \
+		--install \
+		--namespace dsl \
+		--reset-values \
+		--set image.pullPolicy=Always \
+		--set image.repository=${TMP_IMG} \
+		--set image.tag=${TMP_IMG_TAG} \
+		--values ./values.example.yaml \
+		--wait \
+		dsl ./charts/temporal-dsl
+.PHONY: helm
+
+minikube:
+	@minikube profile list | grep minikube | grep OK || minikube start
+.PHONY: minikube
 
 start:
 	$(shell if [ -z "${NAME}" ]; then echo "NAME must be set"; exit 1; fi)
