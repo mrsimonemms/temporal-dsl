@@ -74,6 +74,12 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Fatal().Interface("recover", r).Msg("Recovered from panic")
+			}
+		}()
+
 		var converter converter.DataConverter
 		if rootOpts.ConvertData {
 			keys, err := aes.ReadKeyFile(rootOpts.ConvertKeyPath)
