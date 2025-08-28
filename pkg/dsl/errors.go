@@ -21,6 +21,7 @@ import "fmt"
 var (
 	ErrDuplicateKey               = fmt.Errorf("duplicate key found")
 	ErrInvalidType                = fmt.Errorf("invalid type given")
+	ErrScheduleNoWorkflowName     = fmt.Errorf("workflow name not set for schedule")
 	ErrNotString                  = fmt.Errorf("input must be a string")
 	ErrUnknownValidationError     = fmt.Errorf("unknown validation error")
 	ErrUnsetListenIDTask          = fmt.Errorf("listen task id is not set")

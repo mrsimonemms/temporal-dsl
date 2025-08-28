@@ -129,6 +129,11 @@ var rootCmd = &cobra.Command{
 			log.Debug().Msg("Validation passed")
 		}
 
+		log.Info().Msg("Upserting schedules")
+		if err := dsl.UpsertSchedule(ctx, c, wf, rootOpts.TaskQueue); err != nil {
+			log.Fatal().Err(err).Msg("Error upserting Temporal schedules")
+		}
+
 		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})
 
 		workflows, err := wf.BuildWorkflows()
