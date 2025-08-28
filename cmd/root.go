@@ -151,39 +151,29 @@ func Execute() {
 	}
 }
 
-//nolint:funlen
 func init() {
 	viper.AutomaticEnv()
 
 	rootCmd.Flags().BoolVar(
-		&rootOpts.ConvertData,
-		"convert-data",
-		viper.GetBool("convert_data"),
-		"Enable AES data conversion",
+		&rootOpts.ConvertData, "convert-data",
+		viper.GetBool("convert_data"), "Enable AES data conversion",
 	)
 
 	viper.SetDefault("converter_key_path", "keys.yaml")
 	rootCmd.Flags().StringVar(
-		&rootOpts.ConvertKeyPath,
-		"converter-key-path",
-		viper.GetString("converter_key_path"),
-		"Path to AES conversion keys",
+		&rootOpts.ConvertKeyPath, "converter-key-path",
+		viper.GetString("converter_key_path"), "Path to AES conversion keys",
 	)
 
 	rootCmd.Flags().StringVarP(
-		&rootOpts.FilePath,
-		"file",
-		"f",
-		viper.GetString("workflow_file"),
-		"Path to workflow file",
+		&rootOpts.FilePath, "file", "f",
+		viper.GetString("workflow_file"), "Path to workflow file",
 	)
 
 	viper.SetDefault("env_prefix", "TDSL")
 	rootCmd.Flags().StringVar(
-		&rootOpts.EnvPrefix,
-		"env-prefix",
-		viper.GetString("env_prefix"),
-		"Load envvars with this prefix to the workflow",
+		&rootOpts.EnvPrefix, "env-prefix",
+		viper.GetString("env_prefix"), "Load envvars with this prefix to the workflow",
 	)
 
 	viper.SetDefault("health_listen_address", "0.0.0.0:3000")
@@ -194,11 +184,8 @@ func init() {
 
 	viper.SetDefault("log_level", zerolog.InfoLevel.String())
 	rootCmd.PersistentFlags().StringVarP(
-		&rootOpts.LogLevel,
-		"log-level",
-		"l",
-		viper.GetString("log_level"),
-		fmt.Sprintf("log level: %s", "Set log level"),
+		&rootOpts.LogLevel, "log-level", "l",
+		viper.GetString("log_level"), fmt.Sprintf("log level: %s", "Set log level"),
 	)
 
 	viper.SetDefault("metrics_listen_address", "0.0.0.0:9090")
@@ -214,27 +201,19 @@ func init() {
 
 	viper.SetDefault("task_queue", "temporal-dsl")
 	rootCmd.Flags().StringVarP(
-		&rootOpts.TaskQueue,
-		"task-queue",
-		"q",
-		viper.GetString("task_queue"),
-		"Task queue name",
+		&rootOpts.TaskQueue, "task-queue", "q",
+		viper.GetString("task_queue"), "Task queue name",
 	)
 
 	viper.SetDefault("temporal_address", client.DefaultHostPort)
 	rootCmd.Flags().StringVarP(
-		&rootOpts.TemporalAddress,
-		"temporal-address",
-		"H",
-		viper.GetString("temporal_address"),
-		"Address of the Temporal server",
+		&rootOpts.TemporalAddress, "temporal-address", "H",
+		viper.GetString("temporal_address"), "Address of the Temporal server",
 	)
 
 	rootCmd.Flags().StringVar(
-		&rootOpts.TemporalAPIKey,
-		"temporal-api-key",
-		viper.GetString("temporal_api_key"),
-		"API key for Temporal authentication",
+		&rootOpts.TemporalAPIKey, "temporal-api-key",
+		viper.GetString("temporal_api_key"), "API key for Temporal authentication",
 	)
 	// Hide the default value to avoid spaffing the API to command line
 	apiKey := rootCmd.Flags().Lookup("temporal-api-key")
@@ -244,26 +223,19 @@ func init() {
 
 	viper.SetDefault("temporal_namespace", client.DefaultNamespace)
 	rootCmd.Flags().StringVarP(
-		&rootOpts.TemporalNamespace,
-		"temporal-namespace",
-		"n",
-		viper.GetString("temporal_namespace"),
-		"Temporal namespace to use",
+		&rootOpts.TemporalNamespace, "temporal-namespace", "n",
+		viper.GetString("temporal_namespace"), "Temporal namespace to use",
 	)
 
 	viper.SetDefault("temporal_tls", client.DefaultNamespace)
 	rootCmd.Flags().BoolVar(
-		&rootOpts.TemporalTLSEnabled,
-		"temporal-tls",
-		viper.GetBool("temporal_tls"),
-		"Enable TLS Temporal connection",
+		&rootOpts.TemporalTLSEnabled, "temporal-tls",
+		viper.GetBool("temporal_tls"), "Enable TLS Temporal connection",
 	)
 
 	viper.SetDefault("validate", true)
 	rootCmd.Flags().BoolVar(
-		&rootOpts.Validate,
-		"validate",
-		viper.GetBool("validate"),
-		"Run workflow validation",
+		&rootOpts.Validate, "validate",
+		viper.GetBool("validate"), "Run workflow validation",
 	)
 }
