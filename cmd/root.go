@@ -84,6 +84,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// The client and worker are heavyweight objects that should be created once per process.
+		log.Trace().Msg("Connecting to Temporal")
 		c, err := temporal.NewConnection(
 			temporal.WithHostPort(rootOpts.TemporalAddress),
 			temporal.WithNamespace(rootOpts.TemporalNamespace),
@@ -96,7 +97,11 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal().Err(err).Msg("Unable to create client")
 		}
-		defer c.Close()
+		defer func() {
+			log.Trace().Msg("Closing Temporal connection")
+			c.Close()
+			log.Trace().Msg("Temporal connection closed")
+		}()
 
 		log.Debug().Msg("Starting health check service")
 		ctx := context.Background()
