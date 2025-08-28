@@ -72,6 +72,11 @@ func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input HTTPData) (map[s
 		ao.Summary = task.Key
 		ctx = workflow.WithActivityOptions(ctx, ao)
 
+		// Set task key to the variable
+		vars.AddData(HTTPData{
+			"_task_key": task.Key,
+		})
+
 		logger.Debug("Check if task can be run", "name", task.Key)
 		// Check for and run any if statement
 		if toRun, err := CheckIfStatement(task.TaskBase.If, vars); err != nil {
