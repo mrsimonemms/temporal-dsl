@@ -27,7 +27,7 @@ do:
             value: world
           call:
             type: text
-            value: getUser
+            value: "{{ ._task_key }}"
           userId:
             type: int
             value: "{{ .userId }}"
