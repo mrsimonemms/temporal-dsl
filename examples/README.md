@@ -26,7 +26,8 @@ A collection of examples
 | [Raise](./raise/) | Raise an error |
 | [Search Attributes](./search-attributes//) | Add custom search attributes to your application |
 | [Signal](./signal/) | Configure signal listener |
-| [Switch](./switch/) |Perform a switch statement |
+| [Switch](./switch/) | Perform a switch statement |
+| [TypeScript](./typescript/) | The [basic example](./basic/), but in TypeScript |
 
 ## Running
 

@@ -1,0 +1,24 @@
+{
+  "name": "typescript",
+  "version": "0.0.0",
+  "description": "The basic example, but in TypeScript",
+  "main": "dist/index",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node ./index.ts",
+    "format": "prettier --write .",
+    "start": "node ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Simon Emms <simon@simonemms.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@temporalio/client": "^1.13.0",
+    "nanoid": "^5.1.5"
+  }
+}
