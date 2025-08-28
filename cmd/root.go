@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"os"
 	"strings"
@@ -75,18 +74,6 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		connectionOpts := client.ConnectionOptions{}
-		if rootOpts.TemporalTLSEnabled {
-			// Use new to avoid a golint false positive
-			log.Debug().Msg("Enabling TLS connection")
-			connectionOpts.TLS = new(tls.Config)
-		}
-		var creds client.Credentials
-		if rootOpts.TemporalAPIKey != "" {
-			log.Debug().Msg("Using API key for authentcation")
-			creds = client.NewAPIKeyStaticCredentials(rootOpts.TemporalAPIKey)
-		}
-
 		var converter converter.DataConverter
 		if rootOpts.ConvertData {
 			keys, err := aes.ReadKeyFile(rootOpts.ConvertKeyPath)
@@ -96,21 +83,16 @@ var rootCmd = &cobra.Command{
 			converter = aes.DataConverter(keys)
 		}
 
-		metrics, err := temporal.NewPrometheusHandler(rootOpts.MetricsListenAddress, rootOpts.MetricsPrefix)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Error creating Prometheus metrics handler")
-		}
-
 		// The client and worker are heavyweight objects that should be created once per process.
-		c, err := client.Dial(client.Options{
-			ConnectionOptions: connectionOpts,
-			Credentials:       creds,
-			HostPort:          rootOpts.TemporalAddress,
-			Namespace:         rootOpts.TemporalNamespace,
-			DataConverter:     converter,
-			Logger:            temporal.NewZerologHandler(&log.Logger),
-			MetricsHandler:    metrics,
-		})
+		c, err := temporal.NewConnection(
+			temporal.WithHostPort(rootOpts.TemporalAddress),
+			temporal.WithNamespace(rootOpts.TemporalNamespace),
+			temporal.WithTLS(rootOpts.TemporalTLSEnabled),
+			temporal.WithAPICredentials(rootOpts.TemporalAPIKey),
+			temporal.WithDataConverter(converter),
+			temporal.WithZerolog(&log.Logger),
+			temporal.WithPrometheusMetrics(rootOpts.MetricsListenAddress, rootOpts.MetricsPrefix),
+		)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Unable to create client")
 		}
