@@ -3,7 +3,7 @@
 document:
   dsl: 1.0.0
   namespace: ignored # Ignored by Temporal
-  name: multiple # Workflow name
+  name: workflow1 # Workflow name - ignored if every top-level task is a "do"
   version: 0.0.1
   title: Multiple Workflows
   summary: Configure multiple Temporal workflows

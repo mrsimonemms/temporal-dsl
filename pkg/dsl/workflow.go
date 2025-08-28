@@ -170,8 +170,14 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 		Timeout:   timeout,
 	}
 
+	var hasNoDo bool
+
 	// Iterate over the task list to build out our workflow(s)
 	for _, item := range *tasks {
+		if do := item.AsDoTask(); do == nil {
+			hasNoDo = true
+		}
+
 		task, taskType, additionalWorkflows, err := w.buildWorkflowTask(item)
 		if err != nil {
 			return nil, err
@@ -180,10 +186,11 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 		// Register additional workflows
 		wfs = append(wfs, additionalWorkflows...)
 
+		l := log.With().Str("key", item.Key).Logger()
 		if taskType != "" {
-			log.Debug().Str("key", item.Key).Str("type", taskType).Msg("Task detected")
+			l.Debug().Str("type", taskType).Msg("Task detected")
 		} else {
-			log.Warn().Str("key", item.Key).Msg("Task detected, but no taskType set")
+			l.Warn().Msg("Task detected, but no taskType set")
 		}
 
 		if task != nil {
@@ -196,7 +203,11 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 	}
 
 	// Add to the list of workflows
-	wfs = append(wfs, wf)
+	if hasNoDo {
+		wfs = append(wfs, wf)
+	} else {
+		log.Debug().Str("workflow", name).Msg("Workflow exclusively made of Do tasks - not registering as workflow")
+	}
 
 	return wfs, nil
 }
