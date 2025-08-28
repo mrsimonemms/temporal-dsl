@@ -24,6 +24,7 @@ A collection of examples
 | [Multiple Workflows](./multiple-workflows/) | Configure multiple workflows |
 | [Query](./query/) | Configure query listener |
 | [Raise](./raise/) | Raise an error |
+| [Schedule](./schedule/) | How to set a schedule |
 | [Search Attributes](./search-attributes//) | Add custom search attributes to your application |
 | [Signal](./signal/) | Configure signal listener |
 | [Switch](./switch/) | Perform a switch statement |

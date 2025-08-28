@@ -22,11 +22,20 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 )
 
 func (w *Workflow) Activities() *activities {
 	return &activities{}
+}
+
+func (w *Workflow) Document() model.Document {
+	return w.wf.Document
+}
+
+func (w *Workflow) Schedule() *model.Schedule {
+	return w.wf.Schedule
 }
 
 func (w *Workflow) WorkflowName() string {
