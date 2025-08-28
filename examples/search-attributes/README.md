@@ -1,6 +1,6 @@
 # Search Attributes
 
-Adding custom search attributes to your application
+Add custom search attributes to your application
 
 <!-- toc -->
 

@@ -19,11 +19,12 @@ A collection of examples
 | --- | --- |
 | [Basic](./basic/) | A basic application to show the concepts |
 | [Conditionally Execute](./conditionally-execute/) | Allow tasks to only execute if they meet certain conditions |
-| [Multiple Workflows](./multiple-workflows/) | Configure multiple workflows |
 | [Listen](./listen/) | Configure listeners |
 | [Money Transfer](./money-transfer/) | Temporal's world-famous Money Transfer Demo, in Serverless Workflow form - uses Docker Compose |
+| [Multiple Workflows](./multiple-workflows/) | Configure multiple workflows |
 | [Query](./query/) | Configure query listener |
 | [Raise](./raise/) | Raise an error |
+| [Search Attributes](./search-attributes//) | Add custom search attributes to your application |
 | [Signal](./signal/) | Configure signal listener |
 | [Switch](./switch/) |Perform a switch statement |
 
