@@ -143,9 +143,9 @@ func (a *activities) CallHTTP(ctx context.Context, callHttp *model.CallHTTP, var
 			string(CallHTTPErr),
 			errors.New(resp.Status),
 			HTTPData{
-				"status": resp.StatusCode,
-				"body":   bodyStr,
-				"json":   bodyJSON,
+				"statusCode": resp.StatusCode,
+				"body":       bodyStr,
+				"json":       bodyJSON,
 			},
 		)
 	}
@@ -155,9 +155,9 @@ func (a *activities) CallHTTP(ctx context.Context, callHttp *model.CallHTTP, var
 		logger.Error("CallHTTP returned 5xx error")
 
 		return nil, temporal.NewApplicationError("CallHTTP returned 5xx error", string(CallHTTPErr), errors.New(resp.Status), HTTPData{
-			"status": resp.StatusCode,
-			"body":   bodyStr,
-			"json":   bodyJSON,
+			"statusCode": resp.StatusCode,
+			"body":       bodyStr,
+			"json":       bodyJSON,
 		})
 	}
 
