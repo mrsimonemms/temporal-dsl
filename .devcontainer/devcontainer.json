@@ -22,7 +22,6 @@
     "CONVERTER_KEY_PATH": "/workspaces/temporal-dsl/keys.example.yaml",
     "GIT_REPO": "github.com/mrsimonemms/temporal-dsl",
     "LOG_LEVEL": "trace",
-    "TEMPORAL_ADDRESS": "localhost:7233",
     "TDSL_EXAMPLE_ENVVAR": "some-example-envvar",
     "WORKFLOW_FILE": "./workflow.example.yaml"
   },

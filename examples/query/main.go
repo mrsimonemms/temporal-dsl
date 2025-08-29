@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,9 +35,13 @@ type State struct {
 
 func main() {
 	// The client is a heavyweight object that should be created once per process.
-	c, err := client.Dial(client.Options{
-		Logger: temporal.NewZerologHandler(&log.Logger),
-	})
+	c, err := temporal.NewConnection(
+		temporal.WithHostPort(os.Getenv("TEMPORAL_ADDRESS")),
+		temporal.WithNamespace(os.Getenv("TEMPORAL_NAMESPACE")),
+		temporal.WithAPICredentials(os.Getenv("TEMPORAL_API_KEY")),
+		temporal.WithTLS(os.Getenv("TEMPORAL_TLS") == "true"),
+		temporal.WithZerolog(&log.Logger),
+	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Unable to create client")
 	}

@@ -18,10 +18,15 @@ import { Connection, Client } from '@temporalio/client';
 import { nanoid } from 'nanoid';
 
 async function bootstrap() {
-  const connection = await Connection.connect({ address: 'localhost:7233' });
+  const connection = await Connection.connect({
+    address: process.env.TEMPORAL_ADDRESS,
+    tls: process.env.TEMPORAL_TLS === 'true',
+    apiKey: process.env.TEMPORAL_API_KEY,
+  });
 
   const client = new Client({
     connection,
+    namespace: process.env.TEMPORAL_NAMESPACE ?? 'default',
   });
 
   const handle = await client.workflow.start('basic-typescript', {
