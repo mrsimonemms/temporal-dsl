@@ -24,7 +24,7 @@ import (
 )
 
 func waitTaskImpl(task *model.WaitTask) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) (map[string]OutputType, error) {
 		logger := workflow.GetLogger(ctx)
 
 		duration := ToDuration(task.Wait)
@@ -32,9 +32,9 @@ func waitTaskImpl(task *model.WaitTask) TemporalWorkflowFunc {
 		logger.Debug("Sleeping", "duration", duration.String())
 
 		if err := workflow.Sleep(ctx, duration); err != nil {
-			return fmt.Errorf("error sleeping: %w", err)
+			return nil, fmt.Errorf("error sleeping: %w", err)
 		}
 
-		return nil
+		return nil, nil
 	}
 }
