@@ -18,6 +18,10 @@ spec:
         # prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
         prometheus.io/port: {{ .Values.service.metrics.port | quote }}
+        {{- if .Values.workflow.useInline }}
+        checksum/workflow-inline: {{ .Values.workflow.inline | toYaml | b64enc | sha256sum | quote }}
+        {{- end }}
+        checksum/workflow-secret: {{ .Values.workflow.secret | sha256sum | quote }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
