@@ -203,7 +203,7 @@ func listenTaskImpl(task *model.ListenTask, key string) (TemporalWorkflowFunc, e
 		return nil, err
 	}
 
-	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) (map[string]OutputType, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Registering listeners")
 
@@ -220,12 +220,12 @@ func listenTaskImpl(task *model.ListenTask, key string) (TemporalWorkflowFunc, e
 			case ListenTaskTypeQuery:
 				if err := configureQueryListener(ctx, event, data); err != nil {
 					logger.Error("Error setting query", "id", event.With.ID, "error", err)
-					return fmt.Errorf("error setting query: %w", err)
+					return nil, fmt.Errorf("error setting query: %w", err)
 				}
 			case ListenTaskTypeSignal:
 				if err := configureSignalListener(ctx, event, data); err != nil {
 					logger.Error("Error setting signal", "id", event.With.ID, "error", err)
-					return fmt.Errorf("error setting signal: %w", err)
+					return nil, fmt.Errorf("error setting signal: %w", err)
 				}
 			case ListenTaskTypeUpdate:
 				await = true
@@ -238,7 +238,7 @@ func listenTaskImpl(task *model.ListenTask, key string) (TemporalWorkflowFunc, e
 					}
 				}); err != nil {
 					logger.Error("Error setting update", "id", event.With.ID, "error", err)
-					return fmt.Errorf("error setting update: %w", err)
+					return nil, fmt.Errorf("error setting update: %w", err)
 				}
 			}
 		}
@@ -248,11 +248,11 @@ func listenTaskImpl(task *model.ListenTask, key string) (TemporalWorkflowFunc, e
 
 		if await {
 			if err := waitForListener(ctx, timeout, isAll, isAnyComplete, isAllComplete); err != nil {
-				return err
+				return nil, err
 			}
 		}
 
-		return nil
+		return nil, nil
 	}, nil
 }
 

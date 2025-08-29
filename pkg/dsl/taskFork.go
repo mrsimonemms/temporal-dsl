@@ -18,7 +18,6 @@ package dsl
 
 import (
 	"fmt"
-	"maps"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/workflow"
@@ -42,7 +41,7 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 		n += len(t.Tasks)
 	}
 
-	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) (map[string]OutputType, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Forking a task", "isCompeting", fork.Fork.Compete)
 
@@ -60,7 +59,7 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 				workflow.Go(ctx, func(ctx workflow.Context) {
 					o := make(map[string]OutputType)
 
-					err := wf.Task(ctx, data, o)
+					out, err := wf.Task(ctx, data, o)
 					if err != nil {
 						logger.Error("Error handling Temporal task", "error", err, "task", wf.Key)
 						chunkResultChannel.Send(ctx, err)
@@ -69,11 +68,13 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 
 					chunkResultChannel.Send(ctx, forkTaskOutput{
 						name: wf.Key,
-						data: o,
+						data: out,
 					})
 				})
 			}
 		}
+
+		resp := make(map[string]OutputType)
 
 		for _, temporalWorkflow := range temporalWorkflows {
 			for range temporalWorkflow.Tasks {
@@ -83,19 +84,17 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 				switch result := v.(type) {
 				case error:
 					if result != nil {
-						return result
+						return nil, result
 					}
 				case forkTaskOutput:
-					maps.Copy(output, map[string]OutputType{
-						fmt.Sprintf("%s_%s", task.Key, result.name): {
-							Type: ForkResultType,
-							Data: result.data,
-						},
-					})
+					resp[fmt.Sprintf("%s_%s", task.Key, result.name)] = OutputType{
+						Type: ForkResultType,
+						Data: result.data,
+					}
 				}
 			}
 		}
 
-		return nil
+		return resp, nil
 	}, nil
 }

@@ -54,7 +54,7 @@ var temporalErrMapping = map[string]func(error, string) error{
 }
 
 func raiseTaskImpl(task *model.RaiseTask, taskName string) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) (err error) {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) (outputData map[string]OutputType, err error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Raising error")
 
@@ -77,7 +77,7 @@ func raiseTaskImpl(task *model.RaiseTask, taskName string) TemporalWorkflowFunc 
 				if err != nil {
 					logger.Error("Error finding error definition", "error", err)
 					err = fmt.Errorf("error finding error definition: %w", err)
-					return err
+					return nil, err
 				}
 			}
 
@@ -91,14 +91,14 @@ func raiseTaskImpl(task *model.RaiseTask, taskName string) TemporalWorkflowFunc 
 				if err != nil {
 					logger.Error("Error finding error title definition", "error", err)
 					err = fmt.Errorf("error finding error title definition: %w", err)
-					return err
+					return nil, err
 				}
 			}
 
 			if raiseErrF, ok := raiseErrFuncMapping[definition.Type.String()]; ok {
 				raiseErr = raiseErrF(fmt.Errorf("%v", detailResult), instanceID)
 			} else if temporalErrF, ok := temporalErrMapping[definition.Title.String()]; ok {
-				return temporalErrF(fmt.Errorf("%v", detailResult), instanceID)
+				return nil, temporalErrF(fmt.Errorf("%v", detailResult), instanceID)
 			} else {
 				raiseErr = definition
 				raiseErr.Detail = model.NewStringOrRuntimeExpr(fmt.Sprintf("%v", detailResult))
@@ -111,6 +111,6 @@ func raiseTaskImpl(task *model.RaiseTask, taskName string) TemporalWorkflowFunc 
 			raiseErr.Status = definition.Status
 		}
 
-		return raiseErr
+		return nil, raiseErr
 	}
 }
