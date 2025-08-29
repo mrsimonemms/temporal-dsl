@@ -24,7 +24,9 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -41,11 +43,37 @@ type TemporalWorkflow struct {
 	Name      string
 	Timeout   time.Duration
 	Tasks     []TemporalWorkflowTask
+	workflow  *model.Workflow
+}
+
+func (t *TemporalWorkflow) validateInput(ctx workflow.Context, input HTTPData) error {
+	logger := workflow.GetLogger(ctx)
+
+	if t.workflow.Input != nil {
+		logger.Debug("Validating input against schema")
+		if err := utils.ValidateSchema(input, t.workflow.Input.Schema, t.Name); err != nil {
+			logger.Error("Input failed data validation", "error", err)
+
+			return temporal.NewNonRetryableApplicationError(
+				"Workflow input did not meet JSON schema specification",
+				"Validation",
+				err,
+				// There is additional detail useful in here
+				err.(*model.Error),
+			)
+		}
+	}
+
+	return nil
 }
 
 func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input HTTPData) (map[string]OutputType, error) {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Running workflow")
+
+	if err := t.validateInput(ctx, input); err != nil {
+		return nil, err
+	}
 
 	logger.Debug("Setting workflow options", "StartToCloseTimeout", t.Timeout)
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
@@ -168,6 +196,7 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 		Name:      name,
 		Tasks:     make([]TemporalWorkflowTask, 0),
 		Timeout:   timeout,
+		workflow:  w.wf,
 	}
 
 	var hasNoDo bool

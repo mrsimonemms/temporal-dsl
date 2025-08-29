@@ -7,6 +7,17 @@ document:
   version: 0.0.1
   title: Basic Workflow
   summary: An example of how to use Serverless Workflow to define Temporal Workflows
+# Optionally validate the input received
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: number
 timeout:
   after:
     minutes: 1
