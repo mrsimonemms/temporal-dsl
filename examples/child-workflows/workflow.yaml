@@ -1,0 +1,32 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: ignored # Ignored by Temporal
+  name: childWorkflow # Workflow name
+  version: 0.0.1
+  title: Child Workflow
+  summary: An example of how to declare and use a child workflow
+timeout:
+  after:
+    minutes: 1
+do:
+  - parentWorkflow:
+      do:
+        - wait:
+            wait:
+              seconds: 5
+        - callChildWorkflow:
+            run:
+              workflow:
+                name: child-workflow
+                namespace: default
+                version: 0.0.0
+        - wait:
+            wait:
+              seconds: 5
+  - child-workflow:
+      do:
+        - wait:
+            wait:
+              seconds: 10
