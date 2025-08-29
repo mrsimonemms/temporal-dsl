@@ -48,8 +48,15 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 
 		chunkResultChannel := workflow.NewChannel(ctx)
 
+		// Update the task summary to make it more readable in the UI
+		ao := workflow.GetActivityOptions(ctx)
+		parentTask := ao.Summary
+
 		for _, temporalWorkflow := range temporalWorkflows {
 			for _, wf := range temporalWorkflow.Tasks {
+				ao.Summary = fmt.Sprintf("%s.%s", parentTask, wf.Key)
+				ctx = workflow.WithActivityOptions(ctx, ao)
+
 				workflow.Go(ctx, func(ctx workflow.Context) {
 					o := make(map[string]OutputType)
 
