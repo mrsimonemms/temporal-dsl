@@ -18,7 +18,6 @@ package dsl
 
 import (
 	"fmt"
-	"maps"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/workflow"
@@ -37,7 +36,7 @@ func setSwitchImpl(task *model.SwitchTask, key string) (TemporalWorkflowFunc, er
 		}
 	}
 
-	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) (map[string]OutputType, error) {
 		logger := workflow.GetLogger(ctx)
 
 		for _, switchItem := range task.Switch {
@@ -46,7 +45,7 @@ func setSwitchImpl(task *model.SwitchTask, key string) (TemporalWorkflowFunc, er
 
 				if toRun, err := CheckIfStatement(item.When, data); err != nil {
 					logger.Error("Error checking switch statement's when", "error", err)
-					return err
+					return nil, err
 				} else if !toRun {
 					logger.Debug("Skipping switch statement task", "taskName", key, "switchCondition", name)
 					continue
@@ -55,28 +54,26 @@ func setSwitchImpl(task *model.SwitchTask, key string) (TemporalWorkflowFunc, er
 				then := item.Then
 				if then == nil || then.IsTermination() {
 					logger.Debug("Skipping task as then is termination or not set")
-					return nil
+					return nil, nil
 				}
 
 				logger.Info("Executing switch statement's task as a child workflow", "taskName", key, "switchCondition", name)
 				var result map[string]OutputType
 				if err := workflow.ExecuteChildWorkflow(ctx, then.Value, data).Get(ctx, &result); err != nil {
 					logger.Error("Error executing child workflow")
-					return err
+					return nil, err
 				}
 
-				maps.Copy(output, map[string]OutputType{
+				// Stop it executing anything else
+				return map[string]OutputType{
 					key: {
 						Type: CallHTTPResultType,
 						Data: result,
 					},
-				})
-
-				// Stop it executing anything else
-				return nil
+				}, nil
 			}
 		}
 
-		return nil
+		return nil, nil
 	}, nil
 }
