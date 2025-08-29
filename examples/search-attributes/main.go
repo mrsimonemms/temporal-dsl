@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
@@ -48,11 +49,17 @@ func upsertSearchAttributes(ctx context.Context, c client.Client, namespace stri
 
 func main() {
 	// The client is a heavyweight object that should be created once per process.
-	namespace := client.DefaultNamespace
-	c, err := client.Dial(client.Options{
-		Logger:    temporal.NewZerologHandler(&log.Logger),
-		Namespace: namespace,
-	})
+	namespace := os.Getenv("TEMPORAL_NAMESPACE")
+	if namespace == "" {
+		namespace = client.DefaultNamespace
+	}
+	c, err := temporal.NewConnection(
+		temporal.WithHostPort(os.Getenv("TEMPORAL_ADDRESS")),
+		temporal.WithNamespace(namespace),
+		temporal.WithAPICredentials(os.Getenv("TEMPORAL_API_KEY")),
+		temporal.WithTLS(os.Getenv("TEMPORAL_TLS") == "true"),
+		temporal.WithZerolog(&log.Logger),
+	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Unable to create client")
 	}
@@ -60,8 +67,8 @@ func main() {
 
 	ctx := context.Background()
 	if err := upsertSearchAttributes(ctx, c, namespace); err != nil {
-		//nolint:gocritic
-		log.Fatal().Err(err).Msg("Error upserting search attributes")
+		// If using Temporal Cloud, this will need to be done in the UI
+		log.Warn().Err(err).Msg("Error upserting search attributes")
 	}
 
 	workflowOptions := client.StartWorkflowOptions{
@@ -72,6 +79,7 @@ func main() {
 		"userId": 3,
 	})
 	if err != nil {
+		//nolint:gocritic
 		log.Fatal().Err(err).Msg("Error executing workflow")
 	}
 
