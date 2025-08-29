@@ -58,7 +58,7 @@
     set:
       idempotencyKey: "{{ uuidv4 }}"
       stateApprovalTime: 30
-      stateChargeId: "{{ uuidv4 }}" # @todo(sje): replace with generated value
+      stateChargeId: "{{ uuidv4 }}"
       stateProgressPercentage: 0
       stateTransferState: starting
       stateWorkflowStatus: ""
