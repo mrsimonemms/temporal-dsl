@@ -13,15 +13,26 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
+<script lang="ts">
+  import icon from '$lib/assets/icon.png';
+</script>
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    %sveltekit.head%
-  </head>
-  <body data-sveltekit-preload-data="hover" class="is-flex is-flex-direction-column is-fullheight">
-    <div style="display: contents">%sveltekit.body%</div>
-  </body>
-</html>
+<nav class="navbar is-spaced" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a class="navbar-item" href="/" aria-label="Home">
+      <img src={icon} alt="Home" />
+    </a>
+  </div>
+</nav>
+
+<style lang="scss" scoped>
+  nav {
+    border: {
+      bottom: {
+        color: var(--bulma-grey-lighter);
+        style: solid;
+        width: 1px;
+      }
+    }
+  }
+</style>
