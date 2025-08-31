@@ -16,6 +16,10 @@
 
 <script lang="ts">
   import favicon from '$lib/assets/icon.png';
+  import Navbar from '$lib/components/navbar.svelte';
+  import Footer from '$lib/components/footer.svelte';
+  import Menu from '$lib/components/menu.svelte';
+
   import '../app.scss';
 
   let { children } = $props();
@@ -25,4 +29,38 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children?.()}
+<div class="columns is-flex-grow-1 is-gapless">
+  <!-- Sidebar -->
+  <div class="sidebar column is-2">
+    <Navbar />
+
+    <Menu />
+  </div>
+
+  <!-- Main column -->
+  <div class="column is-flex is-flex-direction-column">
+    <div class="is-flex-grow-1 p-4">
+      {@render children?.()}
+    </div>
+
+    <Footer />
+  </div>
+</div>
+
+<style lang="scss" scoped>
+  .columns.is-gapless:not(:last-child) {
+    margin: {
+      bottom: 0;
+    }
+  }
+
+  .sidebar {
+    border: {
+      right: {
+        color: var(--bulma-grey-lighter);
+        style: solid;
+        width: 1px;
+      }
+    }
+  }
+</style>

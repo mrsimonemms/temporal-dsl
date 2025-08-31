@@ -15,3 +15,9 @@
 @use 'bulma/sass';
 
 @use '@mdi/font/css/materialdesignicons.css';
+
+.is-fullheight {
+  min: {
+    height: 100vh;
+  }
+}

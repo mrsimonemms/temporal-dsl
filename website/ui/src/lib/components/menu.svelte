@@ -14,14 +14,10 @@
   ~ limitations under the License.
 -->
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    %sveltekit.head%
-  </head>
-  <body data-sveltekit-preload-data="hover" class="is-flex is-flex-direction-column is-fullheight">
-    <div style="display: contents">%sveltekit.body%</div>
-  </body>
-</html>
+<aside class="menu m-4">
+  <p class="menu-label">General</p>
+  <ul class="menu-list">
+    <li><a href="/">Dashboard</a></li>
+    <li><a href="/">Customers</a></li>
+  </ul>
+</aside>
