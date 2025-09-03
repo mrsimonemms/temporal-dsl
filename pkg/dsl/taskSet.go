@@ -106,18 +106,17 @@ func setTaskInterpolate(ctx workflow.Context, keyID, input any, data *Variables)
 }
 
 func setTaskImpl(task *model.SetTask) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) (map[string]OutputType, error) {
+		out := make(map[string]OutputType)
 		for key, value := range task.Set {
-			var err error
-
-			value, err = setTaskInterpolate(ctx, key, value, data)
+			parsedValue, err := setTaskInterpolate(ctx, key, value, data)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
-			data.Data[key] = value
+			data.Data[key] = parsedValue
 		}
 
-		return nil
+		return out, nil
 	}
 }
