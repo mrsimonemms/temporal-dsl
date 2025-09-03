@@ -22,13 +22,14 @@ import (
 	"math/rand/v2"
 	"os"
 
+	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 )
 
-func main() {
+func exec() error {
 	// The client is a heavyweight object that should be created once per process.
 	c, err := temporal.NewConnection(
 		temporal.WithHostPort(os.Getenv("TEMPORAL_ADDRESS")),
@@ -38,7 +39,10 @@ func main() {
 		temporal.WithZerolog(&log.Logger),
 	)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Unable to create client")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Unable to create client",
+		}
 	}
 	defer c.Close()
 
@@ -55,15 +59,20 @@ func main() {
 		"randomInteger": i,
 	})
 	if err != nil {
-		//nolint:gocritic
-		log.Fatal().Err(err).Msg("Error executing workflow")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error executing workflow",
+		}
 	}
 
 	log.Info().Str("workflowId", we.GetID()).Str("runId", we.GetRunID()).Msg("Started workflow")
 
 	var result map[string]dsl.OutputType
 	if err := we.Get(ctx, &result); err != nil {
-		log.Fatal().Err(err).Msg("Error getting response")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error getting response",
+		}
 	}
 
 	log.Info().Interface("result", result).Msg("Workflow completed")
@@ -71,4 +80,12 @@ func main() {
 	fmt.Println("===")
 	fmt.Printf("%+v\n", result)
 	fmt.Println("===")
+
+	return nil
+}
+
+func main() {
+	if err := exec(); err != nil {
+		os.Exit(gh.HandleFatalError(err))
+	}
 }

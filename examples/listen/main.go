@@ -21,13 +21,14 @@ import (
 	"os"
 	"time"
 
+	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 )
 
-func main() {
+func exec() error {
 	// The client is a heavyweight object that should be created once per process.
 	c, err := temporal.NewConnection(
 		temporal.WithHostPort(os.Getenv("TEMPORAL_ADDRESS")),
@@ -37,7 +38,10 @@ func main() {
 		temporal.WithZerolog(&log.Logger),
 	)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Unable to create client")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Unable to create client",
+		}
 	}
 	defer c.Close()
 
@@ -50,15 +54,17 @@ func main() {
 		"userId": 3,
 	})
 	if err != nil {
-		//nolint:gocritic
-		log.Fatal().Err(err).Msg("Error executing workflow")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error executing workflow",
+		}
 	}
 
 	log.Info().Str("workflowId", we.GetID()).Str("runId", we.GetRunID()).Msg("Started workflow")
 
 	time.Sleep(time.Second * 2)
 
-	log.Info().Str("event", "eve").Msg("Triggering update")
+	log.Info().Str("event", "event1").Msg("Triggering update")
 	updateHandle1, err := c.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
 		WorkflowID:   we.GetID(),
 		WaitForStage: client.WorkflowUpdateStageCompleted,
@@ -70,16 +76,22 @@ func main() {
 		},
 	})
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error updating")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error updating",
+		}
 	}
 
 	if err := updateHandle1.Get(ctx, nil); err != nil {
-		log.Fatal().Err(err).Msg("Update failed")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Update failed",
+		}
 	}
 
 	time.Sleep(time.Second * 2)
 
-	log.Info().Str("event", "eve").Msg("Triggering update")
+	log.Info().Str("event", "event2").Msg("Triggering update")
 	updateHandle2, err := c.UpdateWorkflow(ctx, client.UpdateWorkflowOptions{
 		WorkflowID:   we.GetID(),
 		WaitForStage: client.WorkflowUpdateStageCompleted,
@@ -91,10 +103,23 @@ func main() {
 		},
 	})
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error updating")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error updating",
+		}
 	}
 
 	if err := updateHandle2.Get(ctx, nil); err != nil {
-		log.Fatal().Err(err).Msg("Update failed")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Update failed",
+		}
+	}
+	return nil
+}
+
+func main() {
+	if err := exec(); err != nil {
+		os.Exit(gh.HandleFatalError(err))
 	}
 }
