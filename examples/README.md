@@ -30,6 +30,7 @@ A collection of examples
 | [Signal](./signal/)                               | Configure signal listener                                                                      |
 | [Switch](./switch/)                               | Perform a switch statement                                                                     |
 | [TypeScript](./typescript/)                       | The [basic example](./basic/), but in TypeScript                                               |
+| [Versioning](./versioning/)                       | Versioning your workflows                                                                      |
 
 ## Running
 

@@ -172,7 +172,17 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})
+		log.Info().Str("deploymentName", wf.WorkflowName()).Str("buildID", wf.Document().Version).Msg("New versioned workflow")
+		w := worker.New(c, rootOpts.TaskQueue, worker.Options{
+			DeploymentOptions: worker.DeploymentOptions{
+				UseVersioning: true,
+				Version: worker.WorkerDeploymentVersion{
+					DeploymentName: wf.WorkflowName(),
+					BuildId:        wf.Document().Version,
+				},
+				DefaultVersioningBehavior: workflow.VersioningBehaviorAutoUpgrade,
+			},
+		})
 
 		workflows, err := wf.BuildWorkflows()
 		if err != nil {

@@ -1,0 +1,16 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: ignored # Ignored by Temporal
+  name: versioning # Workflow name
+  version: 0.0.1
+  title: Versioned workflow
+  summary: How to use Temporal's workflow versioning
+timeout:
+  after:
+    minutes: 1
+do:
+  - wait:
+      wait:
+        seconds: 1
