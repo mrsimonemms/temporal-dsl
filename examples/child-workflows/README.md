@@ -1,6 +1,6 @@
-# Basic
+# Child Workflows
 
-A basic application to show the concepts
+Execute a child workflow
 
 <!-- toc -->
 
