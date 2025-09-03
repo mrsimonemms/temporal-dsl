@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 
+	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
@@ -53,9 +54,11 @@ var rootOpts struct {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "temporal-dsl",
-	Version: Version,
-	Short:   "Build Temporal workflows from YAML",
+	Use:           "temporal-dsl",
+	Version:       Version,
+	Short:         "Build Temporal workflows from YAML",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		level, err := zerolog.ParseLevel(rootOpts.LogLevel)
 		if err != nil {
@@ -65,15 +68,26 @@ var rootCmd = &cobra.Command{
 
 		return nil
 	},
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if rootOpts.EnvPrefix == "" {
-			log.Fatal().Str("prefix", rootOpts.EnvPrefix).Msg("Env prefix cannot be empty")
+			return gh.FatalError{
+				Msg: "Env prefix cannot be empty",
+				WithParams: func(l *zerolog.Event) *zerolog.Event {
+					return l.Str("prefix", rootOpts.EnvPrefix)
+				},
+			}
 		}
 		if strings.HasSuffix(rootOpts.EnvPrefix, "_") {
-			log.Fatal().Str("prefix", rootOpts.EnvPrefix).Msg("Env prefix cannot end with underscore (_)")
+			return gh.FatalError{
+				Msg: "Env prefix cannot end with underscore (_)",
+				WithParams: func(l *zerolog.Event) *zerolog.Event {
+					return l.Str("prefix", rootOpts.EnvPrefix)
+				},
+			}
 		}
+		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Fatal().Interface("recover", r).Msg("Recovered from panic")
@@ -84,7 +98,13 @@ var rootCmd = &cobra.Command{
 		if rootOpts.ConvertData {
 			keys, err := aes.ReadKeyFile(rootOpts.ConvertKeyPath)
 			if err != nil {
-				log.Fatal().Err(err).Str("keypath", rootOpts.ConvertKeyPath).Msg("Unable to get keys from file")
+				return gh.FatalError{
+					Cause: err,
+					Msg:   "Unable to get keys from file",
+					WithParams: func(l *zerolog.Event) *zerolog.Event {
+						return l.Str("keypath", rootOpts.ConvertKeyPath)
+					},
+				}
 			}
 			converter = aes.DataConverter(keys)
 		}
@@ -101,7 +121,10 @@ var rootCmd = &cobra.Command{
 			temporal.WithPrometheusMetrics(rootOpts.MetricsListenAddress, rootOpts.MetricsPrefix),
 		)
 		if err != nil {
-			log.Fatal().Err(err).Msg("Unable to create client")
+			return gh.FatalError{
+				Cause: err,
+				Msg:   "Unable to create client",
+			}
 		}
 		defer func() {
 			log.Trace().Msg("Closing Temporal connection")
@@ -116,29 +139,47 @@ var rootCmd = &cobra.Command{
 		// Load the workflow file
 		wf, err := dsl.LoadFromFile(rootOpts.FilePath, rootOpts.EnvPrefix)
 		if err != nil {
-			log.Fatal().Err(err).Msg("Error loading workflow")
+			return gh.FatalError{
+				Cause: err,
+				Msg:   "Error loading workflow",
+			}
 		}
 
 		if rootOpts.Validate {
 			log.Debug().Msg("Running validation")
 			if res, err := wf.Validate(); err != nil {
-				log.Fatal().Err(err).Msg("Error validating")
+				return gh.FatalError{
+					Cause: err,
+					Msg:   "Error validating",
+				}
 			} else if res != nil {
-				log.Fatal().Interface("validationErrors", res).Msg("Validation failed")
+				return gh.FatalError{
+					Cause: err,
+					Msg:   "Validation failed",
+					WithParams: func(l *zerolog.Event) *zerolog.Event {
+						return l.Interface("validationErrors", res)
+					},
+				}
 			}
 			log.Debug().Msg("Validation passed")
 		}
 
 		log.Info().Msg("Upserting schedules")
 		if err := dsl.UpsertSchedule(ctx, c, wf, rootOpts.TaskQueue); err != nil {
-			log.Fatal().Err(err).Msg("Error upserting Temporal schedules")
+			return gh.FatalError{
+				Cause: err,
+				Msg:   "Error upserting Temporal schedules",
+			}
 		}
 
 		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})
 
 		workflows, err := wf.BuildWorkflows()
 		if err != nil {
-			log.Fatal().Err(err).Msg("Error building workflows")
+			return gh.FatalError{
+				Cause: err,
+				Msg:   "Error building workflows",
+			}
 		}
 
 		for _, wf := range workflows {
@@ -153,17 +194,21 @@ var rootCmd = &cobra.Command{
 
 		err = w.Run(worker.InterruptCh())
 		if err != nil {
-			log.Fatal().Err(err).Msg("Unable to start worker")
+			return gh.FatalError{
+				Cause: err,
+				Msg:   "Unable to start worker",
+			}
 		}
+
+		return nil
 	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(gh.HandleFatalError(err))
 	}
 }
 

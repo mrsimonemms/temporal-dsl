@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
@@ -33,7 +34,7 @@ type State struct {
 	Status   string    `json:"status"`
 }
 
-func main() {
+func exec() error {
 	// The client is a heavyweight object that should be created once per process.
 	c, err := temporal.NewConnection(
 		temporal.WithHostPort(os.Getenv("TEMPORAL_ADDRESS")),
@@ -43,7 +44,10 @@ func main() {
 		temporal.WithZerolog(&log.Logger),
 	)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Unable to create client")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Unable to create client",
+		}
 	}
 	defer c.Close()
 
@@ -54,8 +58,10 @@ func main() {
 	ctx := context.Background()
 	we, err := c.ExecuteWorkflow(ctx, workflowOptions, "signal")
 	if err != nil {
-		//nolint:gocritic
-		log.Fatal().Err(err).Msg("Error executing workflow")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error executing workflow",
+		}
 	}
 
 	log.Info().Str("workflowId", we.GetID()).Str("runId", we.GetRunID()).Msg("Started workflow")
@@ -65,13 +71,25 @@ func main() {
 		time.Sleep(time.Second * 5)
 
 		if err := c.SignalWorkflow(ctx, we.GetID(), "", "approve", nil); err != nil {
+			// Fatal error kept in gorouting
 			log.Fatal().Err(err).Msg("Error signalling workflow")
 		}
 	}()
 
 	if err := we.Get(ctx, nil); err != nil {
-		log.Fatal().Err(err).Msg("Error getting response")
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error getting response",
+		}
 	}
 
 	log.Info().Msg("Workflow approved in time")
+
+	return nil
+}
+
+func main() {
+	if err := exec(); err != nil {
+		os.Exit(gh.HandleFatalError(err))
+	}
 }
