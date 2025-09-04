@@ -107,6 +107,9 @@ func setTaskInterpolate(ctx workflow.Context, keyID, input any, data *Variables)
 
 func setTaskImpl(task *model.SetTask) TemporalWorkflowFunc {
 	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+		logger := workflow.GetLogger(ctx)
+		logger.Debug("Setting data to state")
+
 		for key, value := range task.Set {
 			var err error
 
