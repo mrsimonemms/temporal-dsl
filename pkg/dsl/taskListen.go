@@ -77,11 +77,13 @@ func configureQueryListener(ctx workflow.Context, event *model.EventFilter, data
 	return workflow.SetQueryHandlerWithOptions(ctx, event.With.ID, handler, workflow.QueryHandlerOptions{})
 }
 
-func configureSignalListener(ctx workflow.Context, event *model.EventFilter, _ *Variables) error {
+func configureSignalListener(ctx workflow.Context, event *model.EventFilter, data *Variables) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Debug("Creating signal", "signal", event.With.ID)
 
 	r := workflow.GetSignalChannel(ctx, event.With.ID)
+
+	var inputData HTTPData
 
 	// @todo(sje): allow data to be received via signal
 	// @todo(sje): ignore if timeout is set to 0 or "0"
@@ -93,16 +95,20 @@ func configureSignalListener(ctx workflow.Context, event *model.EventFilter, _ *
 			return fmt.Errorf("unable to parse duration: %w", err)
 		}
 
-		received, _ := r.ReceiveWithTimeout(ctx, t, nil)
+		received, _ := r.ReceiveWithTimeout(ctx, t, &inputData)
 		if !received {
 			logger.Error("Signal not received within timeout")
 			return fmt.Errorf("signal not received within timeout")
 		}
-		return nil
+	} else {
+		logger.Debug("Listening for signal")
+		_ = r.Receive(ctx, &inputData)
 	}
 
-	logger.Debug("Listening for signal")
-	_ = r.Receive(ctx, nil)
+	if inputData != nil {
+		logger.Debug("Setting state data from signal")
+		data.AddData(inputData)
+	}
 
 	return nil
 }
