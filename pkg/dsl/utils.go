@@ -202,3 +202,14 @@ func ToDuration(v *model.Duration) time.Duration {
 
 	return duration
 }
+
+// Functionally equivalent to JS's Array.prorotype.every function
+// @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
+func SliceEvery[T any](items []T, predicate func(T) bool) bool {
+	for _, v := range items {
+		if !predicate(v) {
+			return false
+		}
+	}
+	return true
+}

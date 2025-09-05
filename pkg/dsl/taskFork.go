@@ -19,81 +19,110 @@ package dsl
 import (
 	"fmt"
 	"maps"
+	"slices"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
-type forkTaskOutput struct {
-	name string
-	data map[string]OutputType
-}
-
-// @todo(sje): handle competing forks
+// A forked task allows n tasks to be run in parallel
 func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Workflow) (TemporalWorkflowFunc, error) {
 	childWorkflowName := GenerateChildWorkflowName("fork", task.Key)
 	temporalWorkflows, err := workflowInst.workflowBuilder(fork.Fork.Branches, childWorkflowName)
 	if err != nil {
 		return nil, fmt.Errorf("error building forked workflow: %w", err)
 	}
+	isCompeting := fork.Fork.Compete
 
 	n := len(temporalWorkflows)
 	for _, t := range temporalWorkflows {
 		n += len(t.Tasks)
 	}
+	tasksCompleted := make(map[int]bool)
 
 	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
 		logger := workflow.GetLogger(ctx)
-		logger.Debug("Forking a task", "isCompeting", fork.Fork.Compete)
+		logger.Debug("Forking a task", "isCompeting", isCompeting)
 
-		chunkResultChannel := workflow.NewChannel(ctx)
+		// Competing forks need to be able to cancel other tasks
+		cctx, cancelHandler := workflow.WithCancel(ctx)
 
 		// Update the task summary to make it more readable in the UI
-		ao := workflow.GetActivityOptions(ctx)
+		ao := workflow.GetActivityOptions(cctx)
 		parentTask := ao.Summary
 
+		// Trigger the forked tasks
+		var taskErr error
 		for _, temporalWorkflow := range temporalWorkflows {
-			for _, wf := range temporalWorkflow.Tasks {
+			for k, wf := range temporalWorkflow.Tasks {
 				ao.Summary = fmt.Sprintf("%s.%s", parentTask, wf.Key)
-				ctx = workflow.WithActivityOptions(ctx, ao)
+				cctx = workflow.WithActivityOptions(cctx, ao)
 
-				workflow.Go(ctx, func(ctx workflow.Context) {
+				// Add the task
+				tasksCompleted[k] = false
+
+				workflow.Go(cctx, func(ctx workflow.Context) {
 					o := make(map[string]OutputType)
 
+					// Trigger tasks
 					err := wf.Task(ctx, data, o)
 					if err != nil {
-						logger.Error("Error handling Temporal task", "error", err, "task", wf.Key)
-						chunkResultChannel.Send(ctx, err)
+						if !temporal.IsCanceledError(err) {
+							logger.Error("Error handling Temporal task", "error", err, "task", wf.Key)
+							taskErr = err
+						}
 						return
 					}
 
-					chunkResultChannel.Send(ctx, forkTaskOutput{
-						name: wf.Key,
-						data: o,
+					// Task has completed
+					tasksCompleted[k] = true
+
+					// Store the response - if competing, only one result is returned
+					outputKey := fmt.Sprintf("%s_%s", task.Key, wf.Key)
+					if isCompeting {
+						outputKey = task.Key
+					}
+					maps.Copy(output, map[string]OutputType{
+						outputKey: {
+							Type: ForkResultType,
+							Data: o,
+						},
 					})
 				})
 			}
 		}
 
-		for _, temporalWorkflow := range temporalWorkflows {
-			for range temporalWorkflow.Tasks {
-				var v any
-				chunkResultChannel.Receive(ctx, &v)
-
-				switch result := v.(type) {
-				case error:
-					if result != nil {
-						return result
-					}
-				case forkTaskOutput:
-					maps.Copy(output, map[string]OutputType{
-						fmt.Sprintf("%s_%s", task.Key, result.name): {
-							Type: ForkResultType,
-							Data: result.data,
-						},
-					})
-				}
+		// Wait for tasks to complete
+		if err := workflow.Await(ctx, func() bool {
+			if taskErr != nil {
+				// An error has occurred
+				return true
 			}
+
+			isTrue := func(v bool) bool { return v }
+
+			mapValues := slices.Collect(maps.Values(tasksCompleted))
+
+			if isCompeting {
+				// Competing tasks - end if one has finished
+				return slices.ContainsFunc(mapValues, isTrue)
+			}
+
+			// Non-competing tasks - end if all have finished
+			return SliceEvery(mapValues, isTrue)
+		}); err != nil {
+			logger.Error("Error waiting for fork to complete", "error", err)
+			return fmt.Errorf("error waiting for fork to complete: %w", err)
+		}
+
+		// Cancel any running tasks - may be competing, or error occurred
+		// Make sure this happens before the error check
+		logger.Debug("Cancelling other concurrent tasks")
+		cancelHandler()
+
+		if taskErr != nil {
+			return fmt.Errorf("error running concurrent tasks: %w", taskErr)
 		}
 
 		return nil
