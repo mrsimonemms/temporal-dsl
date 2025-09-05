@@ -1,0 +1,46 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: ignored # Ignored by Temporal
+  name: competing-tasks # Workflow name
+  version: 0.0.1
+  title: Competing Concurrent Tasks
+  summary: Have two tasks competing and the first to finish wins
+timeout:
+  after:
+    minutes: 1
+do:
+  - state:
+      set:
+        id: "{{ uuidv4 }}"
+        winner: null
+  - wait:
+      wait:
+        seconds: 1
+  # Fan out and the first to finish wins
+  - race:
+      fork:
+        compete: true # This is important - if false, they all run to completion in parallel
+        branches:
+          # Winning task
+          - task1:
+              do:
+                - wait:
+                    wait:
+                      seconds: 2
+                - setWinner:
+                    set:
+                      winner: task1
+          # Losing task
+          - task2:
+              do:
+                - wait:
+                    wait:
+                      seconds: 5
+                - setWinner:
+                    set:
+                      winner: task2
+  - wait:
+      wait:
+        seconds: 1
