@@ -32,7 +32,7 @@ func runChildWorkflowFn(task *model.RunTask, taskName string) (TemporalWorkflowF
 		ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{})
 
 		var result any
-		if err := workflow.ExecuteChildWorkflow(ctx, task.Run.Workflow.Name, data).Get(ctx, &result); err != nil {
+		if err := workflow.ExecuteChildWorkflow(ctx, task.Run.Workflow.Name, data.Data).Get(ctx, &result); err != nil {
 			logger.Error("Error executiing child workflow", "error", err)
 			return fmt.Errorf("error executiing child workflow: %w", err)
 		}
