@@ -131,19 +131,19 @@ func (t *TemporalWorkflow) Workflow(ctx workflow.Context, input HTTPData) (map[s
 }
 
 // buildWorkflowTask convert the individual tasks to Temporal
-func (w *Workflow) buildWorkflowTask(item *model.TaskItem) (
+func (w *Workflow) buildWorkflowTask(item *model.TaskItem, childTaskName string) (
 	task TemporalWorkflowFunc,
 	taskType string,
 	additionalWorkflows []*TemporalWorkflow,
 	err error,
 ) {
 	if do := item.AsDoTask(); do != nil {
-		additionalWorkflows, err = doTaskImpl(do, item, w)
+		additionalWorkflows, err = doTaskImpl(do, childTaskName, w)
 		taskType = "DoTask"
 	}
 
 	if fork := item.AsForkTask(); fork != nil {
-		task, err = forkTaskImpl(fork, item, w)
+		additionalWorkflows, task, err = forkTaskImpl(fork, item, w)
 		taskType = "ForkTask"
 	}
 
@@ -188,7 +188,20 @@ func (w *Workflow) buildWorkflowTask(item *model.TaskItem) (
 		err
 }
 
-func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*TemporalWorkflow, error) {
+type workflowBuilderOpts struct {
+	useWorkflowName bool
+}
+
+func (w *Workflow) workflowBuilder(
+	tasks *model.TaskList,
+	name string,
+	additionalOptions ...workflowBuilderOpts,
+) ([]*TemporalWorkflow, error) {
+	var opts workflowBuilderOpts
+	if len(additionalOptions) == 1 {
+		opts = additionalOptions[0]
+	}
+
 	wfs := make([]*TemporalWorkflow, 0)
 
 	timeout := defaultWorkflowTimeout
@@ -212,7 +225,12 @@ func (w *Workflow) workflowBuilder(tasks *model.TaskList, name string) ([]*Tempo
 			hasNoDo = true
 		}
 
-		task, taskType, additionalWorkflows, err := w.buildWorkflowTask(item)
+		taskName := item.Key
+		if opts.useWorkflowName {
+			taskName = name
+		}
+
+		task, taskType, additionalWorkflows, err := w.buildWorkflowTask(item, taskName)
 		if err != nil {
 			return nil, err
 		}
