@@ -5,7 +5,7 @@ services:
     volumes:
       - ./server:/go/app
     ports:
-      - 3000:3000
+      - 3001:3000
 
   searchAttributes:
     image: temporalio/temporal
