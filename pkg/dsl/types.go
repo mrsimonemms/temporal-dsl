@@ -20,6 +20,7 @@ import (
 	"maps"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/workflow"
 )
 
 type activities struct{}
@@ -57,4 +58,10 @@ func (a *Variables) Clone() *Variables {
 	return &Variables{
 		Data: maps.Clone(a.Data),
 	}
+}
+
+type CancellableFuture struct {
+	Cancel  workflow.CancelFunc
+	Context workflow.Context
+	Future  workflow.ChildWorkflowFuture
 }

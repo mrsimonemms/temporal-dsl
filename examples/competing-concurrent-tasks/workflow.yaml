@@ -26,21 +26,25 @@ do:
           # Winning task
           - task1:
               do:
+                - getUser:
+                    call: http
+                    with:
+                      method: get
+                      endpoint: https://jsonplaceholder.typicode.com/users/2
                 - wait:
                     wait:
                       seconds: 2
-                - setWinner:
-                    set:
-                      winner: task1
           # Losing task
           - task2:
               do:
+                - getUser:
+                    call: http
+                    with:
+                      method: get
+                      endpoint: https://jsonplaceholder.typicode.com/users/1
                 - wait:
                     wait:
                       seconds: 5
-                - setWinner:
-                    set:
-                      winner: task2
   - wait:
       wait:
         seconds: 1
