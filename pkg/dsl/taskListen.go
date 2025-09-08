@@ -18,6 +18,7 @@ package dsl
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"time"
 
@@ -77,7 +78,12 @@ func configureQueryListener(ctx workflow.Context, event *model.EventFilter, data
 	return workflow.SetQueryHandlerWithOptions(ctx, event.With.ID, handler, workflow.QueryHandlerOptions{})
 }
 
-func configureSignalListener(ctx workflow.Context, event *model.EventFilter, data *Variables) error {
+func configureSignalListener(
+	ctx workflow.Context,
+	event *model.EventFilter,
+	data *Variables,
+	output map[string]OutputType,
+) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Debug("Creating signal", "signal", event.With.ID)
 
@@ -108,12 +114,27 @@ func configureSignalListener(ctx workflow.Context, event *model.EventFilter, dat
 	if inputData != nil {
 		logger.Debug("Setting state data from signal")
 		data.AddData(inputData)
+
+		for key, val := range inputData {
+			maps.Copy(output, map[string]OutputType{
+				key: {
+					Type: ListenResultType,
+					Data: val,
+				},
+			})
+		}
 	}
 
 	return nil
 }
 
-func configureUpdateListener(ctx workflow.Context, event *model.EventFilter, data *Variables, onSuccess func()) error {
+func configureUpdateListener(
+	ctx workflow.Context,
+	event *model.EventFilter,
+	data *Variables,
+	_ map[string]OutputType,
+	onSuccess func(),
+) error {
 	logger := workflow.GetLogger(ctx)
 
 	handler := func(ctx workflow.Context, args HTTPData) (*TaskListenResponse, error) {
@@ -229,13 +250,13 @@ func listenTaskImpl(task *model.ListenTask, key string) (TemporalWorkflowFunc, e
 					return fmt.Errorf("error setting query: %w", err)
 				}
 			case ListenTaskTypeSignal:
-				if err := configureSignalListener(ctx, event, data); err != nil {
+				if err := configureSignalListener(ctx, event, data, output); err != nil {
 					logger.Error("Error setting signal", "id", event.With.ID, "error", err)
 					return fmt.Errorf("error setting signal: %w", err)
 				}
 			case ListenTaskTypeUpdate:
 				await = true
-				if err := configureUpdateListener(ctx, event, data, func() {
+				if err := configureUpdateListener(ctx, event, data, output, func() {
 					logger.Debug("Listen event received", "event", event.With.ID)
 					if isAll {
 						isAllComplete[i] = true
