@@ -19,6 +19,7 @@ package dsl
 import (
 	"fmt"
 	"maps"
+	"slices"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/api/enums/v1"
@@ -102,7 +103,7 @@ func forkTaskFunc(fork *model.ForkTask, task *model.TaskItem, isCompeting bool) 
 		for taskName, w := range futures {
 			// Get the replies in parallel as "winner" may be last
 			workflow.Go(w.Context, func(ctx workflow.Context) {
-				var childData HTTPData
+				var childData map[string]OutputType
 				if err := w.Future.Get(ctx, &childData); err != nil {
 					if temporal.IsCanceledError(err) {
 						logger.Debug("Forked task cancelled", "task", taskName)
@@ -111,6 +112,19 @@ func forkTaskFunc(fork *model.ForkTask, task *model.TaskItem, isCompeting bool) 
 
 					logger.Error("Error forking task", "error", err, "task", taskName)
 					replyErr = fmt.Errorf("error forking task: %w", err)
+				}
+
+				// Get the output by data type and add to input data
+				allowedTypes := []ResultType{
+					SetResultType,
+					ListenResultType,
+				}
+				for key, value := range childData {
+					if slices.Contains(allowedTypes, value.Type) {
+						data.AddData(HTTPData{
+							key: value.Data,
+						})
+					}
 				}
 
 				hasReplied[i] = true

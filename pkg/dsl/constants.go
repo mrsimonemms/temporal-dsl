@@ -31,7 +31,9 @@ const (
 const (
 	CallHTTPResultType             ResultType = "CallHTTP"
 	ForkResultType                 ResultType = "Fork"
+	ListenResultType               ResultType = "Listen"
 	CallRunChildWorkflowResultType ResultType = "RunChildWorkflow"
+	SetResultType                  ResultType = "Set"
 )
 
 const defaultWorkflowTimeout = time.Minute * 5

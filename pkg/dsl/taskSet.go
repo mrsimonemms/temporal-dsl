@@ -18,6 +18,7 @@ package dsl
 
 import (
 	"fmt"
+	"maps"
 	"strconv"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
@@ -106,7 +107,7 @@ func setTaskInterpolate(ctx workflow.Context, keyID, input any, data *Variables)
 }
 
 func setTaskImpl(task *model.SetTask) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, data *Variables, _ map[string]OutputType) error {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Setting data to state")
 
@@ -119,6 +120,12 @@ func setTaskImpl(task *model.SetTask) TemporalWorkflowFunc {
 			}
 
 			data.Data[key] = value
+			maps.Copy(output, map[string]OutputType{
+				key: {
+					Type: SetResultType,
+					Data: value,
+				},
+			})
 		}
 
 		return nil
