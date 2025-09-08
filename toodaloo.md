@@ -5,7 +5,6 @@
 | File | Line Number | Author | Message |
 | --- | --- | --- | --- |
 | [pkg/dsl/taskCallHTTP.go](pkg/dsl/taskCallHTTP.go#L105) | 105 | Simon Emms <simon@simonemms.com> | configure the timeout |
-| [pkg/dsl/taskFork.go](pkg/dsl/taskFork.go#L80) | 80 | Simon Emms <simon@simonemms.com> | why is this using the branch.key not the child workflow name? |
 | [pkg/dsl/taskListen.go](pkg/dsl/taskListen.go#L88) | 88 | Simon Emms <simon@simonemms.com> | allow data to be received via signal |
 | [pkg/dsl/taskListen.go](pkg/dsl/taskListen.go#L89) | 89 | Simon Emms <simon@simonemms.com> | ignore if timeout is set to 0 or "0" |
 | [pkg/dsl/taskListen.go](pkg/dsl/taskListen.go#L252) | 252 | Simon Emms <simon@simonemms.com> | figure out a way of customising the timeout |

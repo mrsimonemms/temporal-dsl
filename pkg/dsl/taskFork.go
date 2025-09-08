@@ -77,7 +77,6 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 
 			childWorkflowName := GenerateChildWorkflowName("fork", task.Key, branch.Key)
 
-			// @todo(sje): why is this using the branch.key not the child workflow name?
 			logger.Info("Triggering forked child workflow", "name", childWorkflowName)
 
 			futures[childWorkflowName] = CancellableFuture{
