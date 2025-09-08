@@ -17,7 +17,7 @@ jobs:
   commitlint:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,7 +25,7 @@ jobs:
 
       - uses: wagoid/commitlint-github-action@v6
 
-  test:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +41,18 @@ jobs:
         with:
           python-version: 3.x
 
+      - uses: pre-commit/action@v3.0.1
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
       - name: Install dependencies
         run: go install ./...
 
@@ -53,12 +65,11 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
 
-      - uses: pre-commit/action@v3.0.1
-
   build:
     runs-on: ubuntu-latest
     needs:
       - commitlint
+      - pre-commit
       - test
     steps:
       - uses: actions/checkout@v4
@@ -137,7 +148,7 @@ jobs:
         if: steps.branch-name.outputs.is_tag == 'true'
         uses: actions/setup-go@v5
         with:
-          go-version: '>=1.20.0'
+          go-version: ">=1.20.0"
 
       - name: Run GoReleaser
         if: steps.branch-name.outputs.is_tag == 'true'
