@@ -48,7 +48,14 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 	}
 	isCompeting := fork.Fork.Compete
 
-	return additionalWorkflows, func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
+	return additionalWorkflows, forkTaskFunc(fork, task, isCompeting), nil
+}
+
+// @todo(sje): reduce the cyclo and function length
+//
+//nolint:gocyclo,funlen
+func forkTaskFunc(fork *model.ForkTask, task *model.TaskItem, isCompeting bool) TemporalWorkflowFunc {
+	return func(ctx workflow.Context, data *Variables, output map[string]OutputType) error {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Forking a task", "isCompeting", isCompeting)
 
@@ -87,36 +94,78 @@ func forkTaskImpl(fork *model.ForkTask, task *model.TaskItem, workflowInst *Work
 		}
 
 		// Now they're running, wait for the results
+		var replyErr error
+		hasReplied := make([]bool, len(futures))
+		var winningCtx workflow.Context
+
+		i := 0
 		for taskName, w := range futures {
-			var childData HTTPData
-			if err := w.Future.Get(w.Context, &childData); err != nil {
-				if temporal.IsCanceledError(err) {
-					logger.Debug("Forked task cancelled", "task", taskName)
-					return nil
+			// Get the replies in parallel as "winner" may be last
+			workflow.Go(w.Context, func(ctx workflow.Context) {
+				var childData HTTPData
+				if err := w.Future.Get(ctx, &childData); err != nil {
+					if temporal.IsCanceledError(err) {
+						logger.Debug("Forked task cancelled", "task", taskName)
+						return
+					}
+
+					logger.Error("Error forking task", "error", err, "task", taskName)
+					replyErr = fmt.Errorf("error forking task: %w", err)
 				}
 
-				logger.Error("Error forking task", "error", err, "task", taskName)
-				return fmt.Errorf("error forking task: %w", err)
-			}
+				hasReplied[i] = true
+				outputKey := fmt.Sprintf("%s_%s", task.Key, taskName)
 
-			if isCompeting {
-				logger.Info("A competing task has a winner - cancel all the other tasks", "task", taskName)
-				cancelOthers(w.Context)
-			}
+				// Always add non-competing data to the output
+				addData := !isCompeting
+				if isCompeting && winningCtx == nil {
+					winningCtx = ctx
+					// Only add the winning data to the output
+					addData = true
+					outputKey = task.Key
+				}
 
-			// Store the response - if competing, only one result is returned
-			outputKey := fmt.Sprintf("%s_%s", task.Key, taskName)
-			if isCompeting {
-				outputKey = task.Key
-			}
-			maps.Copy(output, map[string]OutputType{
-				outputKey: {
-					Type: ForkResultType,
-					Data: childData,
-				},
+				if addData {
+					maps.Copy(output, map[string]OutputType{
+						outputKey: {
+							Type: ForkResultType,
+							Data: childData,
+						},
+					})
+				}
+
+				i++
 			})
 		}
 
+		// Wait for the concurrent tasks to complete
+		if err := workflow.Await(ctx, func() bool {
+			if replyErr != nil {
+				return true
+			}
+
+			predicate := func(v bool) bool { return v }
+
+			if isCompeting {
+				return winningCtx != nil
+			}
+
+			return SliceEvery(hasReplied, predicate)
+		}); err != nil {
+			logger.Error("Error waiting for forked tasks to complete", "error", err)
+			return fmt.Errorf("error waiting for forked tasks to complete: %w", err)
+		}
+
+		logger.Debug("Forked task has completed")
+
+		if replyErr != nil {
+			return replyErr
+		}
+
+		if isCompeting {
+			cancelOthers(winningCtx)
+		}
+
 		return nil
-	}, nil
+	}
 }
