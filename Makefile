@@ -56,6 +56,14 @@ start:
 	go run ./examples/${NAME}
 .PHONY: start
 
+test:
+	@go test -v ./...
+.PHONY: test
+
+test_e2e:
+	@go test -tags e2e -v ./test/e2e/...
+.PHONY: test_e2e
+
 worker:
 	$(shell if [ -z "${NAME}" ]; then echo "NAME must be set"; exit 1; fi)
 	go run . -f ./examples/${NAME}/workflow.yaml
