@@ -48,6 +48,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Temporal CLI
+        uses: temporalio/setup-temporal@v0
+
+      - name: Start a local Temporal server
+        run: temporal server start-dev --headless &
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -56,14 +62,17 @@ jobs:
       - name: Install dependencies
         run: go install ./...
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+
       - name: go-vet
         run: go vet -v ./...
 
       - name: go-test
         run: go test -v ./...
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+      - name: End-to-end tests
+        run: go test -tags e2e -v ./test/e2e/...
 
   build:
     runs-on: ubuntu-latest
