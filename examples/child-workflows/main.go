@@ -19,7 +19,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
@@ -29,11 +28,7 @@ import (
 
 func main() {
 	// The client is a heavyweight object that should be created once per process.
-	c, err := temporal.NewConnection(
-		temporal.WithHostPort(os.Getenv("TEMPORAL_ADDRESS")),
-		temporal.WithNamespace(os.Getenv("TEMPORAL_NAMESPACE")),
-		temporal.WithAPICredentials(os.Getenv("TEMPORAL_API_KEY")),
-		temporal.WithTLS(os.Getenv("TEMPORAL_TLS") == "true"),
+	c, err := temporal.NewConnectionWithEnvvars(
 		temporal.WithZerolog(&log.Logger),
 	)
 	if err != nil {
