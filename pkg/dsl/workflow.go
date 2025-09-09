@@ -142,6 +142,11 @@ func (w *Workflow) buildWorkflowTask(item *model.TaskItem, childTaskName string)
 		taskType = "DoTask"
 	}
 
+	if forTask := item.AsForTask(); forTask != nil {
+		task, err = forTaskImpl(forTask)
+		taskType = "ForTask"
+	}
+
 	if fork := item.AsForkTask(); fork != nil {
 		additionalWorkflows, task, err = forkTaskImpl(fork, item, w)
 		taskType = "ForkTask"

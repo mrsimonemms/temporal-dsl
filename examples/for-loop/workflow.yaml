@@ -1,0 +1,51 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: ignored # Ignored by Temporal
+  name: for-loop # Workflow name
+  version: 0.0.1
+  title: For Loop
+  summary: Iteration for the win
+# Optionally validate the input received
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      properties:
+        pets:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              type:
+                type: string
+                enum:
+                  - dog
+                  - cat
+                  - snake
+            required:
+              - id
+              - name
+              - type
+timeout:
+  after:
+    minutes: 1
+do:
+  # Dogs are the best pet
+  - findBestPet:
+      for:
+        in: .pets
+        each: pet
+        at: key
+      while: .pet.type == "dog"
+      do:
+        - wait:
+            wait:
+              seconds: 2

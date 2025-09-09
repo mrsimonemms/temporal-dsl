@@ -1,0 +1,119 @@
+/*
+ * Copyright 2025 Simon Emms <simon@simonemms.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+
+	gh "github.com/mrsimonemms/golang-helpers"
+	"github.com/mrsimonemms/golang-helpers/temporal"
+	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
+	"github.com/rs/zerolog/log"
+	"go.temporal.io/sdk/client"
+)
+
+type PetType string
+
+const (
+	PetTypeDog   PetType = "dog"
+	PetTypeCat   PetType = "cat"
+	PetTypeSnake PetType = "snake"
+)
+
+type Pet struct {
+	ID   int     `json:"id,omitempty"`
+	Name string  `json:"name,omitempty"`
+	Type PetType `json:"type,omitempty"`
+}
+
+func exec() error {
+	// The client is a heavyweight object that should be created once per process.
+	c, err := temporal.NewConnectionWithEnvvars(
+		temporal.WithZerolog(&log.Logger),
+	)
+	if err != nil {
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Unable to create client",
+		}
+	}
+	defer c.Close()
+
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: "temporal-dsl",
+	}
+
+	pets := []Pet{
+		{
+			ID:   1,
+			Name: "Bella",
+			Type: PetTypeDog,
+		},
+		{
+			ID:   2,
+			Name: "Bozley",
+			Type: PetTypeDog,
+		},
+		{
+			ID:   3,
+			Name: "Freddie",
+			Type: PetTypeSnake,
+		},
+		{
+			ID:   4,
+			Name: "Ringo",
+			Type: PetTypeCat,
+		},
+	}
+
+	ctx := context.Background()
+	we, err := c.ExecuteWorkflow(ctx, workflowOptions, "for-loop", dsl.HTTPData{
+		"pets": pets,
+	})
+	if err != nil {
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error executing workflow",
+		}
+	}
+
+	log.Info().Str("workflowId", we.GetID()).Str("runId", we.GetRunID()).Msg("Started workflow")
+
+	var result map[string]dsl.OutputType
+	if err := we.Get(ctx, &result); err != nil {
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error getting response",
+		}
+	}
+
+	log.Info().Interface("result", result).Msg("Workflow completed")
+
+	fmt.Println("===")
+	fmt.Printf("%+v\n", result)
+	fmt.Println("===")
+
+	return nil
+}
+
+func main() {
+	if err := exec(); err != nil {
+		os.Exit(gh.HandleFatalError(err))
+	}
+}

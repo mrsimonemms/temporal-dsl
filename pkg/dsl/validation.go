@@ -46,9 +46,6 @@ func validateTaskSupported(task *model.TaskItem) error {
 	if emit := task.AsEmitTask(); emit != nil {
 		return fmt.Errorf("%w: emit", ErrUnsupportedTask)
 	}
-	if forTask := task.AsForTask(); forTask != nil {
-		return fmt.Errorf("%w: for", ErrUnsupportedTask)
-	}
 	if grpc := task.AsCallGRPCTask(); grpc != nil {
 		return fmt.Errorf("%w: grpc", ErrUnsupportedTask)
 	}
