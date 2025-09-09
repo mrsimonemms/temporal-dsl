@@ -12,7 +12,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/google/uuid v1.6.0
 	github.com/itchyny/gojq v0.12.17
-	github.com/mrsimonemms/golang-helpers v0.3.3
+	github.com/mrsimonemms/golang-helpers v0.4.0
 	github.com/mrsimonemms/temporal-codec-server/packages/golang v0.0.0-20250721093535-c8763745b255
 	github.com/rs/zerolog v1.34.0
 	github.com/serverlessworkflow/sdk-go/v3 v3.1.0
@@ -22,6 +22,11 @@ require (
 	go.temporal.io/api v1.52.0
 	go.temporal.io/sdk v1.36.0
 	gopkg.in/yaml.v3 v3.0.1
+)
+
+require (
+	github.com/BurntSushi/toml v1.4.0 // indirect
+	go.temporal.io/sdk/contrib/envconfig v0.1.0 // indirect
 )
 
 require (

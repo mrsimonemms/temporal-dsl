@@ -54,11 +54,7 @@ func exec() error {
 	if namespace == "" {
 		namespace = client.DefaultNamespace
 	}
-	c, err := temporal.NewConnection(
-		temporal.WithHostPort(os.Getenv("TEMPORAL_ADDRESS")),
-		temporal.WithNamespace(namespace),
-		temporal.WithAPICredentials(os.Getenv("TEMPORAL_API_KEY")),
-		temporal.WithTLS(os.Getenv("TEMPORAL_TLS") == "true"),
+	c, err := temporal.NewConnectionWithEnvvars(
 		temporal.WithZerolog(&log.Logger),
 	)
 	if err != nil {
