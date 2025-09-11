@@ -18,12 +18,10 @@ package cmd
 import (
 	"context"
 	"os"
-	"strings"
 
 	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
-	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -31,7 +29,6 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/worker"
-	"go.temporal.io/sdk/workflow"
 )
 
 var rootOpts struct {
@@ -65,25 +62,6 @@ var rootCmd = &cobra.Command{
 		}
 		zerolog.SetGlobalLevel(level)
 
-		return nil
-	},
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if rootOpts.EnvPrefix == "" {
-			return gh.FatalError{
-				Msg: "Env prefix cannot be empty",
-				WithParams: func(l *zerolog.Event) *zerolog.Event {
-					return l.Str("prefix", rootOpts.EnvPrefix)
-				},
-			}
-		}
-		if strings.HasSuffix(rootOpts.EnvPrefix, "_") {
-			return gh.FatalError{
-				Msg: "Env prefix cannot end with underscore (_)",
-				WithParams: func(l *zerolog.Event) *zerolog.Event {
-					return l.Str("prefix", rootOpts.EnvPrefix)
-				},
-			}
-		}
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -135,61 +113,7 @@ var rootCmd = &cobra.Command{
 		ctx := context.Background()
 		temporal.NewHealthCheck(ctx, rootOpts.TaskQueue, rootOpts.HealthListenAddress, c)
 
-		// Load the workflow file
-		wf, err := dsl.LoadFromFile(rootOpts.FilePath, rootOpts.EnvPrefix)
-		if err != nil {
-			return gh.FatalError{
-				Cause: err,
-				Msg:   "Error loading workflow",
-			}
-		}
-
-		if rootOpts.Validate {
-			log.Debug().Msg("Running validation")
-			if res, err := wf.Validate(); err != nil {
-				return gh.FatalError{
-					Cause: err,
-					Msg:   "Error validating",
-				}
-			} else if res != nil {
-				return gh.FatalError{
-					Cause: err,
-					Msg:   "Validation failed",
-					WithParams: func(l *zerolog.Event) *zerolog.Event {
-						return l.Interface("validationErrors", res)
-					},
-				}
-			}
-			log.Debug().Msg("Validation passed")
-		}
-
-		log.Info().Msg("Upserting schedules")
-		if err := dsl.UpsertSchedule(ctx, c, wf, rootOpts.TaskQueue); err != nil {
-			return gh.FatalError{
-				Cause: err,
-				Msg:   "Error upserting Temporal schedules",
-			}
-		}
-
 		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})
-
-		workflows, err := wf.BuildWorkflows()
-		if err != nil {
-			return gh.FatalError{
-				Cause: err,
-				Msg:   "Error building workflows",
-			}
-		}
-
-		for _, wf := range workflows {
-			log.Debug().Str("name", wf.Name).Msg("Registering workflow")
-			w.RegisterWorkflowWithOptions(wf.Workflow, workflow.RegisterOptions{
-				Name: wf.Name,
-			})
-		}
-
-		log.Debug().Msg("Registering activities")
-		w.RegisterActivity(wf.Activities())
 
 		err = w.Run(worker.InterruptCh())
 		if err != nil {
