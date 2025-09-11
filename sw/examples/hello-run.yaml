@@ -1,0 +1,7 @@
+document:
+  id: hello-run
+  name: Hello Run
+do:
+  - run:
+      process:
+        command: "echo 'Hello from process'"
