@@ -1,0 +1,8 @@
+document:
+  id: hello-http
+  name: Hello HTTP
+do:
+  - call:
+      http:
+        method: GET
+        url: https://httpbin.org/get
