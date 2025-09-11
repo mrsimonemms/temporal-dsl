@@ -64,7 +64,7 @@ do:
               do:
                 - timeout:
                     wait:
-                      minutes: 1
+                      seconds: 60
                 - autoApprove:
                     set:
                       approved: true
@@ -76,10 +76,11 @@ do:
                     wait:
                       seconds: 30
                 - notifyReviewer: *notifyReviewer
-                # Continue waiting until autoApprove has fired
+                # Continue waiting until autoApprove has fired - realistically, this is infinite
+                # as this branch should never "win"
                 - timeout:
                     wait:
-                      minutes: 2
+                      days: 7
           # Listen for the review response
           - waitForApproval:
               do:

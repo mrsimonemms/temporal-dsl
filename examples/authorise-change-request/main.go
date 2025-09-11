@@ -147,9 +147,10 @@ func main() {
 	}
 	zerolog.SetGlobalLevel(level)
 
+	delay := time.Second * 15
 	input := map[string]inputData{
 		"approve": {question: "Do you approve of the change? (Y/n)"},
-		"delay":   {question: "How long do you want to wait until replying? (15s)"},
+		"delay":   {question: fmt.Sprintf("How long do you want to wait until replying? (%s)", delay)},
 	}
 
 	for key, data := range input {
@@ -163,7 +164,6 @@ func main() {
 
 	approve := input["approve"].answer == "" || strings.EqualFold(input["approve"].answer, "y")
 
-	delay := time.Second * 15
 	if d := input["delay"].answer; d != "" {
 		var err error
 		delay, err = time.ParseDuration(d)
