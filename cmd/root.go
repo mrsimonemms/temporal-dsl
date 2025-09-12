@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
@@ -246,7 +245,7 @@ func init() {
 	viper.SetDefault("log_level", zerolog.InfoLevel.String())
 	rootCmd.PersistentFlags().StringVarP(
 		&rootOpts.LogLevel, "log-level", "l",
-		viper.GetString("log_level"), fmt.Sprintf("log level: %s", "Set log level"),
+		viper.GetString("log_level"), "Set log level",
 	)
 
 	viper.SetDefault("metrics_listen_address", "0.0.0.0:9090")
