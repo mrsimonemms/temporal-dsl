@@ -22,6 +22,7 @@ import (
 	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
+	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -71,6 +72,11 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
+		workflowDefinition, err := dsl.LoadFromFile(rootOpts.FilePath)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Unable to load workflow file")
+		}
+
 		var converter converter.DataConverter
 		if rootOpts.ConvertData {
 			keys, err := aes.ReadKeyFile(rootOpts.ConvertKeyPath)
@@ -88,7 +94,7 @@ var rootCmd = &cobra.Command{
 
 		// The client and worker are heavyweight objects that should be created once per process.
 		log.Trace().Msg("Connecting to Temporal")
-		c, err := temporal.NewConnection(
+		client, err := temporal.NewConnection(
 			temporal.WithHostPort(rootOpts.TemporalAddress),
 			temporal.WithNamespace(rootOpts.TemporalNamespace),
 			temporal.WithTLS(rootOpts.TemporalTLSEnabled),
@@ -105,18 +111,23 @@ var rootCmd = &cobra.Command{
 		}
 		defer func() {
 			log.Trace().Msg("Closing Temporal connection")
-			c.Close()
+			client.Close()
 			log.Trace().Msg("Temporal connection closed")
 		}()
 
 		log.Debug().Msg("Starting health check service")
-		ctx := context.Background()
-		temporal.NewHealthCheck(ctx, rootOpts.TaskQueue, rootOpts.HealthListenAddress, c)
+		temporal.NewHealthCheck(context.Background(), rootOpts.TaskQueue, rootOpts.HealthListenAddress, client)
 
-		w := worker.New(c, rootOpts.TaskQueue, worker.Options{})
+		temporalWorker := worker.New(client, rootOpts.TaskQueue, worker.Options{})
 
-		err = w.Run(worker.InterruptCh())
-		if err != nil {
+		if err := dsl.NewWorkflow(temporalWorker, workflowDefinition); err != nil {
+			return gh.FatalError{
+				Cause: err,
+				Msg:   "Unable to build workflow from DSL",
+			}
+		}
+
+		if err := temporalWorker.Run(worker.InterruptCh()); err != nil {
 			return gh.FatalError{
 				Cause: err,
 				Msg:   "Unable to start worker",
