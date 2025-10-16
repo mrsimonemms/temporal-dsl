@@ -77,6 +77,25 @@ var rootCmd = &cobra.Command{
 			log.Fatal().Err(err).Msg("Unable to load workflow file")
 		}
 
+		if rootOpts.Validate {
+			log.Debug().Msg("Running validation")
+			if res, err := dsl.Validate(workflowDefinition); err != nil {
+				return gh.FatalError{
+					Cause: err,
+					Msg:   "Error creating validation stack",
+				}
+			} else if res != nil {
+				return gh.FatalError{
+					Cause: err,
+					Msg:   "Validation failed",
+					WithParams: func(l *zerolog.Event) *zerolog.Event {
+						return l.Interface("validationErrors", res)
+					},
+				}
+			}
+			log.Debug().Msg("Validation passed")
+		}
+
 		var converter converter.DataConverter
 		if rootOpts.ConvertData {
 			keys, err := aes.ReadKeyFile(rootOpts.ConvertKeyPath)

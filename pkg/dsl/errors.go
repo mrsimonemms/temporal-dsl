@@ -18,4 +18,7 @@ package dsl
 
 import "fmt"
 
-var ErrUnsupportedDSL = fmt.Errorf("unsupported dsl version")
+var (
+	ErrUnknownValidationError = fmt.Errorf("unknown validation error")
+	ErrUnsupportedDSL         = fmt.Errorf("unsupported dsl version")
+)
