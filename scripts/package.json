@@ -1,0 +1,21 @@
+{
+  "name": "scripts",
+  "version": "0.0.0",
+  "description": "Helper scripts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "scripts": "./bin/cli.mjs"
+  },
+  "author": "Simon Emms <simon@simonemms.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "yaml": "^2.8.1",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "prettier": "^3.6.2"
+  }
+}
