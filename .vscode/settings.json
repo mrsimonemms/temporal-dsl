@@ -15,5 +15,8 @@
   "go.lintTool": "golangci-lint",
   "go.lintFlags": [
     "--fast"
-  ]
+  ],
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
