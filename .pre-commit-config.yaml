@@ -53,4 +53,11 @@ repos:
     rev: v0.1.30
     hooks:
       - id: helmlint
+  - repo: local
+    hooks:
+      - id: generate-table
+        name: Generate Examples Table
+        entry: ./scripts/bin/cli.mjs generate-table ./examples/README.md ./examples/
+        language: system
+        pass_filenames: false
 exclude: charts/.*/README.md
