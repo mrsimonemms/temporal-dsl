@@ -51,6 +51,8 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 	switch t := task.(type) {
 	case *model.DoTask:
 		return NewDoTaskBuilder(temporalWorker, t, taskName)
+	case *model.WaitTask:
+		return NewWaitTaskBuilder(temporalWorker, t, taskName)
 	default:
 		return nil, fmt.Errorf("unsupported task type '%T' for task '%s'", t, taskName)
 	}
