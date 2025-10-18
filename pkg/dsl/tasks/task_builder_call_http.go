@@ -17,9 +17,42 @@
 package tasks
 
 import (
+	"bytes"
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
 )
+
+func init() {
+	activities = append(activities, callHTTPActivity)
+}
+
+// @link: https://github.com/serverlessworkflow/specification/blob/main/dsl-reference.md#http-response
+type HTTPResponse struct {
+	Request    HTTPRequest       `json:"request"`
+	StatusCode int               `json:"statusCode"`
+	Headers    map[string]string `json:"headers,omitempty"`
+	Content    any               `json:"content,omitempty"`
+}
+
+// @link: https://github.com/serverlessworkflow/specification/blob/main/dsl-reference.md#http-request
+type HTTPRequest struct {
+	Method  string            `json:"method"`
+	URI     string            `json:"uri"`
+	Headers map[string]string `json:"headers,omitempty"`
+}
 
 func NewCallHTTPTaskBuilder(temporalWorker worker.Worker, task *model.CallHTTP, taskName string) (*CallHTTPTaskBuilder, error) {
 	return &CallHTTPTaskBuilder{
@@ -36,5 +69,148 @@ type CallHTTPTaskBuilder struct {
 }
 
 func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	return nil, nil
+	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
+		logger := workflow.GetLogger(ctx)
+		logger.Debug("Calling HTTP endpoint", "name", t.name)
+
+		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, nil); err != nil {
+			logger.Error("Error calling HTTP task", "name", t.name, "error", err)
+			return nil, fmt.Errorf("error calling http task: %w", err)
+		}
+
+		return nil, nil
+	}, nil
+}
+
+// @todo(sje): parse runtime expression
+func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Duration) (
+	resp *http.Response,
+	method, url string,
+	reqHeaders map[string]string,
+	err error,
+) {
+	logger := activity.GetLogger(ctx)
+
+	method = strings.ToUpper(task.With.Method)
+	url = task.With.Endpoint.String()
+	body := task.With.Body
+
+	logger.Debug("Making HTTP call", "method", method, "url", url)
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(body))
+	if err != nil {
+		logger.Error("Error making HTTP request", "method", method, "url", url, "error", err)
+		return resp, method, url, reqHeaders, err
+	}
+
+	// Add in headers
+	reqHeaders = map[string]string{}
+	for k, v := range task.With.Headers {
+		req.Header.Add(k, v)
+		reqHeaders[k] = v
+	}
+
+	// Add in query strings
+	q := req.URL.Query()
+	for k, v := range task.With.Query {
+		q.Add(k, v.(string))
+	}
+	req.URL.RawQuery = q.Encode()
+
+	client := &http.Client{
+		Timeout: timeout,
+		// @todo(sje): add support for redirection when it's added to the SDK
+		// @link: https://github.com/serverlessworkflow/specification/issues/1118
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err = client.Do(req)
+	if err != nil {
+		return resp, method, url, reqHeaders, err
+	}
+
+	return resp, method, url, reqHeaders, err
+}
+
+func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, state map[string]any) (any, error) {
+	logger := activity.GetLogger(ctx)
+	logger.Debug("Running call HTTP activity")
+
+	info := activity.GetInfo(ctx)
+
+	resp, method, url, reqHeaders, err := callHTTPAction(ctx, task, info.StartToCloseTimeout)
+	if err != nil {
+		logger.Error("Error making HTTP call", "method", method, "url", url, "error", err)
+		return nil, err
+	}
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			logger.Error("Error closing body reader", "error", err)
+		}
+	}()
+
+	bodyRes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("Error reading HTTP body", "method", method, "url", url, "error", err)
+		return nil, err
+	}
+
+	// Try converting the body as JSON, returning as string if not possible
+	var content any
+	var bodyJSON map[string]any
+	if err := json.Unmarshal(bodyRes, &bodyJSON); err != nil {
+		// Log error
+		logger.Debug("Error converting body to JSON", "error", err)
+		content = string(bodyRes)
+	} else {
+		content = bodyJSON
+	}
+
+	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+		// Client error - treat as non-retryable error as we need to fix it
+		logger.Error("CallHTTP returned 4xx error")
+		return nil, temporal.NewNonRetryableApplicationError(
+			"CallHTTP returned 4xx status code",
+			"CallHTTP error",
+			errors.New(resp.Status),
+			content,
+		)
+	}
+
+	respHeader := map[string]string{}
+	for k, v := range resp.Header {
+		respHeader[k] = strings.Join(v, ", ")
+	}
+
+	httpResponse := HTTPResponse{
+		Request: HTTPRequest{
+			Method:  method,
+			URI:     url,
+			Headers: reqHeaders,
+		},
+		StatusCode: resp.StatusCode,
+		Headers:    respHeader,
+		Content:    content,
+	}
+
+	return parseOutput(task.With.Output, httpResponse, bodyRes), err
+}
+
+func parseOutput(outputType string, httpResp HTTPResponse, raw []byte) any {
+	var output any
+	switch outputType {
+	case "raw":
+		// Base64 encoded HTTP response content - use the bodyRes
+		output = base64.StdEncoding.EncodeToString(raw)
+	case "response":
+		// HTTP response
+		output = httpResp
+	default:
+		// Content
+		output = httpResp.Content
+	}
+
+	return output
 }
