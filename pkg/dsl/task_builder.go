@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl/tasks"
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
@@ -40,8 +41,30 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 		return err
 	}
 
+	// Wrap the function as the prime function
+	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, state map[string]any) (output any, err error) {
+		logger := workflow.GetLogger(ctx)
+		logger.Info("Starting workflow")
+
+		if state == nil {
+			logger.Debug("Creating new empty state map")
+			state = map[string]any{}
+		}
+
+		timeout := defaultWorkflowTimeout
+		if doc.Timeout != nil && doc.Timeout.Timeout != nil && doc.Timeout.Timeout.After != nil {
+			timeout = utils.ToDuration(doc.Timeout.Timeout.After)
+		}
+		logger.Debug("Setting activity options", "startToCloseTimeout", timeout)
+		ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			StartToCloseTimeout: timeout,
+		})
+
+		return wf(ctx, input, state)
+	}
+
 	log.Debug().Str("name", name).Msg("Registering workflow")
-	temporalWorker.RegisterWorkflowWithOptions(wf, workflow.RegisterOptions{
+	temporalWorker.RegisterWorkflowWithOptions(workflowFn, workflow.RegisterOptions{
 		Name: name,
 	})
 
