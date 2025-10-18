@@ -18,7 +18,6 @@ package tasks
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
@@ -81,25 +80,14 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	}
 
 	// Execute the workflow
-	return workflowExecutor(tasks), nil
+	return t.workflowExecutor(tasks), nil
 }
 
 // workflowExecutor executes the workflow by iterating through the tasks in order
-func workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
+func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
 	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
 		logger := workflow.GetLogger(ctx)
-		logger.Info("Running workflow")
-
-		// Ensure the state map exists - the state exists in-workflow only
-		if state == nil {
-			logger.Debug("Creating new empty state map")
-			state = map[string]any{}
-		}
-
-		logger.Debug("Setting activity options")
-		ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-			StartToCloseTimeout: time.Minute,
-		})
+		logger.Info("Running workflow", "workflow", t.GetTaskName())
 
 		// Iterate through the tasks to create the workflow
 		for _, task := range tasks {

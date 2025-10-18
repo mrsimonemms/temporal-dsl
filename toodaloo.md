@@ -4,5 +4,5 @@
 
 | File | Line Number | Author | Message |
 | --- | --- | --- | --- |
-| [pkg/dsl/tasks/task_builder_do.go](pkg/dsl/tasks/task_builder_do.go#L111) | 111 | Simon Emms <simon@simonemms.com> | handle the output |
-| [pkg/dsl/tasks/task_builder_do.go](pkg/dsl/tasks/task_builder_do.go#L120) | 120 | Simon Emms <simon@simonemms.com> | return the output |
+| [pkg/dsl/tasks/task_builder_do.go](pkg/dsl/tasks/task_builder_do.go#L99) | 99 | Simon Emms <simon@simonemms.com> | handle the output |
+| [pkg/dsl/tasks/task_builder_do.go](pkg/dsl/tasks/task_builder_do.go#L108) | 108 | Simon Emms <simon@simonemms.com> | return the output |
