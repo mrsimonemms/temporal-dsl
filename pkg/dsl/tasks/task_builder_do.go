@@ -25,18 +25,29 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func NewDoTaskBuilder(temporalWorker worker.Worker, task *model.DoTask, taskName string) (*DoTaskBuilder, error) {
+type DoTaskOpts struct {
+	DisableRegisterWorkflow bool
+}
+
+func NewDoTaskBuilder(temporalWorker worker.Worker, task *model.DoTask, taskName string, opts ...DoTaskOpts) (*DoTaskBuilder, error) {
+	var doOpts DoTaskOpts
+	if len(opts) == 1 {
+		doOpts = opts[0]
+	}
+
 	return &DoTaskBuilder{
 		builder: builder[*model.DoTask]{
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,
 		},
+		opts: doOpts,
 	}, nil
 }
 
 type DoTaskBuilder struct {
 	builder[*model.DoTask]
+	opts DoTaskOpts
 }
 
 type workflowFunc struct {
@@ -80,7 +91,16 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	}
 
 	// Execute the workflow
-	return t.workflowExecutor(tasks), nil
+	wf := t.workflowExecutor(tasks)
+
+	if !t.opts.DisableRegisterWorkflow {
+		log.Error().Str("name", t.GetTaskName()).Msg("Registering workflow")
+		t.temporalWorker.RegisterWorkflowWithOptions(wf, workflow.RegisterOptions{
+			Name: t.GetTaskName(),
+		})
+	}
+
+	return wf, nil
 }
 
 // workflowExecutor executes the workflow by iterating through the tasks in order
