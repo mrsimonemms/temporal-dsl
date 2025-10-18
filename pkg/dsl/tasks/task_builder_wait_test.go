@@ -62,7 +62,7 @@ func TestWaitTaskBuilder(t *testing.T) {
 
 			env.RegisterWorkflow(wf)
 
-			env.ExecuteWorkflow(wf, nil)
+			env.ExecuteWorkflow(wf, nil, nil)
 
 			assert.NoError(t, env.GetWorkflowError())
 

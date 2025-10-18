@@ -40,7 +40,7 @@ type WaitTaskBuilder struct {
 }
 
 func (t *WaitTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	return func(ctx workflow.Context, _ any) (any, error) {
+	return func(ctx workflow.Context, _ any, _ map[string]any) (any, error) {
 		logger := workflow.GetLogger(ctx)
 
 		duration := utils.ToDuration(t.task.Wait)

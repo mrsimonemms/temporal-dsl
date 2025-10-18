@@ -29,7 +29,7 @@ type TaskBuilder interface {
 	GetTaskName() string
 }
 
-type TemporalWorkflowFunc func(ctx workflow.Context, input any) (output any, err error)
+type TemporalWorkflowFunc func(ctx workflow.Context, input any, state map[string]any) (output any, err error)
 
 type builder[T comparable] struct {
 	name           string
