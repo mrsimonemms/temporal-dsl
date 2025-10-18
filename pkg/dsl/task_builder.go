@@ -28,9 +28,13 @@ import (
 )
 
 func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
-	doBuilder, err := tasks.NewDoTaskBuilder(temporalWorker, &model.DoTask{
-		Do: doc.Do,
-	}, doc.Document.Name)
+	doBuilder, err := tasks.NewDoTaskBuilder(
+		temporalWorker,
+		&model.DoTask{Do: doc.Do},
+		doc.Document.Name,
+		// Disable registering if it's the prime workflow
+		tasks.DoTaskOpts{DisableRegisterWorkflow: true},
+	)
 	if err != nil {
 		return fmt.Errorf("error creating do builder: %w", err)
 	}
