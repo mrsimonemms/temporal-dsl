@@ -28,21 +28,27 @@ import (
 )
 
 func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
+	workflowName := doc.Document.Name
+	l := log.With().Str("workflowName", workflowName).Logger()
+
+	l.Debug().Msg("Creating new Do builder")
 	doBuilder, err := tasks.NewDoTaskBuilder(
 		temporalWorker,
 		&model.DoTask{Do: doc.Do},
-		doc.Document.Name,
+		workflowName,
 		// Disable registering if it's the prime workflow
 		tasks.DoTaskOpts{DisableRegisterWorkflow: true},
 	)
 	if err != nil {
+		l.Error().Err(err).Msg("Error creating Do builder")
 		return fmt.Errorf("error creating do builder: %w", err)
 	}
 
-	name := doBuilder.GetTaskName()
+	l.Debug().Msg("Building workflow")
 	wf, err := doBuilder.Build()
 	if err != nil {
-		return err
+		l.Error().Err(err).Msg("Error building workflow")
+		return fmt.Errorf("error building workflow: %w", err)
 	}
 
 	// Wrap the function as the prime function
@@ -67,9 +73,9 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 		return wf(ctx, input, state)
 	}
 
-	log.Debug().Str("name", name).Msg("Registering workflow")
+	l.Debug().Msg("Registering workflow")
 	temporalWorker.RegisterWorkflowWithOptions(workflowFn, workflow.RegisterOptions{
-		Name: name,
+		Name: workflowName,
 	})
 
 	return nil
