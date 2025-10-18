@@ -49,8 +49,14 @@ func (d *builder[T]) GetTaskName() string {
 // Factory to create a TaskBuilder instance, or die trying
 func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Worker) (TaskBuilder, error) {
 	switch t := task.(type) {
+	case *model.CallHTTP:
+		return NewCallHTTPTaskBuilder(temporalWorker, t, taskName)
 	case *model.DoTask:
 		return NewDoTaskBuilder(temporalWorker, t, taskName)
+	case *model.ForkTask:
+		return NewForkTaskBuilder(temporalWorker, t, taskName)
+	case *model.SetTask:
+		return NewSetTaskBuilder(temporalWorker, t, taskName)
 	case *model.WaitTask:
 		return NewWaitTaskBuilder(temporalWorker, t, taskName)
 	default:
