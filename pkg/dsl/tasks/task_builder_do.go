@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -48,19 +49,25 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	tasks := make([]workflowFunc, 0)
 
 	for _, task := range *t.task.Do {
+		l := log.With().Str("task", task.Key).Logger()
+
 		// Build task reference
 
 		// Should this task be run?
+		l.Debug().Msg("Checking if task can be run")
 
 		// Check for a switch task
+		l.Debug().Msg("Checking for switch task")
 
 		// Build a task builder
+		l.Debug().Msg("Creating task builder")
 		builder, err := NewTaskBuilder(task.Key, task.Task, t.temporalWorker)
 		if err != nil {
 			return nil, fmt.Errorf("error creating task builder: %w", err)
 		}
 
 		// Build the task and store it for use
+		l.Debug().Msg("Building task")
 		fn, err := builder.Build()
 		if err != nil {
 			return nil, fmt.Errorf("error building task: %w", err)
@@ -79,9 +86,15 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 // workflowExecutor executes the workflow by iterating through the tasks in order
 func workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, input any) (any, error) {
+	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Running workflow")
+
+		// Ensure the state map exists - the state exists in-workflow only
+		if state == nil {
+			logger.Debug("Creating new empty state map")
+			state = map[string]any{}
+		}
 
 		logger.Debug("Setting activity options")
 		ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
@@ -97,7 +110,7 @@ func workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
 
 			// @todo(sje): handle the output
 			logger.Info("Running task", "name", task.Name)
-			_, err := task.Func(ctx, input)
+			_, err := task.Func(ctx, input, state)
 			if err != nil {
 				logger.Error("Error running task", "name", task.Name, "error", err)
 				return nil, err
