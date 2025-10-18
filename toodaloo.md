@@ -4,5 +4,7 @@
 
 | File | Line Number | Author | Message |
 | --- | --- | --- | --- |
+| [pkg/dsl/tasks/task_builder_call_http.go](pkg/dsl/tasks/task_builder_call_http.go#L85) | 85 | Simon Emms <simon@simonemms.com> | parse runtime expression |
+| [pkg/dsl/tasks/task_builder_call_http.go](pkg/dsl/tasks/task_builder_call_http.go#L121) | 121 | Simon Emms <simon@simonemms.com> | add support for redirection when it's added to the SDK |
 | [pkg/dsl/tasks/task_builder_do.go](pkg/dsl/tasks/task_builder_do.go#L119) | 119 | Simon Emms <simon@simonemms.com> | handle the output |
 | [pkg/dsl/tasks/task_builder_do.go](pkg/dsl/tasks/task_builder_do.go#L128) | 128 | Simon Emms <simon@simonemms.com> | return the output |

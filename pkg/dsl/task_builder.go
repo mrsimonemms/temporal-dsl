@@ -78,5 +78,10 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 		Name: workflowName,
 	})
 
+	for _, a := range tasks.ActivitiesList() {
+		l.Debug().Msg("Registering activity")
+		temporalWorker.RegisterActivity(a)
+	}
+
 	return nil
 }

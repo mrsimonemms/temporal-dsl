@@ -24,6 +24,12 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+var activities []any = make([]any, 0)
+
+func ActivitiesList() []any {
+	return activities
+}
+
 type TaskBuilder interface {
 	Build() (TemporalWorkflowFunc, error)
 	GetTaskName() string
