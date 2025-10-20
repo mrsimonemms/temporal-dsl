@@ -38,6 +38,7 @@ type TaskBuilder interface {
 type TemporalWorkflowFunc func(ctx workflow.Context, input any, state map[string]any) (output any, err error)
 
 type builder[T comparable] struct {
+	doc            *model.Workflow
 	name           string
 	task           T
 	temporalWorker worker.Worker
@@ -53,14 +54,14 @@ func (d *builder[T]) GetTaskName() string {
 }
 
 // Factory to create a TaskBuilder instance, or die trying
-func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Worker) (TaskBuilder, error) {
+func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Worker, doc *model.Workflow) (TaskBuilder, error) {
 	switch t := task.(type) {
 	case *model.CallHTTP:
 		return NewCallHTTPTaskBuilder(temporalWorker, t, taskName)
 	case *model.DoTask:
-		return NewDoTaskBuilder(temporalWorker, t, taskName)
+		return NewDoTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.ForkTask:
-		return NewForkTaskBuilder(temporalWorker, t, taskName)
+		return NewForkTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.SetTask:
 		return NewSetTaskBuilder(temporalWorker, t, taskName)
 	case *model.WaitTask:

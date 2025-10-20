@@ -19,6 +19,7 @@ package tasks
 import (
 	"fmt"
 
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
@@ -29,7 +30,13 @@ type DoTaskOpts struct {
 	DisableRegisterWorkflow bool
 }
 
-func NewDoTaskBuilder(temporalWorker worker.Worker, task *model.DoTask, taskName string, opts ...DoTaskOpts) (*DoTaskBuilder, error) {
+func NewDoTaskBuilder(
+	temporalWorker worker.Worker,
+	task *model.DoTask,
+	taskName string,
+	doc *model.Workflow,
+	opts ...DoTaskOpts,
+) (*DoTaskBuilder, error) {
 	var doOpts DoTaskOpts
 	if len(opts) == 1 {
 		doOpts = opts[0]
@@ -37,6 +44,7 @@ func NewDoTaskBuilder(temporalWorker worker.Worker, task *model.DoTask, taskName
 
 	return &DoTaskBuilder{
 		builder: builder[*model.DoTask]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,
@@ -71,7 +79,7 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 		// Build a task builder
 		l.Debug().Msg("Creating task builder")
-		builder, err := NewTaskBuilder(task.Key, task.Task, t.temporalWorker)
+		builder, err := NewTaskBuilder(task.Key, task.Task, t.temporalWorker, t.doc)
 		if err != nil {
 			return nil, fmt.Errorf("error creating task builder: %w", err)
 		}
@@ -94,7 +102,7 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	wf := t.workflowExecutor(tasks)
 
 	if !t.opts.DisableRegisterWorkflow {
-		log.Error().Str("name", t.GetTaskName()).Msg("Registering workflow")
+		log.Debug().Str("name", t.GetTaskName()).Msg("Registering workflow")
 		t.temporalWorker.RegisterWorkflowWithOptions(wf, workflow.RegisterOptions{
 			Name: t.GetTaskName(),
 		})
@@ -108,6 +116,15 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Running workflow", "workflow", t.GetTaskName())
+
+		timeout := defaultWorkflowTimeout
+		if t.doc.Timeout != nil && t.doc.Timeout.Timeout != nil && t.doc.Timeout.Timeout.After != nil {
+			timeout = utils.ToDuration(t.doc.Timeout.Timeout.After)
+		}
+		logger.Debug("Setting activity options", "startToCloseTimeout", timeout)
+		ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			StartToCloseTimeout: timeout,
+		})
 
 		// Iterate through the tasks to create the workflow
 		for _, task := range tasks {

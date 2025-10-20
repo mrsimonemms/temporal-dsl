@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl/tasks"
-	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
@@ -36,6 +35,7 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 		temporalWorker,
 		&model.DoTask{Do: doc.Do},
 		workflowName,
+		doc,
 		// Disable registering if it's the prime workflow
 		tasks.DoTaskOpts{DisableRegisterWorkflow: true},
 	)
@@ -60,15 +60,6 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 			logger.Debug("Creating new empty state map")
 			state = map[string]any{}
 		}
-
-		timeout := defaultWorkflowTimeout
-		if doc.Timeout != nil && doc.Timeout.Timeout != nil && doc.Timeout.Timeout.After != nil {
-			timeout = utils.ToDuration(doc.Timeout.Timeout.After)
-		}
-		logger.Debug("Setting activity options", "startToCloseTimeout", timeout)
-		ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-			StartToCloseTimeout: timeout,
-		})
 
 		return wf(ctx, input, state)
 	}

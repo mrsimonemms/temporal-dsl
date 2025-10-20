@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-package dsl
+package utils
 
-import "time"
+import (
+	"fmt"
+	"strings"
+)
 
-const defaultWorkflowTimeout = time.Minute * 5
+func GenerateChildWorkflowName(prefix string, prefixes ...string) string {
+	prefixes = append([]string{prefix}, prefixes...)
+
+	return fmt.Sprintf("workflow_%s", strings.Join(prefixes, "_"))
+}
