@@ -13,7 +13,7 @@ require (
 	github.com/mrsimonemms/golang-helpers v0.4.0
 	github.com/mrsimonemms/temporal-codec-server/packages/golang v0.0.0-20250917111850-1e5f24c60fac
 	github.com/rs/zerolog v1.34.0
-	github.com/serverlessworkflow/sdk-go/v3 v3.1.0
+	github.com/serverlessworkflow/sdk-go/v3 v3.1.1
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	go.temporal.io/sdk v1.37.0

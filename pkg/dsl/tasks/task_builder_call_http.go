@@ -118,11 +118,12 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 
 	client := &http.Client{
 		Timeout: timeout,
-		// @todo(sje): add support for redirection when it's added to the SDK
-		// @link: https://github.com/serverlessworkflow/specification/issues/1118
-		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+	}
+
+	if !task.With.Redirect {
+		client.CheckRedirect = func(_ *http.Request, _ []*http.Request) error {
 			return http.ErrUseLastResponse
-		},
+		}
 	}
 
 	resp, err = client.Do(req)
@@ -166,6 +167,17 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 		content = string(bodyRes)
 	} else {
 		content = bodyJSON
+	}
+
+	// Treat redirects as an error - if you have "redirect = true", this will be ignored
+	if resp.StatusCode >= 300 && resp.StatusCode < 400 {
+		logger.Error("CallHTTP returned 3xx status")
+		return nil, temporal.NewNonRetryableApplicationError(
+			"CallHTTP returned 3xx status code",
+			"CallHTTP error",
+			errors.New(resp.Status),
+			content,
+		)
 	}
 
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {

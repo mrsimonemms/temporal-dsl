@@ -227,8 +227,8 @@ github.com/samber/slog-common v0.19.0 h1:fNcZb8B2uOLooeYwFpAlKjkQTUafdjfqKcwcC89
 github.com/samber/slog-common v0.19.0/go.mod h1:dTz+YOU76aH007YUU0DffsXNsGFQRQllPQh9XyNoA3M=
 github.com/samber/slog-zerolog/v2 v2.7.3 h1:/MkPDl/tJhijN2GvB1MWwBn2FU8RiL3rQ8gpXkQm2EY=
 github.com/samber/slog-zerolog/v2 v2.7.3/go.mod h1:oWU7WHof4Xp8VguiNO02r1a4VzkgoOyOZhY5CuRke60=
-github.com/serverlessworkflow/sdk-go/v3 v3.1.0 h1:gVXfBjivaNAUY1MLCLvjUz1NTvVytejiG0/IRgArUE0=
-github.com/serverlessworkflow/sdk-go/v3 v3.1.0/go.mod h1:UlZxTJUm55R3qFTieYybPtKLKFrtpGRJUL8JZS0PIuU=
+github.com/serverlessworkflow/sdk-go/v3 v3.1.1 h1:TfKoF9Nvospu9hBHvXcZHOjnlTjxCNBjvnShFf/Opwg=
+github.com/serverlessworkflow/sdk-go/v3 v3.1.1/go.mod h1:UlZxTJUm55R3qFTieYybPtKLKFrtpGRJUL8JZS0PIuU=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
