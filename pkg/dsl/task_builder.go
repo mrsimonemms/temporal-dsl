@@ -52,7 +52,7 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 	}
 
 	// Wrap the function as the prime function
-	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, state map[string]any) (output any, err error) {
+	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, state map[string]any) (any, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Starting workflow")
 

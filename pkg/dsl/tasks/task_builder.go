@@ -33,11 +33,12 @@ func ActivitiesList() []any {
 type TaskBuilder interface {
 	Build() (TemporalWorkflowFunc, error)
 	GetTaskName() string
+	GetTaskBase() *model.TaskBase
 }
 
 type TemporalWorkflowFunc func(ctx workflow.Context, input any, state map[string]any) (output any, err error)
 
-type builder[T comparable] struct {
+type builder[T model.Task] struct {
 	doc            *model.Workflow
 	name           string
 	task           T
@@ -51,6 +52,10 @@ func (d *builder[T]) Build() (TemporalWorkflowFunc, error) {
 
 func (d *builder[T]) GetTaskName() string {
 	return d.name
+}
+
+func (d *builder[T]) GetTaskBase() *model.TaskBase {
+	return d.task.GetBase()
 }
 
 // Factory to create a TaskBuilder instance, or die trying

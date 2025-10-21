@@ -73,12 +73,14 @@ func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Calling HTTP endpoint", "name", t.name)
 
-		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, nil); err != nil {
+		var res map[string]any
+		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, &res); err != nil {
 			logger.Error("Error calling HTTP task", "name", t.name, "error", err)
 			return nil, fmt.Errorf("error calling http task: %w", err)
 		}
 
-		return nil, nil
+		// Return the activity's
+		return res, nil
 	}, nil
 }
 

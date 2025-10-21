@@ -59,8 +59,9 @@ type DoTaskBuilder struct {
 }
 
 type workflowFunc struct {
-	Func TemporalWorkflowFunc
-	Name string
+	Func     TemporalWorkflowFunc
+	Name     string
+	TaskBase *model.TaskBase
 }
 
 func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
@@ -92,8 +93,9 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		}
 		if fn != nil {
 			tasks = append(tasks, workflowFunc{
-				Func: fn,
-				Name: builder.GetTaskName(),
+				Func:     fn,
+				Name:     builder.GetTaskName(),
+				TaskBase: builder.GetTaskBase(),
 			})
 		}
 	}
@@ -133,16 +135,21 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 			ao.Summary = task.Name
 			ctx = workflow.WithActivityOptions(ctx, ao)
 
-			// @todo(sje): handle the output
 			logger.Info("Running task", "name", task.Name)
-			_, err := task.Func(ctx, input, state)
+			res, err := task.Func(ctx, input, state)
 			if err != nil {
 				logger.Error("Error running task", "name", task.Name, "error", err)
 				return nil, err
 			}
+
+			if task.TaskBase.Export != nil && task.TaskBase.Export.As != nil {
+				logger.Debug("Exporting data to state", "key", task.TaskBase.Export.As)
+				// @todo(sje): this exports as a runtime string (ie, "{key}")
+				state[task.TaskBase.Export.As.String()] = res
+			}
+
 		}
 
-		// @todo(sje): return the output
-		return "hello world", nil
+		return state, nil
 	}
 }
