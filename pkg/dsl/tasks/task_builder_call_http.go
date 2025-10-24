@@ -28,6 +28,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
@@ -69,16 +70,17 @@ type CallHTTPTaskBuilder struct {
 }
 
 func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
+	return func(ctx workflow.Context, input any, state *utils.State) (*utils.State, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Calling HTTP endpoint", "name", t.name)
 
-		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, nil); err != nil {
+		var res any
+		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, &res); err != nil {
 			logger.Error("Error calling HTTP task", "name", t.name, "error", err)
 			return nil, fmt.Errorf("error calling http task: %w", err)
 		}
 
-		return nil, nil
+		return t.setData(state, res), nil
 	}, nil
 }
 
@@ -134,7 +136,7 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 	return resp, method, url, reqHeaders, err
 }
 
-func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, state map[string]any) (any, error) {
+func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, state *utils.State) (any, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Debug("Running call HTTP activity")
 

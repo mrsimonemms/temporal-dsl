@@ -21,7 +21,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"github.com/stretchr/testify/assert"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 )
@@ -37,8 +39,8 @@ func doTaskBuilder(name string) *DoTaskBuilder {
 }
 
 // wfOK asserts the AO summary matches `wantSummary` and that the timeout is the package default.
-func wfOK(wantSummary string) func(ctx workflow.Context, _ any, _ map[string]any) (any, error) {
-	return func(ctx workflow.Context, _ any, _ map[string]any) (any, error) {
+func wfOK(wantSummary string) func(ctx workflow.Context, _ any, _ *utils.State) (*utils.State, error) {
+	return func(ctx workflow.Context, _ any, _ *utils.State) (*utils.State, error) {
 		ao := workflow.GetActivityOptions(ctx)
 		if ao.Summary != wantSummary {
 			return nil, errors.New("summary not set correctly: got " + ao.Summary + ", want " + wantSummary)
@@ -51,8 +53,8 @@ func wfOK(wantSummary string) func(ctx workflow.Context, _ any, _ map[string]any
 }
 
 // wfErr returns an error to ensure the parent stops the sequence and propagates the error.
-func wfErr(msg string) func(ctx workflow.Context, _ any, _ map[string]any) (any, error) {
-	return func(ctx workflow.Context, _ any, _ map[string]any) (any, error) {
+func wfErr(msg string) func(ctx workflow.Context, _ any, _ *utils.State) (*utils.State, error) {
+	return func(ctx workflow.Context, _ any, _ *utils.State) (*utils.State, error) {
 		// small sleep to simulate work (and allow cancellation semantics if needed in future)
 		_ = workflow.Sleep(ctx, 5*time.Millisecond)
 		return nil, errors.New(msg)
@@ -76,7 +78,7 @@ func TestDoTaskBuilder_WorkflowExecutor_StopsOnFirstError(t *testing.T) {
 		},
 		{
 			Name: "second",
-			Func: func(ctx workflow.Context, _ any, _ map[string]any) (any, error) {
+			Func: func(ctx workflow.Context, _ any, _ *utils.State) (*utils.State, error) {
 				return nil, secondRanErr
 			},
 		},
@@ -123,18 +125,11 @@ func TestDoTaskBuilder_WorkflowExecutor_SetsSummaryAndReturnsHelloWorld(t *testi
 	env.RegisterWorkflowWithOptions(parent, workflow.RegisterOptions{Name: parentName})
 	env.ExecuteWorkflow(parentName, nil, map[string]any{})
 
-	if !env.IsWorkflowCompleted() {
-		t.Fatalf("workflow did not complete")
-	}
-	if err := env.GetWorkflowError(); err != nil {
-		t.Fatalf("expected no error, got: %v", err)
-	}
+	assert.True(t, env.IsWorkflowCompleted())
+	assert.NoError(t, env.GetWorkflowError())
 
 	var result any
-	if err := env.GetWorkflowResult(&result); err != nil {
-		t.Fatalf("failed to fetch workflow result: %v", err)
-	}
-	if s, ok := result.(string); !ok || s != "hello world" {
-		t.Fatalf("unexpected result: %#v (want \"hello world\")", result)
-	}
+	assert.NoError(t, env.GetWorkflowResult(&result))
+	expected := map[string]any{}
+	assert.Equal(t, result, expected)
 }
