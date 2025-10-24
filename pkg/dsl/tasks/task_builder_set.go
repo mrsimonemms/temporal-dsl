@@ -17,8 +17,10 @@
 package tasks
 
 import (
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
 )
 
 func NewSetTaskBuilder(temporalWorker worker.Worker, task *model.SetTask, taskName string) (*SetTaskBuilder, error) {
@@ -36,5 +38,9 @@ type SetTaskBuilder struct {
 }
 
 func (t *SetTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	return nil, nil
+	return func(ctx workflow.Context, input any, state *utils.State) (*utils.State, error) {
+		// Add the set data into the state
+		// @todo(sje): parse the Runtime Expressions before adding to the state
+		return state.BulkAdd(t.task.Set), nil
+	}, nil
 }

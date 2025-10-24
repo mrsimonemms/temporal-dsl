@@ -8,3 +8,4 @@
 | [pkg/dsl/tasks/task_builder_call_http.go](pkg/dsl/tasks/task_builder_call_http.go#L87) | 87 | Simon Emms <simon@simonemms.com> | parse runtime expression |
 | [pkg/dsl/tasks/task_builder_do.go](pkg/dsl/tasks/task_builder_do.go#L136) | 136 | Simon Emms <simon@simonemms.com> | handle the output |
 | [pkg/dsl/tasks/task_builder_fork.go](pkg/dsl/tasks/task_builder_fork.go#L117) | 117 | Simon Emms <simon@simonemms.com> | figure out the input and output |
+| [pkg/dsl/tasks/task_builder_set.go](pkg/dsl/tasks/task_builder_set.go#L43) | 43 | Simon Emms <simon@simonemms.com> | parse the Runtime Expressions before adding to the state |
