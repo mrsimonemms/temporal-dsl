@@ -113,7 +113,7 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 // workflowExecutor executes the workflow by iterating through the tasks in order
 func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
+	return func(ctx workflow.Context, input any, state *utils.State) (*utils.State, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Running workflow", "workflow", t.GetTaskName())
 
@@ -142,7 +142,6 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 			}
 		}
 
-		// @todo(sje): return the output
-		return "hello world", nil
+		return state, nil
 	}
 }

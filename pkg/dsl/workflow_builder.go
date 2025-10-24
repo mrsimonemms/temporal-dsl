@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl/tasks"
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
@@ -52,13 +53,13 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 	}
 
 	// Wrap the function as the prime function
-	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, state map[string]any) (output any, err error) {
+	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, state *utils.State) (*utils.State, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Starting workflow")
 
 		if state == nil {
 			logger.Debug("Creating new empty state map")
-			state = map[string]any{}
+			state = utils.NewState()
 		}
 
 		return wf(ctx, input, state)

@@ -40,11 +40,15 @@ do:
         seconds: 5
   - getUser:
       call: http
+      export:
+        as: getUser
       with:
         method: get
         endpoint: https://jsonplaceholder.typicode.com/users/{{ .input.userId }}
   - raiseAlarm:
       # A fork is a series of child workflows running in parallel
+      export:
+        as: raiseAlarm
       fork:
         # If not competing, all tasks will run to the finish - this is the default behaviour
         compete: false
@@ -52,6 +56,8 @@ do:
           # A single step is passed in by the Serverless Workflow task
           - callNurse:
               call: http
+              export:
+                as: callNurse
               with:
                 method: get
                 endpoint: https://jsonplaceholder.typicode.com/users/{{ .input.userId }}
@@ -67,6 +73,8 @@ do:
           # Another single step child workflow
           - callDoctor:
               call: http
+              export:
+                as: callDoctor
               with:
                 method: get
                 endpoint: https://jsonplaceholder.typicode.com/users/3

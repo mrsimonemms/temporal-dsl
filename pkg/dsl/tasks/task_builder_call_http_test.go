@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/jarcoal/httpmock"
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/stretchr/testify/assert"
 	"go.temporal.io/sdk/testsuite"
@@ -82,7 +83,9 @@ func TestActivity(t *testing.T) {
 				},
 			}
 
-			val, err := env.ExecuteActivity(callHTTPActivity, task, "", map[string]any{})
+			state := utils.NewState()
+
+			val, err := env.ExecuteActivity(callHTTPActivity, task, "", state)
 			assert.NoError(t, err)
 
 			var res any

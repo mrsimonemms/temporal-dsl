@@ -19,6 +19,8 @@ package tasks
 import (
 	"fmt"
 
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
+	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -33,11 +35,12 @@ func ActivitiesList() []any {
 type TaskBuilder interface {
 	Build() (TemporalWorkflowFunc, error)
 	GetTaskName() string
+	setData(*utils.State, any) *utils.State
 }
 
-type TemporalWorkflowFunc func(ctx workflow.Context, input any, state map[string]any) (output any, err error)
+type TemporalWorkflowFunc func(ctx workflow.Context, input any, state *utils.State) (output *utils.State, err error)
 
-type builder[T comparable] struct {
+type builder[T model.Task] struct {
 	doc            *model.Workflow
 	name           string
 	task           T
@@ -51,6 +54,21 @@ func (d *builder[T]) Build() (TemporalWorkflowFunc, error) {
 
 func (d *builder[T]) GetTaskName() string {
 	return d.name
+}
+
+// setData creates the state entry for a task
+func (d *builder[T]) setData(state *utils.State, data any) *utils.State {
+	if data != nil {
+		taskBase := d.task.GetBase()
+		if taskBase.Export != nil && taskBase.Export.As != nil {
+			log.Debug().Interface("key", taskBase.Export.As).Msg("Exporting task data to state")
+
+			// @todo(sje): this exports as a runtime string (ie, "{key}")
+			state.Add(taskBase.Export.As.String(), data)
+		}
+	}
+
+	return state
 }
 
 // Factory to create a TaskBuilder instance, or die trying
