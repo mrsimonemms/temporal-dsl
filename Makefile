@@ -24,10 +24,19 @@ else
 endif
 .PHONY: cruft-update
 
+e2e:
+	@go clean -testcache
+	@go test -v -tags=e2e ./tests/e2e/...
+.PHONY: e2e
+
 helm_img:
 	@docker build -t ${TMP_IMG}:${TMP_IMG_TAG} .
 	@docker push ${TMP_IMG}:${TMP_IMG_TAG}
 .PHONY: helm_img
+
+http_mock:
+	npx --yes json-server --port 8888 ./tests/e2e/testdata/data/db.json
+.PHONY: http_mock
 
 helm:
 # Put your custom values in here
