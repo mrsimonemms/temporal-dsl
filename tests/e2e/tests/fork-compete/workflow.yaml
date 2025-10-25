@@ -1,0 +1,23 @@
+document:
+  dsl: 1.0.0
+  namespace: fork-competing
+  name: workflow
+  version: 0.0.1
+do:
+  - fork-compete:
+      export:
+        as: fork
+      fork:
+        compete: true
+        branches:
+          - callHTTP:
+              call: http
+              export:
+                as: callHTTP1
+              with:
+                method: get
+                endpoint: http://localhost:8888/posts/1
+          # Use a wait task to guarantee which one wins
+          - wait:
+              wait:
+                seconds: 5

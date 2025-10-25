@@ -1,0 +1,13 @@
+document:
+  dsl: 1.0.0
+  namespace: callHTTP
+  name: workflow
+  version: 0.0.1
+do:
+  - callHTTP:
+      call: http
+      export:
+        as: callHTTP
+      with:
+        method: get
+        endpoint: http://localhost:8888/posts/2
