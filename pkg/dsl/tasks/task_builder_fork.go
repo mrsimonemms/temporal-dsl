@@ -196,7 +196,10 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 		}
 
 		// Wait for the concurrent tasks to complete
-		if err := workflow.Await(ctx, t.awaitCondition(replyErr, isCompeting, winningCtx, hasReplied)); err != nil {
+		if err := workflow.Await(ctx, func() bool {
+			// Wrap the function so the values are updated each time it's triggered
+			return t.awaitCondition(replyErr, isCompeting, winningCtx, hasReplied)()
+		}); err != nil {
 			logger.Error("Error waiting for forked tasks to complete", "error", err)
 			return nil, fmt.Errorf("error waiting for forked tasks to complete: %w", err)
 		}
@@ -212,24 +215,28 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 			futures.CancelOthers(winningCtx)
 		}
 
-		if isCompeting {
-			// If a competitive fork, return the only response as the response
-			// of the top-level export. A competitive fork is multiple workflows
-			// that only return one result.
-			//
-			// This still requires the export.as on the child task for the data
-			// to be included in the output.
-			v := slices.Collect(maps.Values(data.GetData())) // This should always be of length 1
-			if len(v) > 0 {
-				state = t.setData(state, v[0])
-			}
-		} else {
-			// If a non-competitive fork, return all the response as children of
-			// the top-level export. A non-competitive fork is multiple workflows
-			// that returns all the responses.
-			state = t.setData(state, data.GetData())
-		}
-
-		return state, nil
+		return t.resolveData(isCompeting, state, data), nil
 	}, nil
+}
+
+func (t *ForkTaskBuilder) resolveData(isCompeting bool, state, data *utils.State) *utils.State {
+	if isCompeting {
+		// If a competitive fork, return the only response as the response
+		// of the top-level export. A competitive fork is multiple workflows
+		// that only return one result.
+		//
+		// This still requires the export.as on the child task for the data
+		// to be included in the output.
+		v := slices.Collect(maps.Values(data.GetData())) // This should always be of length 1
+		if len(v) > 0 {
+			state = t.setData(state, v[0])
+		}
+	} else {
+		// If a non-competitive fork, return all the response as children of
+		// the top-level export. A non-competitive fork is multiple workflows
+		// that returns all the responses.
+		state = t.setData(state, data.GetData())
+	}
+
+	return state
 }
