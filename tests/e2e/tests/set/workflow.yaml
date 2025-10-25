@@ -1,0 +1,11 @@
+document:
+  dsl: 1.0.0
+  namespace: set
+  name: workflow
+  version: 0.0.1
+do:
+  - set:
+      set:
+        hello: world
+        second: value
+        number: 2345
