@@ -13,30 +13,14 @@ timeout:
 do:
   - step1:
       set:
-        # Set a variable from an envvar
-        envvar: "{{ .TDSL_EXAMPLE_ENVVAR }}"
+        hello: world
   - wait:
       wait:
         seconds: 5
   - getUser:
       call: http
+      export:
+        as: getUser
       with:
         method: get
-        endpoint: https://jsonplaceholder.typicode.com/users/{{ .userId }}
-  - raiseAlarm:
-      fork:
-        compete: false
-        branches:
-          - callNurse:
-              call: http
-              with:
-                method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/1
-          - wait:
-              wait:
-                seconds: 5
-          - callDoctor:
-              call: http
-              with:
-                method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/3
+        endpoint: https://jsonplaceholder.typicode.com/users/3

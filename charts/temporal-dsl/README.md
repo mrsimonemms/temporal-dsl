@@ -43,7 +43,7 @@ Build Temporal workflows from YAML
 | volumeMounts | list | `[]` | Additional volumeMounts on the output Deployment definition. |
 | volumes | list | `[]` | Additional volumes on the output Deployment definition. |
 | workflow.file | string | `"/data/workflow.yaml"` | Location the workflow volumes is mapped |
-| workflow.inline | object | `{"do":[{"step1":{"set":{"userId":2}}},{"wait":{"wait":{"seconds":5}}},{"getUser":{"call":"http","with":{"endpoint":"https://jsonplaceholder.typicode.com/users/{{ .userId }}","method":"get"}}}],"document":{"dsl":"1.0.0","name":"example","namespace":"ignored","summary":"An example of how to use Serverless Workflow to define Temporal Workflows","title":"Serverless Workflow","version":"0.0.1"},"timeout":{"after":{"minutes":1}}}` | Workflow YAML |
+| workflow.inline | object | `{"do":[{"step1":{"set":{"hello":"world"}}},{"wait":{"wait":{"seconds":5}}},{"getUser":{"call":"http","export":{"as":"getUser"},"with":{"endpoint":"https://jsonplaceholder.typicode.com/users/3","method":"get"}}}],"document":{"dsl":"1.0.0","name":"example","namespace":"temporal-dsl","summary":"An example of how to use Serverless Workflow to define Temporal Workflows","title":"Serverless Workflow","version":"0.0.1"},"timeout":{"after":{"minutes":1}}}` | Workflow YAML |
 | workflow.secret | string | `"workflow"` | Name of the secret containing `workflow.yaml` |
 | workflow.useInline | bool | `true` | Use the inline workflow. If false, you must declare a secret with the workflow in `workflow.yaml` |
 

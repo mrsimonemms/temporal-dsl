@@ -45,7 +45,7 @@ workflow:
   inline:
     document:
       dsl: 1.0.0
-      namespace: ignored # Ignored by Temporal
+      namespace: temporal-dsl # Mapped to the task queue
       name: example # Workflow name
       version: 0.0.1
       title: Serverless Workflow
@@ -56,15 +56,17 @@ workflow:
     do:
       - step1:
           set:
-            userId: 2
+            hello: world
       - wait:
           wait:
             seconds: 5
       - getUser:
           call: http
+          export:
+            as: getUser
           with:
             method: get
-            endpoint: https://jsonplaceholder.typicode.com/users/{{ .userId }}
+            endpoint: https://jsonplaceholder.typicode.com/users/3
 
 image:
   # -- Image repositiory
