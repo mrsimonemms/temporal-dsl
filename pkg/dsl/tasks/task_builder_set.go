@@ -17,7 +17,12 @@
 package tasks
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
+	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -39,8 +44,21 @@ type SetTaskBuilder struct {
 
 func (t *SetTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	return func(ctx workflow.Context, input any, state *utils.State) (*utils.State, error) {
+		setObject := swUtils.DeepClone(t.task.Set)
+		result, err := expr.TraverseAndEvaluateObj(
+			model.NewObjectOrRuntimeExpr(setObject),
+			state.ParseData(),
+			t.GetTaskName(),
+			context.TODO(),
+		)
+		fmt.Println(err)
+		fmt.Printf("%+v\n", result)
+
+		// for key, value := range setObject {
+		// }
+
 		// Add the set data into the state
-		// @todo(sje): parse the Runtime Expressions before adding to the state
-		return state.BulkAdd(t.task.Set), nil
+		// return state.BulkAdd(t.task.Set), nil
+		return nil, nil
 	}, nil
 }

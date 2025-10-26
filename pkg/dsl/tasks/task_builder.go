@@ -18,6 +18,7 @@ package tasks
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/rs/zerolog/log"
@@ -63,8 +64,7 @@ func (d *builder[T]) setData(state *utils.State, data any) *utils.State {
 		if taskBase.Export != nil && taskBase.Export.As != nil {
 			log.Debug().Interface("key", taskBase.Export.As).Msg("Exporting task data to state")
 
-			// @todo(sje): this exports as a runtime string (ie, "{key}")
-			state.Add(taskBase.Export.As.String(), data)
+			state.Add(strings.Trim(taskBase.Export.As.String(), "{}"), data)
 		}
 	}
 

@@ -27,7 +27,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[string]string) error {
+func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[string]any) error {
 	workflowName := doc.Document.Name
 	l := log.With().Str("workflowName", workflowName).Logger()
 

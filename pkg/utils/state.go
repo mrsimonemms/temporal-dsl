@@ -23,14 +23,14 @@ import (
 )
 
 type State struct {
-	env   map[string]string
+	env   map[string]any
 	input any
 	data  map[string]any
 }
 
 func (s *State) init() {
 	if s.env == nil {
-		s.env = map[string]string{}
+		s.env = map[string]any{}
 	}
 	if s.data == nil {
 		s.data = map[string]any{}
@@ -44,7 +44,7 @@ func (s *State) Add(key string, value any) *State {
 	return s
 }
 
-func (s *State) AddEnv(env map[string]string) *State {
+func (s *State) AddEnv(env map[string]any) *State {
 	s.init()
 	s.env = env
 
@@ -68,9 +68,11 @@ func (s *State) BulkAdd(data map[string]any) *State {
 }
 
 func (s *State) Clone() *State {
-	d := swUtils.DeepClone(s.GetData())
+	state := NewState(swUtils.DeepClone(s.data))
+	state.input = s.input
+	state.env = swUtils.DeepClone(s.env)
 
-	return NewState(d)
+	return state
 }
 
 func (s *State) Delete(key string, value any) *State {
@@ -87,6 +89,17 @@ func (s *State) GetData() map[string]any {
 
 func (s *State) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.GetData())
+}
+
+func (s *State) ParseData() map[string]any {
+	// Clone and get the raw data
+	d := s.Clone().GetData()
+
+	// Add in the input and envvars
+	d["__input"] = s.input
+	d["__env"] = s.env
+
+	return d
 }
 
 func NewState(data ...map[string]any) *State {

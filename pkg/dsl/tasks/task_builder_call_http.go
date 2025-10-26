@@ -84,7 +84,6 @@ func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	}, nil
 }
 
-// @todo(sje): parse runtime expression
 func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Duration) (
 	resp *http.Response,
 	method, url string,

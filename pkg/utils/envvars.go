@@ -21,13 +21,18 @@ import (
 	"strings"
 )
 
-func LoadEnvvars(prefix string) map[string]string {
-	vars := map[string]string{}
+func LoadEnvvars(prefix string) map[string]any {
+	vars := map[string]any{}
 
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)
-		if strings.HasPrefix(pair[0], prefix) {
-			vars[pair[0]] = pair[1]
+
+		key := pair[0]
+		value := pair[1]
+
+		if strings.HasPrefix(key, prefix) {
+			// Remove the prefix from the key
+			vars[strings.TrimLeft(key, prefix)] = value
 		}
 	}
 

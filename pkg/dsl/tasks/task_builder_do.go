@@ -128,16 +128,18 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 
 		// Iterate through the tasks to create the workflow
 		for _, task := range tasks {
-			logger.Debug("Adding summary to activity context", "name", task.Name)
+			logger.Debug("Adding summary to activity context", "task", task.Name)
 			ao := workflow.GetActivityOptions(ctx)
 			ao.Summary = task.Name
 			ctx = workflow.WithActivityOptions(ctx, ao)
 
-			// @todo(sje): handle the output
-			logger.Info("Running task", "name", task.Name)
+			logger.Debug("Cloning state", "task", task.Name)
+			state = state.Clone()
+
+			logger.Info("Running task", "task", task.Name)
 			_, err := task.Func(ctx, input, state)
 			if err != nil {
-				logger.Error("Error running task", "name", task.Name, "error", err)
+				logger.Error("Error running task", "task", task.Name, "error", err)
 				return nil, err
 			}
 		}

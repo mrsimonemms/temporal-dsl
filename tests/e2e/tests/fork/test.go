@@ -26,13 +26,13 @@ var testCase = utils.TestCase{
 	Name:         "fork",
 	WorkflowPath: "workflow.yaml",
 	ExpectedOutput: map[string]any{
-		"{fork}": map[string]any{
-			"{callHTTP1}": map[string]any{
+		"fork": map[string]any{
+			"callHTTP1": map[string]any{
 				"id":    "1",
 				"title": "a title",
 				"views": float64(100),
 			},
-			"{callHTTP2}": map[string]any{
+			"callHTTP2": map[string]any{
 				"id":    "2",
 				"title": "another title",
 				"views": float64(200),
