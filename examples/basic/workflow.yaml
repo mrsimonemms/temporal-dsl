@@ -24,16 +24,14 @@ timeout:
 do:
   - step1:
       set:
-        # Set a variable from an envvar
-        envvar: "{{ .TDSL_EXAMPLE_ENVVAR }}"
-        "{{ uuidv4 }}": some value
-        uuid: "{{ uuidv4 }}"
+        envvar: ${ .__env.EXAMPLE_ENVVAR }
+        uuid: ${ uuid }
         object:
           hello: world
-          uuid: "{{ uuidv4 }}"
-        inputUserId: "{{ .input.userId }}"
+          uuid: ${ uuid }
+        inputUserId: ${ .__input.userId }
         array:
-          - "{{ uuidv4 }}"
+          - ${ uuid }
           - hello: world
   - wait:
       wait:
