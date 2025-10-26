@@ -25,6 +25,7 @@ import (
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -158,7 +159,14 @@ var rootCmd = &cobra.Command{
 
 		temporalWorker := worker.New(client, taskQueue, worker.Options{})
 
-		if err := dsl.NewWorkflow(temporalWorker, workflowDefinition); err != nil {
+		// Add underscore to the prefix
+		prefix := rootOpts.EnvPrefix
+		prefix += "_"
+
+		log.Debug().Str("prefix", prefix).Msg("Loading envvars to state")
+		envvars := utils.LoadEnvvars(prefix)
+
+		if err := dsl.NewWorkflow(temporalWorker, workflowDefinition, envvars); err != nil {
 			return gh.FatalError{
 				Cause: err,
 				Msg:   "Unable to build workflow from DSL",

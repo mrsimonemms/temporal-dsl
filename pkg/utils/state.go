@@ -16,21 +16,44 @@
 
 package utils
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
+)
 
 type State struct {
-	state map[string]any
+	env   map[string]string
+	input any
+	data  map[string]any
 }
 
 func (s *State) init() {
-	if s.state == nil {
-		s.Clear()
+	if s.env == nil {
+		s.env = map[string]string{}
+	}
+	if s.data == nil {
+		s.data = map[string]any{}
 	}
 }
 
 func (s *State) Add(key string, value any) *State {
 	s.init()
-	s.state[key] = value
+	s.data[key] = value
+
+	return s
+}
+
+func (s *State) AddEnv(env map[string]string) *State {
+	s.init()
+	s.env = env
+
+	return s
+}
+
+func (s *State) AddInput(input any) *State {
+	s.init()
+	s.input = input
 
 	return s
 }
@@ -44,20 +67,22 @@ func (s *State) BulkAdd(data map[string]any) *State {
 	return s
 }
 
-func (s *State) Clear() {
-	s.state = map[string]any{}
+func (s *State) Clone() *State {
+	d := swUtils.DeepClone(s.GetData())
+
+	return NewState(d)
 }
 
 func (s *State) Delete(key string, value any) *State {
 	s.init()
-	delete(s.state, key)
+	delete(s.data, key)
 
 	return s
 }
 
 func (s *State) GetData() map[string]any {
 	s.init()
-	return s.state
+	return s.data
 }
 
 func (s *State) MarshalJSON() ([]byte, error) {
@@ -72,6 +97,6 @@ func NewState(data ...map[string]any) *State {
 	}
 
 	return &State{
-		state: s,
+		data: s,
 	}
 }

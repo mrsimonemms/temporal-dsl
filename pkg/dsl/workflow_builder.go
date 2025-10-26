@@ -27,7 +27,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
+func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[string]string) error {
 	workflowName := doc.Document.Name
 	l := log.With().Str("workflowName", workflowName).Logger()
 
@@ -53,14 +53,14 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 	}
 
 	// Wrap the function as the prime function
-	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, state *utils.State) (*utils.State, error) {
+	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, _ *utils.State) (*utils.State, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Starting workflow")
 
-		if state == nil {
-			logger.Debug("Creating new empty state map")
-			state = utils.NewState()
-		}
+		logger.Debug("Creating new state instance")
+		state := utils.NewState().
+			AddEnv(envvars).
+			AddInput(input)
 
 		return wf(ctx, input, state)
 	}
