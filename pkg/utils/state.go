@@ -17,41 +17,44 @@
 package utils
 
 import (
+	"encoding/json"
+	"fmt"
+
 	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 )
 
 type State struct {
-	Data  map[string]any `json:"data"`
-	Env   map[string]any `json:"env"`
-	Input any            `json:"input"`
+	data  map[string]any
+	env   map[string]any
+	input any
 }
 
 func (s *State) init() {
-	if s.Env == nil {
-		s.Env = map[string]any{}
+	if s.env == nil {
+		s.env = map[string]any{}
 	}
-	if s.Data == nil {
-		s.Data = map[string]any{}
+	if s.data == nil {
+		s.data = map[string]any{}
 	}
 }
 
 func (s *State) Add(key string, value any) *State {
 	s.init()
-	s.Data[key] = value
+	s.data[key] = value
 
 	return s
 }
 
 func (s *State) AddEnv(env map[string]any) *State {
 	s.init()
-	s.Env = env
+	s.env = env
 
 	return s
 }
 
 func (s *State) AddInput(input any) *State {
 	s.init()
-	s.Input = input
+	s.input = input
 
 	return s
 }
@@ -66,23 +69,23 @@ func (s *State) BulkAdd(data map[string]any) *State {
 }
 
 func (s *State) Clone() *State {
-	state := NewState(swUtils.DeepClone(s.Data))
-	state.Input = s.Input
-	state.Env = swUtils.DeepClone(s.Env)
+	state := NewState(swUtils.DeepClone(s.data))
+	state.input = s.input
+	state.env = swUtils.DeepClone(s.env)
 
 	return state
 }
 
 func (s *State) Delete(key string, value any) *State {
 	s.init()
-	delete(s.Data, key)
+	delete(s.data, key)
 
 	return s
 }
 
 func (s *State) GetData() map[string]any {
 	s.init()
-	return s.Data
+	return s.data
 }
 
 func (s *State) ParseData() map[string]any {
@@ -90,8 +93,8 @@ func (s *State) ParseData() map[string]any {
 	d := s.Clone().GetData()
 
 	// Add in the input and envvars
-	d["__input"] = s.Input
-	d["__env"] = s.Env
+	d["__input"] = s.input
+	d["__env"] = s.env
 
 	return d
 }
@@ -104,6 +107,42 @@ func NewState(data ...map[string]any) *State {
 	}
 
 	return &State{
-		Data: s,
+		data: s,
 	}
+}
+
+func (s *State) MarshalJSON() ([]byte, error) {
+	state := map[string]any{
+		"data":  s.GetData(),
+		"input": s.input,
+		"env":   s.env,
+	}
+
+	return json.Marshal(state)
+}
+
+func (s *State) UnmarshalJSON(b []byte) error {
+	var input map[string]any
+
+	if err := json.Unmarshal(b, &input); err != nil {
+		return err
+	}
+
+	if data, ok := input["data"]; ok {
+		s.data = data.(map[string]any)
+	}
+
+	if i, ok := input["input"]; ok {
+		s.input = i
+	}
+
+	if e, ok := input["env"]; ok {
+		s.env = e.(map[string]any)
+	}
+
+	fmt.Println("---")
+	fmt.Println(s)
+	fmt.Println("---")
+
+	return nil
 }

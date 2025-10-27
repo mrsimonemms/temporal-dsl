@@ -144,6 +144,7 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 			}
 		}
 
-		return state, nil
+		// Only send the data
+		return utils.NewState(state.GetData()), nil
 	}
 }

@@ -163,7 +163,7 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 
 	// Try converting the body as JSON, returning as string if not possible
 	var content any
-	var bodyJSON map[string]any
+	var bodyJSON any
 	if err := json.Unmarshal(bodyRes, &bodyJSON); err != nil {
 		// Log error
 		logger.Debug("Error converting body to JSON", "error", err)

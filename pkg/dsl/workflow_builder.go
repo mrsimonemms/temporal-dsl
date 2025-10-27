@@ -53,7 +53,7 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[
 	}
 
 	// Wrap the function as the prime function
-	workflowFn := func(ctx workflow.Context, input any, _ *utils.State) (map[string]any, error) {
+	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, _ *utils.State) (*utils.State, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Starting workflow")
 
@@ -64,9 +64,12 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[
 
 		state, err := wf(ctx, input, state)
 		if err != nil {
+			logger.Error("Error resolving workflow", "error", err)
 			return nil, err
 		}
-		return state.GetData(), nil
+
+		// Only send the data
+		return utils.NewState(state.GetData()), nil
 	}
 
 	l.Debug().Msg("Registering workflow")
