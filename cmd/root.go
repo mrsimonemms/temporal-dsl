@@ -17,7 +17,9 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"runtime/debug"
 
 	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
@@ -67,7 +69,21 @@ var rootCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Fatal().Interface("recover", r).Msg("Recovered from panic")
+				var panicMsg string
+				switch v := r.(type) {
+				case error:
+					panicMsg = v.Error()
+				case string:
+					panicMsg = v
+				default:
+					panicMsg = fmt.Sprintf("%+v", v)
+				}
+
+				log.Fatal().
+					Str("type", fmt.Sprintf("%T", r)).
+					Str("panicMsg", panicMsg).
+					Bytes("stack_trace", debug.Stack()).
+					Msg("Recovered from panic")
 			}
 		}()
 
