@@ -43,6 +43,44 @@ var jqFuncs []jqFunc = []jqFunc{
 	},
 }
 
+func MustEvaluateString(
+	str string,
+	state *State,
+	evaluationWrapper ...ExpressionWrapperFunc,
+) any {
+	res, err := EvaluateString(str, state, evaluationWrapper...)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// The return value could be any value depending upon how it's parsed
+func EvaluateString(str string, state *State, evaluationWrapper ...ExpressionWrapperFunc) (any, error) {
+	// Check if the string is a runtime expression (e.g., ${ .some.path })
+	if model.IsStrictExpr(str) {
+		// Wrapper exists to allow JQ evaluation to be put inside a workflow to make deterministic
+		fn := buildEvaluationWrapperFn(evaluationWrapper...)
+
+		return fn(func() (any, error) {
+			return evaluateJQExpression(model.SanitizeExpr(str), state)
+		})
+	}
+	return str, nil
+}
+
+func buildEvaluationWrapperFn(evaluationWrapper ...ExpressionWrapperFunc) ExpressionWrapperFunc {
+	var wrapperFn ExpressionWrapperFunc = func(f func() (any, error)) (any, error) {
+		return f()
+	}
+	if len(evaluationWrapper) > 0 {
+		// If a function is passed in, use that instead
+		wrapperFn = evaluationWrapper[0]
+	}
+
+	return wrapperFn
+}
+
 func TraverseAndEvaluateObj(
 	runtimeExpr *model.ObjectOrRuntimeExpr,
 	state *State,
@@ -53,13 +91,7 @@ func TraverseAndEvaluateObj(
 	}
 
 	// Default to a simple pass-thru function
-	var wrapperFn ExpressionWrapperFunc = func(f func() (any, error)) (any, error) {
-		return f()
-	}
-	if len(evaluationWrapper) > 0 {
-		// If a function is passed in, use that instead
-		wrapperFn = evaluationWrapper[0]
-	}
+	wrapperFn := buildEvaluationWrapperFn(evaluationWrapper...)
 
 	s, err := traverseAndEvaluate(runtimeExpr.AsStringOrMap(), state, wrapperFn)
 	if err != nil {
@@ -96,14 +128,7 @@ func traverseAndEvaluate(node any, state *State, evaluationWrapper ExpressionWra
 		}
 		return v, nil
 	case string:
-		// Check if the string is a runtime expression (e.g., ${ .some.path })
-		if model.IsStrictExpr(v) {
-			// Wrapper exists to allow JQ evaluation to be put inside a workflow to make deterministic
-			return evaluationWrapper(func() (any, error) {
-				return evaluateJQExpression(model.SanitizeExpr(v), state)
-			})
-		}
-		return v, nil
+		return EvaluateString(v, state, evaluationWrapper)
 	default:
 		// Return as-is
 		return v, nil

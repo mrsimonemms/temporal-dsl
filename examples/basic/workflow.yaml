@@ -42,7 +42,7 @@ do:
         as: getUser
       with:
         method: get
-        endpoint: https://jsonplaceholder.typicode.com/users/{{ .input.userId }}
+        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.__input.userId | tostring) }
   - raiseAlarm:
       # A fork is a series of child workflows running in parallel
       export:
@@ -58,7 +58,7 @@ do:
                 as: callNurse
               with:
                 method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/{{ .input.userId }}
+                endpoint:  ${ "https://jsonplaceholder.typicode.com/users/" + (.__input.userId | tostring) }
           # Multiple steps can be passed in by the Serverless Workflow do task
           - multiStep:
               do:

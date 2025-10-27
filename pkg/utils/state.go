@@ -17,43 +17,41 @@
 package utils
 
 import (
-	"encoding/json"
-
 	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 )
 
 type State struct {
-	env   map[string]any
-	input any
-	data  map[string]any
+	Data  map[string]any `json:"data"`
+	Env   map[string]any `json:"env"`
+	Input any            `json:"input"`
 }
 
 func (s *State) init() {
-	if s.env == nil {
-		s.env = map[string]any{}
+	if s.Env == nil {
+		s.Env = map[string]any{}
 	}
-	if s.data == nil {
-		s.data = map[string]any{}
+	if s.Data == nil {
+		s.Data = map[string]any{}
 	}
 }
 
 func (s *State) Add(key string, value any) *State {
 	s.init()
-	s.data[key] = value
+	s.Data[key] = value
 
 	return s
 }
 
 func (s *State) AddEnv(env map[string]any) *State {
 	s.init()
-	s.env = env
+	s.Env = env
 
 	return s
 }
 
 func (s *State) AddInput(input any) *State {
 	s.init()
-	s.input = input
+	s.Input = input
 
 	return s
 }
@@ -68,27 +66,23 @@ func (s *State) BulkAdd(data map[string]any) *State {
 }
 
 func (s *State) Clone() *State {
-	state := NewState(swUtils.DeepClone(s.data))
-	state.input = s.input
-	state.env = swUtils.DeepClone(s.env)
+	state := NewState(swUtils.DeepClone(s.Data))
+	state.Input = s.Input
+	state.Env = swUtils.DeepClone(s.Env)
 
 	return state
 }
 
 func (s *State) Delete(key string, value any) *State {
 	s.init()
-	delete(s.data, key)
+	delete(s.Data, key)
 
 	return s
 }
 
 func (s *State) GetData() map[string]any {
 	s.init()
-	return s.data
-}
-
-func (s *State) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.GetData())
+	return s.Data
 }
 
 func (s *State) ParseData() map[string]any {
@@ -96,8 +90,8 @@ func (s *State) ParseData() map[string]any {
 	d := s.Clone().GetData()
 
 	// Add in the input and envvars
-	d["__input"] = s.input
-	d["__env"] = s.env
+	d["__input"] = s.Input
+	d["__env"] = s.Env
 
 	return d
 }
@@ -110,6 +104,6 @@ func NewState(data ...map[string]any) *State {
 	}
 
 	return &State{
-		data: s,
+		Data: s,
 	}
 }

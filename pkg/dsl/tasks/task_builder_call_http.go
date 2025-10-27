@@ -84,7 +84,7 @@ func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	}, nil
 }
 
-func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Duration) (
+func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Duration, state *utils.State) (
 	resp *http.Response,
 	method, url string,
 	reqHeaders map[string]string,
@@ -92,12 +92,12 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 ) {
 	logger := activity.GetLogger(ctx)
 
-	method = strings.ToUpper(task.With.Method)
-	url = task.With.Endpoint.String()
-	body := task.With.Body
+	method = utils.MustEvaluateString(strings.ToUpper(task.With.Method), state).(string)
+	url = utils.MustEvaluateString(task.With.Endpoint.String(), state).(string)
+	body := utils.MustEvaluateString(string(task.With.Body), state).(string)
 
 	logger.Debug("Making HTTP call", "method", method, "url", url)
-	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBufferString(body))
 	if err != nil {
 		logger.Error("Error making HTTP request", "method", method, "url", url, "error", err)
 		return resp, method, url, reqHeaders, err
@@ -106,14 +106,16 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 	// Add in headers
 	reqHeaders = map[string]string{}
 	for k, v := range task.With.Headers {
-		req.Header.Add(k, v)
-		reqHeaders[k] = v
+		val := utils.MustEvaluateString(v, state).(string)
+		req.Header.Add(k, val)
+		reqHeaders[k] = val
 	}
 
 	// Add in query strings
 	q := req.URL.Query()
 	for k, v := range task.With.Query {
-		q.Add(k, v.(string))
+		val := utils.MustEvaluateString(v.(string), state).(string)
+		q.Add(k, val)
 	}
 	req.URL.RawQuery = q.Encode()
 
@@ -141,7 +143,7 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 
 	info := activity.GetInfo(ctx)
 
-	resp, method, url, reqHeaders, err := callHTTPAction(ctx, task, info.StartToCloseTimeout)
+	resp, method, url, reqHeaders, err := callHTTPAction(ctx, task, info.StartToCloseTimeout, state)
 	if err != nil {
 		logger.Error("Error making HTTP call", "method", method, "url", url, "error", err)
 		return nil, err
