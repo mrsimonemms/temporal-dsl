@@ -18,6 +18,8 @@ package tasks
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"time"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
@@ -91,7 +93,24 @@ func (t *ForkTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	return t.exec(forkedTasks)
 }
 
-// @todo(sje): figure out the input and output
+func (t *ForkTaskBuilder) awaitCondition(
+	replyErr error, isCompeting bool, winningCtx workflow.Context, hasReplied []bool,
+) func() bool {
+	return func() bool {
+		if replyErr != nil {
+			return true
+		}
+
+		predicate := func(v bool) bool { return v }
+
+		if isCompeting {
+			return winningCtx != nil
+		}
+
+		return utils.SliceEvery(hasReplied, predicate)
+	}
+}
+
 func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc, error) {
 	return func(ctx workflow.Context, input any, state *utils.State) (any, error) {
 		isCompeting := t.task.Fork.Compete
@@ -104,6 +123,10 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 		})
 
 		futures := &utils.CancellableFutures{}
+
+		// Create a new state with no output to pass to the children
+		childState := state.Clone().ClearOutput()
+		output := map[string]any{}
 
 		// Run the child workflows in parallel
 		for _, branch := range forkedTasks {
@@ -123,7 +146,7 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 			futures.Add(branch.childWorkflowName, utils.CancellableFuture{
 				Cancel:  cancelHandler,
 				Context: childCtx,
-				Future:  workflow.ExecuteChildWorkflow(childCtx, branch.childWorkflowName, input, state),
+				Future:  workflow.ExecuteChildWorkflow(childCtx, branch.childWorkflowName, input, childState),
 			})
 		}
 
@@ -136,7 +159,7 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 		for taskName, w := range futures.List() {
 			// Get the replies in parallel as the "winner" may be last
 			workflow.Go(w.Context, func(ctx workflow.Context) {
-				var childData any
+				var childData map[string]any
 				if err := w.Future.Get(ctx, &childData); err != nil {
 					if temporal.IsCanceledError(err) {
 						logger.Debug("Forked task cancelled", "task", taskName)
@@ -150,6 +173,7 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 				hasReplied[i] = true
 
 				// Always add non-competing data to the output
+				addData := !isCompeting
 				if isCompeting && winningCtx == nil {
 					logger.Debug(
 						"Winner declared",
@@ -157,7 +181,14 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 						workflow.GetChildWorkflowOptions(ctx).WorkflowID,
 					)
 
+					// We only care about the winning data
+					addData = true
 					winningCtx = ctx
+				}
+
+				if addData {
+					state.AddData(childData)
+					maps.Copy(output, childData)
 				}
 
 				i++
@@ -166,17 +197,8 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 
 		// Wait for the concurrent tasks to complete
 		if err := workflow.Await(ctx, func() bool {
-			if replyErr != nil {
-				return true
-			}
-
-			predicate := func(v bool) bool { return v }
-
-			if isCompeting {
-				return winningCtx != nil
-			}
-
-			return utils.SliceEvery(hasReplied, predicate)
+			// Wrap the function so the values are updated each time it's triggered
+			return t.awaitCondition(replyErr, isCompeting, winningCtx, hasReplied)()
 		}); err != nil {
 			logger.Error("Error waiting for forked tasks to complete", "error", err)
 			return nil, fmt.Errorf("error waiting for forked tasks to complete: %w", err)
@@ -193,6 +215,28 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 			futures.CancelOthers(winningCtx)
 		}
 
-		return nil, nil
+		return t.resolveOutput(isCompeting, output), nil
 	}, nil
+}
+
+func (t *ForkTaskBuilder) resolveOutput(isCompeting bool, data map[string]any) any {
+	if isCompeting {
+		// If a competitive fork, return the only response as the response
+		// of the top-level export. A competitive fork is multiple workflows
+		// that only return one result.
+		//
+		// This still requires the export.as on the child task for the data
+		// to be included in the output.
+		v := slices.Collect(maps.Values(data))
+		if len(v) > 0 {
+			return v[0]
+		}
+	} else {
+		// If a non-competitive fork, return all the response as children of
+		// the top-level export. A non-competitive fork is multiple workflows
+		// that returns all the responses.
+		return data
+	}
+
+	return nil
 }
