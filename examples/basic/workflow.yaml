@@ -2,7 +2,7 @@
 # translated into a Temporal workflow
 document:
   dsl: 1.0.0
-  namespace: ignored # Ignored by Temporal
+  namespace: temporal-dsl # Mapped to the task queue
   name: basic # Workflow name
   version: 0.0.1
   title: Basic Workflow
@@ -22,27 +22,30 @@ timeout:
   after:
     minutes: 1
 do:
-  - step1:
+  - baseData:
+      export:
+        as: data
       set:
         # Set a variable from an envvar
-        envvar: "{{ .TDSL_EXAMPLE_ENVVAR }}"
-        "{{ uuidv4 }}": some value
-        uuid: "{{ uuidv4 }}"
+        envvar: ${ .env.EXAMPLE_ENVVAR }
+        uuid: ${ uuid }
         object:
           hello: world
-          uuid: "{{ uuidv4 }}"
-        inputUserId: "{{ .input.userId }}"
+          uuid: ${ uuid }
+        inputUserId: ${ .input.userId }
         array:
-          - "{{ uuidv4 }}"
+          - ${ uuid }
           - hello: world
   - wait:
       wait:
         seconds: 5
   - getUser:
       call: http
+      export:
+        as: getUser
       with:
         method: get
-        endpoint: https://jsonplaceholder.typicode.com/users/{{ .input.userId }}
+        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
   - raiseAlarm:
       # A fork is a series of child workflows running in parallel
       fork:
@@ -52,9 +55,11 @@ do:
           # A single step is passed in by the Serverless Workflow task
           - callNurse:
               call: http
+              export:
+                as: callNurse
               with:
                 method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/{{ .input.userId }}
+                endpoint: https://jsonplaceholder.typicode.com/users/2
           # Multiple steps can be passed in by the Serverless Workflow do task
           - multiStep:
               do:
@@ -67,6 +72,8 @@ do:
           # Another single step child workflow
           - callDoctor:
               call: http
+              export:
+                as: callDoctor
               with:
                 method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/3
+                endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }

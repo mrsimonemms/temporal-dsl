@@ -42,7 +42,6 @@ var rootOpts struct {
 	LogLevel             string
 	MetricsListenAddress string
 	MetricsPrefix        string
-	TaskQueue            string
 	TemporalAddress      string
 	TemporalAPIKey       string
 	TemporalTLSEnabled   bool
@@ -148,10 +147,14 @@ var rootCmd = &cobra.Command{
 			log.Trace().Msg("Temporal connection closed")
 		}()
 
-		log.Debug().Msg("Starting health check service")
-		temporal.NewHealthCheck(context.Background(), rootOpts.TaskQueue, rootOpts.HealthListenAddress, client)
+		taskQueue := workflowDefinition.Document.Namespace
 
-		temporalWorker := worker.New(client, rootOpts.TaskQueue, worker.Options{})
+		log.Debug().Msg("Starting health check service")
+		temporal.NewHealthCheck(context.Background(), taskQueue, rootOpts.HealthListenAddress, client)
+
+		log.Info().Str("task-queue", taskQueue).Msg("Starting workflow")
+
+		temporalWorker := worker.New(client, taskQueue, worker.Options{})
 
 		if err := dsl.NewWorkflow(temporalWorker, workflowDefinition); err != nil {
 			return gh.FatalError{
@@ -225,12 +228,6 @@ func init() {
 	rootCmd.Flags().StringVar(
 		&rootOpts.MetricsPrefix, "metrics-prefix",
 		viper.GetString("metrics_prefix"), "Prefix for metrics",
-	)
-
-	viper.SetDefault("task_queue", "temporal-dsl")
-	rootCmd.Flags().StringVarP(
-		&rootOpts.TaskQueue, "task-queue", "q",
-		viper.GetString("task_queue"), "Task queue name",
 	)
 
 	viper.SetDefault("temporal_address", client.DefaultHostPort)

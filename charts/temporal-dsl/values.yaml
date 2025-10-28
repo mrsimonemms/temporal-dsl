@@ -45,7 +45,7 @@ workflow:
   inline:
     document:
       dsl: 1.0.0
-      namespace: ignored # Ignored by Temporal
+      namespace: temporal-dsl # Mapped to the task queue
       name: example # Workflow name
       version: 0.0.1
       title: Serverless Workflow
