@@ -19,6 +19,7 @@ package tasks
 import (
 	"fmt"
 
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -35,7 +36,7 @@ type TaskBuilder interface {
 	GetTaskName() string
 }
 
-type TemporalWorkflowFunc func(ctx workflow.Context, input any, state map[string]any) (output any, err error)
+type TemporalWorkflowFunc func(ctx workflow.Context, input any, state *utils.State) (output map[string]any, err error)
 
 type builder[T comparable] struct {
 	doc            *model.Workflow

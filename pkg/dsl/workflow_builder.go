@@ -23,10 +23,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
-	"go.temporal.io/sdk/workflow"
 )
 
-func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
+func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[string]any) error {
 	workflowName := doc.Document.Name
 	l := log.With().Str("workflowName", workflowName).Logger()
 
@@ -36,8 +35,8 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 		&model.DoTask{Do: doc.Do},
 		workflowName,
 		doc,
-		// Disable registering if it's the prime workflow
-		tasks.DoTaskOpts{DisableRegisterWorkflow: true},
+		// Pass the envvars - this will be passed to the state object
+		tasks.DoTaskOpts{Envvars: envvars},
 	)
 	if err != nil {
 		l.Error().Err(err).Msg("Error creating Do builder")
@@ -45,29 +44,10 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow) error {
 	}
 
 	l.Debug().Msg("Building workflow")
-	wf, err := doBuilder.Build()
-	if err != nil {
+	if _, err := doBuilder.Build(); err != nil {
 		l.Error().Err(err).Msg("Error building workflow")
 		return fmt.Errorf("error building workflow: %w", err)
 	}
-
-	// Wrap the function as the prime function
-	var workflowFn tasks.TemporalWorkflowFunc = func(ctx workflow.Context, input any, state map[string]any) (output any, err error) {
-		logger := workflow.GetLogger(ctx)
-		logger.Info("Starting workflow")
-
-		if state == nil {
-			logger.Debug("Creating new empty state map")
-			state = map[string]any{}
-		}
-
-		return wf(ctx, input, state)
-	}
-
-	l.Debug().Msg("Registering workflow")
-	temporalWorker.RegisterWorkflowWithOptions(workflowFn, workflow.RegisterOptions{
-		Name: workflowName,
-	})
 
 	for _, a := range tasks.ActivitiesList() {
 		l.Debug().Msg("Registering activity")
