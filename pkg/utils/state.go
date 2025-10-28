@@ -68,6 +68,11 @@ func (s *State) AddOutput(task model.Task, output any) *State {
 	return s
 }
 
+func (s *State) ClearOutput() *State {
+	s.Output = map[string]any{}
+	return s
+}
+
 func (s *State) Clone() *State {
 	s1 := NewState()
 

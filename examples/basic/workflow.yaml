@@ -48,6 +48,8 @@ do:
         endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
   - raiseAlarm:
       # A fork is a series of child workflows running in parallel
+      export:
+        as: raiseAlarm
       fork:
         # If not competing, all tasks will run to the finish - this is the default behaviour
         compete: false
