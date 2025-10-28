@@ -17,7 +17,12 @@
 package utils
 
 import (
+	"maps"
+	"strings"
+
+	"github.com/rs/zerolog/log"
 	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
 type State struct {
@@ -41,13 +46,35 @@ func (s *State) init() *State {
 	return s
 }
 
+func (s *State) AddData(data map[string]any) *State {
+	maps.Copy(s.Data, data)
+
+	return s
+}
+
+func (s *State) AddOutput(task model.Task, output any) *State {
+	if output != nil {
+		if export := task.GetBase().Export; export != nil {
+			if exportAs := export.As; exportAs != nil {
+				// Trim runtime expression wrapper
+				key := strings.Trim(exportAs.String(), "{}")
+				log.Debug().Any("key", key).Msg("Add task output to state")
+
+				s.Output[key] = output
+			}
+		}
+	}
+
+	return s
+}
+
 func (s *State) Clone() *State {
 	s1 := NewState()
 
 	s1.Data = swUtils.DeepClone(s.Data)
-	s1.Env = swUtils.DeepClone(s1.Env)
+	s1.Env = swUtils.DeepClone(s.Env)
 	s1.Input = swUtils.DeepCloneValue(s.Input)
-	s1.Output = swUtils.DeepClone(s1.Output)
+	s1.Output = swUtils.DeepClone(s.Output)
 
 	return s1
 }

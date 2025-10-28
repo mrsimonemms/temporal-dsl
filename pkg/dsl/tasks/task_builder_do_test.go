@@ -38,8 +38,8 @@ func doTaskBuilder(name string) *DoTaskBuilder {
 }
 
 // wfOK asserts the AO summary matches `wantSummary` and that the timeout is the package default.
-func wfOK(wantSummary string) func(ctx workflow.Context, _ any, _ *utils.State) (map[string]any, error) {
-	return func(ctx workflow.Context, _ any, _ *utils.State) (map[string]any, error) {
+func wfOK(wantSummary string) func(ctx workflow.Context, _ any, _ *utils.State) (any, error) {
+	return func(ctx workflow.Context, _ any, _ *utils.State) (any, error) {
 		ao := workflow.GetActivityOptions(ctx)
 		if ao.Summary != wantSummary {
 			return nil, errors.New("summary not set correctly: got " + ao.Summary + ", want " + wantSummary)
@@ -52,8 +52,8 @@ func wfOK(wantSummary string) func(ctx workflow.Context, _ any, _ *utils.State) 
 }
 
 // wfErr returns an error to ensure the parent stops the sequence and propagates the error.
-func wfErr(msg string) func(ctx workflow.Context, _ any, _ *utils.State) (map[string]any, error) {
-	return func(ctx workflow.Context, _ any, _ *utils.State) (map[string]any, error) {
+func wfErr(msg string) func(ctx workflow.Context, _ any, _ *utils.State) (any, error) {
+	return func(ctx workflow.Context, _ any, _ *utils.State) (any, error) {
 		// small sleep to simulate work (and allow cancellation semantics if needed in future)
 		_ = workflow.Sleep(ctx, 5*time.Millisecond)
 		return nil, errors.New(msg)
@@ -77,7 +77,7 @@ func TestDoTaskBuilder_WorkflowExecutor_StopsOnFirstError(t *testing.T) {
 		},
 		{
 			Name: "second",
-			Func: func(ctx workflow.Context, _ any, _ *utils.State) (map[string]any, error) {
+			Func: func(ctx workflow.Context, _ any, _ *utils.State) (any, error) {
 				return nil, secondRanErr
 			},
 		},

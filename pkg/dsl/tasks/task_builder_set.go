@@ -17,8 +17,13 @@
 package tasks
 
 import (
+	"fmt"
+
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
+	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
 )
 
 func NewSetTaskBuilder(temporalWorker worker.Worker, task *model.SetTask, taskName string) (*SetTaskBuilder, error) {
@@ -36,5 +41,53 @@ type SetTaskBuilder struct {
 }
 
 func (t *SetTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	return nil, nil
+	return func(ctx workflow.Context, input any, state *utils.State) (any, error) {
+		logger := workflow.GetLogger(ctx)
+
+		setObject := swUtils.DeepClone(t.task.Set)
+
+		logger.Debug("Traversing set data")
+		result, err := utils.TraverseAndEvaluateObj(
+			model.NewObjectOrRuntimeExpr(setObject),
+			state,
+			func(fn func() (any, error)) (any, error) {
+				logger.Debug("Setting set data as a side effect")
+				return t.sideEffectWrapper(ctx, fn)
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing set object :%w", err)
+		}
+
+		// Add the result to the state's data
+		logger.Debug("Setting data to the state")
+		state.AddData(result)
+
+		return result, nil
+	}, nil
+}
+
+// sideEffectWrapper creates a wrapper function for the Runtime Expression traversal to ensure that
+// the generated values are set deterministically. For many things, this might be considered overkill
+// as input/envvars/state are likely to be determinstic. However, as this also supports things like
+// generation of UUIDs, there could be non-deterministic values being set.
+func (t *SetTaskBuilder) sideEffectWrapper(ctx workflow.Context, fn func() (any, error)) (any, error) {
+	var val any
+	var sideEffectErr error
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) any {
+		res, err := fn()
+		if err != nil {
+			sideEffectErr = err
+			return nil
+		}
+		return res
+	}).Get(&val)
+	if err != nil {
+		return nil, fmt.Errorf("error running side effect: %w", err)
+	}
+	if sideEffectErr != nil {
+		return nil, fmt.Errorf("error running runtime expression: %w", sideEffectErr)
+	}
+
+	return val, nil
 }

@@ -70,16 +70,23 @@ type CallHTTPTaskBuilder struct {
 }
 
 func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	return func(ctx workflow.Context, input any, state *utils.State) (map[string]any, error) {
+	return func(ctx workflow.Context, input any, state *utils.State) (any, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Calling HTTP endpoint", "name", t.name)
 
-		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, nil); err != nil {
+		var res any
+		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, &res); err != nil {
 			logger.Error("Error calling HTTP task", "name", t.name, "error", err)
 			return nil, fmt.Errorf("error calling http task: %w", err)
 		}
 
-		return nil, nil
+		// Add the result to the state's data
+		logger.Debug("Setting data to the state", "key", t.name)
+		state.AddData(map[string]any{
+			t.name: res,
+		})
+
+		return res, nil
 	}, nil
 }
 
