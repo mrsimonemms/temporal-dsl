@@ -33,12 +33,13 @@ func ActivitiesList() []any {
 
 type TaskBuilder interface {
 	Build() (TemporalWorkflowFunc, error)
+	GetTask() model.Task
 	GetTaskName() string
 }
 
-type TemporalWorkflowFunc func(ctx workflow.Context, input any, state *utils.State) (output map[string]any, err error)
+type TemporalWorkflowFunc func(ctx workflow.Context, input any, state *utils.State) (output any, err error)
 
-type builder[T comparable] struct {
+type builder[T model.Task] struct {
 	doc            *model.Workflow
 	name           string
 	task           T
@@ -48,6 +49,10 @@ type builder[T comparable] struct {
 // This method is designed to be overridden
 func (d *builder[T]) Build() (TemporalWorkflowFunc, error) {
 	return nil, fmt.Errorf("task builder not implemented: %s", d.GetTaskName())
+}
+
+func (d *builder[T]) GetTask() model.Task {
+	return d.task
 }
 
 func (d *builder[T]) GetTaskName() string {

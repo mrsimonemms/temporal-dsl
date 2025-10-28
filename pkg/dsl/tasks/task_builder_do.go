@@ -63,6 +63,8 @@ type DoTaskBuilder struct {
 }
 
 type workflowFunc struct {
+	TaskBuilder
+
 	Func TemporalWorkflowFunc
 	Name string
 }
@@ -96,8 +98,9 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		}
 		if fn != nil {
 			tasks = append(tasks, workflowFunc{
-				Func: fn,
-				Name: builder.GetTaskName(),
+				Func:        fn,
+				Name:        builder.GetTaskName(),
+				TaskBuilder: builder,
 			})
 		}
 	}
@@ -117,7 +120,7 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 // workflowExecutor executes the workflow by iterating through the tasks in order
 func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, input any, state *utils.State) (map[string]any, error) {
+	return func(ctx workflow.Context, input any, state *utils.State) (any, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Running workflow", "workflow", t.GetTaskName())
 
@@ -144,13 +147,15 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 			ao.Summary = task.Name
 			ctx = workflow.WithActivityOptions(ctx, ao)
 
-			// @todo(sje): handle the output
 			logger.Info("Running task", "name", task.Name)
-			_, err := task.Func(ctx, input, state)
+			output, err := task.Func(ctx, input, state)
 			if err != nil {
 				logger.Error("Error running task", "name", task.Name, "error", err)
 				return nil, err
 			}
+
+			// Set the output - this is only set if there's an export.as on the task
+			state.AddOutput(task.GetTask(), output)
 		}
 
 		return state.Output, nil
