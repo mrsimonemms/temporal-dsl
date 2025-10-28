@@ -10,7 +10,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/itchyny/gojq v0.12.17
-	github.com/jarcoal/httpmock v1.4.1
 	github.com/mrsimonemms/golang-helpers v0.4.0
 	github.com/mrsimonemms/temporal-codec-server/packages/golang v0.0.0-20250917111850-1e5f24c60fac
 	github.com/rs/zerolog v1.34.0

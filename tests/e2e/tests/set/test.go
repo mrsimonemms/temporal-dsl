@@ -26,9 +26,11 @@ var testCase = utils.TestCase{
 	Name:         "set",
 	WorkflowPath: "workflow.yaml",
 	ExpectedOutput: map[string]any{
-		"hello":  "world",
-		"second": "value",
-		"number": float64(2345),
+		"data": map[string]any{
+			"hello":  "world",
+			"second": "value",
+			"number": float64(2345),
+		},
 	},
 	Test: utils.RunToCompletion,
 }

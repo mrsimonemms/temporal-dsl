@@ -5,6 +5,8 @@ document:
   version: 0.0.1
 do:
   - set:
+      export:
+        as: data
       set:
         hello: world
         second: value
