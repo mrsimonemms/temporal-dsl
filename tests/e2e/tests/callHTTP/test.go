@@ -26,7 +26,7 @@ var testCase = utils.TestCase{
 	Name:         "callHTTP",
 	WorkflowPath: "workflow.yaml",
 	ExpectedOutput: map[string]any{
-		"{callHTTP}": map[string]any{
+		"callHTTP": map[string]any{
 			"id":    "2",
 			"title": "another title",
 			"views": float64(200),

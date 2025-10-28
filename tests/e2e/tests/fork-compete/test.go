@@ -22,7 +22,7 @@ var testCase = utils.TestCase{
 	Name:         "fork-compete",
 	WorkflowPath: "workflow.yaml",
 	ExpectedOutput: map[string]any{
-		"{fork}": map[string]any{
+		"fork": map[string]any{
 			"id":    "1",
 			"title": "a title",
 			"views": float64(100),
