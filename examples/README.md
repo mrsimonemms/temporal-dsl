@@ -20,6 +20,7 @@ A collection of examples
 | Name | Description |
 | --- | --- |
 | [Basic Workflow](./basic) | An example of how to use Serverless Workflow to define Temporal Workflows |
+| [TypeScript](./typescript) | The basic example, but in TypeScript |
 
 <!-- apps-end -->
 

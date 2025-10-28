@@ -1,0 +1,81 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl # Mapped to the task queue
+  name: basic-typescript # Workflow name
+  version: 0.0.1
+  title: TypeScript
+  summary: The basic example, but in TypeScript
+# Optionally validate the input received
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: number
+timeout:
+  after:
+    minutes: 1
+do:
+  - baseData:
+      export:
+        as: data
+      set:
+        # Set a variable from an envvar
+        envvar: ${ .env.EXAMPLE_ENVVAR }
+        uuid: ${ uuid }
+        object:
+          hello: world
+          uuid: ${ uuid }
+        inputUserId: ${ .input.userId }
+        array:
+          - ${ uuid }
+          - hello: world
+  - wait:
+      wait:
+        seconds: 5
+  - getUser:
+      call: http
+      export:
+        as: getUser
+      with:
+        method: get
+        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+  - raiseAlarm:
+      # A fork is a series of child workflows running in parallel
+      export:
+        as: raiseAlarm
+      fork:
+        # If not competing, all tasks will run to the finish - this is the default behaviour
+        compete: false
+        branches:
+          # A single step is passed in by the Serverless Workflow task
+          - callNurse:
+              call: http
+              export:
+                as: callNurse
+              with:
+                method: get
+                endpoint: https://jsonplaceholder.typicode.com/users/2
+          # Multiple steps can be passed in by the Serverless Workflow do task
+          - multiStep:
+              do:
+                - wait1:
+                    wait:
+                      seconds: 3
+                - wait2:
+                    wait:
+                      seconds: 2
+          # Another single step child workflow
+          - callDoctor:
+              call: http
+              export:
+                as: callDoctor
+              with:
+                method: get
+                endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
