@@ -28,6 +28,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
@@ -69,7 +70,7 @@ type CallHTTPTaskBuilder struct {
 }
 
 func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
+	return func(ctx workflow.Context, input any, state *utils.State) (map[string]any, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Debug("Calling HTTP endpoint", "name", t.name)
 

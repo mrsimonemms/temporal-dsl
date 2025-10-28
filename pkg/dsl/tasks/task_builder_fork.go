@@ -93,7 +93,7 @@ func (t *ForkTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 // @todo(sje): figure out the input and output
 func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc, error) {
-	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
+	return func(ctx workflow.Context, input any, state *utils.State) (map[string]any, error) {
 		isCompeting := t.task.Fork.Compete
 
 		logger := workflow.GetLogger(ctx)

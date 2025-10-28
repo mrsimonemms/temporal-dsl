@@ -28,6 +28,7 @@ import (
 
 type DoTaskOpts struct {
 	DisableRegisterWorkflow bool
+	Envvars                 map[string]any
 }
 
 func NewDoTaskBuilder(
@@ -40,6 +41,9 @@ func NewDoTaskBuilder(
 	var doOpts DoTaskOpts
 	if len(opts) == 1 {
 		doOpts = opts[0]
+	}
+	if doOpts.Envvars == nil {
+		doOpts.Envvars = map[string]any{}
 	}
 
 	return &DoTaskBuilder{
@@ -113,9 +117,16 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 // workflowExecutor executes the workflow by iterating through the tasks in order
 func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
-	return func(ctx workflow.Context, input any, state map[string]any) (any, error) {
+	return func(ctx workflow.Context, input any, state *utils.State) (map[string]any, error) {
 		logger := workflow.GetLogger(ctx)
 		logger.Info("Running workflow", "workflow", t.GetTaskName())
+
+		if state == nil {
+			logger.Debug("Creating new state instance")
+			state = utils.NewState()
+			state.Env = t.opts.Envvars
+			state.Input = input
+		}
 
 		timeout := defaultWorkflowTimeout
 		if t.doc.Timeout != nil && t.doc.Timeout.Timeout != nil && t.doc.Timeout.Timeout.After != nil {
@@ -142,7 +153,6 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 			}
 		}
 
-		// @todo(sje): return the output
-		return "hello world", nil
+		return state.Output, nil
 	}
 }
