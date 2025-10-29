@@ -74,8 +74,14 @@ type workflowFunc struct {
 func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	tasks := make([]workflowFunc, 0)
 
+	var hasNoDo bool
 	for _, task := range *t.task.Do {
 		l := log.With().Str("task", task.Key).Logger()
+
+		if do := task.AsDoTask(); do == nil {
+			l.Debug().Msg("No do task detected")
+			hasNoDo = true
+		}
 
 		// Build a task builder
 		l.Debug().Msg("Creating task builder")
@@ -103,10 +109,12 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	wf := t.workflowExecutor(tasks)
 
 	if !t.opts.DisableRegisterWorkflow {
-		log.Debug().Str("name", t.GetTaskName()).Msg("Registering workflow")
-		t.temporalWorker.RegisterWorkflowWithOptions(wf, workflow.RegisterOptions{
-			Name: t.GetTaskName(),
-		})
+		if hasNoDo {
+			log.Debug().Str("name", t.GetTaskName()).Msg("Registering workflow")
+			t.temporalWorker.RegisterWorkflowWithOptions(wf, workflow.RegisterOptions{
+				Name: t.GetTaskName(),
+			})
+		}
 	}
 
 	return wf, nil
