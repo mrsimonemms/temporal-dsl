@@ -21,7 +21,9 @@ import (
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/rs/zerolog/log"
+	swUtil "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 )
@@ -118,6 +120,28 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	return wf, nil
 }
 
+// validateInput validates the input if it exists
+func (t *DoTaskBuilder) validateInput(ctx workflow.Context, inputDef *model.Input, state *utils.State) error {
+	logger := workflow.GetLogger(ctx)
+
+	if inputDef != nil {
+		logger.Debug("Validating input against schema")
+		if err := swUtil.ValidateSchema(state.Input, inputDef.Schema, t.GetTaskName()); err != nil {
+			logger.Error("Input failed data validation", "error", err)
+
+			return temporal.NewNonRetryableApplicationError(
+				"Workflow input did not meet JSON schema specification",
+				"Validation",
+				err,
+				// There is additional detail useful in here
+				err.(*model.Error),
+			)
+		}
+	}
+
+	return nil
+}
+
 // workflowExecutor executes the workflow by iterating through the tasks in order
 func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowFunc {
 	return func(ctx workflow.Context, input any, state *utils.State) (any, error) {
@@ -129,6 +153,13 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 			state = utils.NewState()
 			state.Env = t.opts.Envvars
 			state.Input = input
+
+			// Validate input for the whole document
+			logger.Debug("Validating input against document")
+			if err := t.validateInput(ctx, t.doc.Input, state); err != nil {
+				logger.Debug("Document input validation error", "error", err)
+				return nil, err
+			}
 		}
 
 		timeout := defaultWorkflowTimeout
@@ -142,6 +173,13 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 
 		// Iterate through the tasks to create the workflow
 		for _, task := range tasks {
+			// Check input for the task
+			logger.Debug("Validating input against task")
+			if err := t.validateInput(ctx, t.doc.Input, state); err != nil {
+				logger.Debug("Task input validation error", "error", err)
+				return nil, err
+			}
+
 			logger.Debug("Adding summary to activity context", "name", task.Name)
 			ao := workflow.GetActivityOptions(ctx)
 			ao.Summary = task.Name
