@@ -16,6 +16,16 @@
 
 package utils
 
+// Ensures that all slices are equal to the given value
+func SlicesEqual[T comparable](s []T, v T) bool {
+	for _, r := range s {
+		if r != v {
+			return false
+		}
+	}
+	return true
+}
+
 // Functionally equivalent to JS's Array.prorotype.every function
 // @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
 func SliceEvery[T any](items []T, predicate func(T) bool) bool {

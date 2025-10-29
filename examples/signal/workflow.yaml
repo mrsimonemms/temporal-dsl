@@ -1,0 +1,22 @@
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: signal
+  version: 0.0.1
+  title: Signal Workflow
+  summary: Listen for events
+do:
+  - approve:
+      metadata:
+        timeout: 10s # Controls the AwaitWithTimeout timeout - defaults to 60s
+      listen:
+        to:
+          one:
+            with:
+              # ID maps to the query name in Temporal
+              id: approve
+              # Temporal signal - used to make write request
+              type: signal
+  - wait:
+      wait:
+        seconds: 5
