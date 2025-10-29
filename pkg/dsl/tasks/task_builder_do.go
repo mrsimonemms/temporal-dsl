@@ -77,14 +77,6 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	for _, task := range *t.task.Do {
 		l := log.With().Str("task", task.Key).Logger()
 
-		// Build task reference
-
-		// Should this task be run?
-		l.Debug().Msg("Checking if task can be run")
-
-		// Check for a switch task
-		l.Debug().Msg("Checking for switch task")
-
 		// Build a task builder
 		l.Debug().Msg("Creating task builder")
 		builder, err := NewTaskBuilder(task.Key, task.Task, t.temporalWorker, t.doc)
