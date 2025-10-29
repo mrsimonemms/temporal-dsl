@@ -1,0 +1,33 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl # Mapped to the task queue
+  name: workflow1 # Workflow name - not registered if every top-level task is a "do"
+  version: 0.0.1
+  title: Multiple Workflows
+  summary: Configure multiple Temporal workflows
+timeout:
+  after:
+    minutes: 1
+do:
+  - workflow1:
+      do:
+        - wait:
+            wait:
+              seconds: 5
+        - getUser:
+            call: http
+            with:
+              method: get
+              endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+  - workflow2:
+      do:
+        - wait:
+            wait:
+              seconds: 10
+        - getUser:
+            call: http
+            with:
+              method: get
+              endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }

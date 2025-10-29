@@ -21,6 +21,7 @@ A collection of examples
 | --- | --- |
 | [Basic Workflow](./basic) | An example of how to use Serverless Workflow to define Temporal Workflows |
 | [Conditional Workflow](./conditionally-execute) | Execute tasks conditionally |
+| [Multiple Workflows](./multiple-workflows) | Configure multiple Temporal workflows |
 | [TypeScript](./typescript) | The basic example, but in TypeScript |
 
 <!-- apps-end -->
