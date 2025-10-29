@@ -45,7 +45,7 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[
 
 	l.Debug().Msg("Building workflow")
 	if _, err := doBuilder.Build(); err != nil {
-		l.Error().Err(err).Msg("Error building workflow")
+		l.Debug().Err(err).Msg("Error building workflow")
 		return fmt.Errorf("error building workflow: %w", err)
 	}
 
