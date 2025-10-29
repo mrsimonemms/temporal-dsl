@@ -1,0 +1,37 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl # Mapped to the task queue
+  name: conditional # Workflow name
+  version: 0.0.1
+  title: Conditional Workflow
+  summary: Execute tasks conditionally
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - integer
+      properties:
+        integer:
+          type: number
+timeout:
+  after:
+    minutes: 1
+do:
+  # If input is even, wait 5 seconds
+  - waitIfEven:
+      if: ${ .input.integer % 2 == 0 }
+      wait:
+        seconds: 5
+  # If input is odd, wait 10 seconds
+  - waitIfOdd:
+      if: ${ .input.integer % 2 == 1 }
+      wait:
+        seconds: 10
+  # Always wait 5 seconds at the end
+  - wait:
+      wait:
+        seconds: 5

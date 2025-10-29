@@ -167,8 +167,17 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 		for _, task := range tasks {
 			taskBase := task.GetTask().GetBase()
 
+			logger.Debug("Check if task should be run", "task", task.Name)
+			if toRun, err := task.ShouldRun(state); err != nil {
+				logger.Error("Error checking if statement", "error", err, "name", task.Name)
+				return nil, err
+			} else if !toRun {
+				logger.Debug("Skipping task as if statement resolve as false", "name", task.Name)
+				continue
+			}
+
 			// Check input for the task
-			logger.Debug("Validating input against task")
+			logger.Debug("Validating input against task", "name", task.Name)
 			if err := t.validateInput(ctx, taskBase.Input, state); err != nil {
 				logger.Debug("Task input validation error", "error", err)
 				return nil, err
