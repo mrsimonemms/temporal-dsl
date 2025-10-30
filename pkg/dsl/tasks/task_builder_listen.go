@@ -105,41 +105,51 @@ func (t *ListenTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 				}
 			case ListenTaskTypeSignal:
 				// Blocking
-				if err := t.configureSignal(ctx, event, state, fn(i)); err != nil {
-					return nil, fmt.Errorf("error setting signal: %w", err)
-				}
+				t.configureSignal(ctx, event, state, fn(i))
 			case ListenTaskTypeUpdate:
 				// Blocking
-				if err := t.configureUpdate(); err != nil {
+				if err := t.configureUpdate(ctx, event, state, fn(i)); err != nil {
 					return nil, fmt.Errorf("error setting signal: %w", err)
 				}
 			}
 		}
 
 		if await {
-			logger.Debug("Wait for listener", "task", t.GetTaskName())
-			ok, err := workflow.AwaitWithTimeout(ctx, timeout, func() bool {
-				// Calculate if the task has finished
-				if isAll {
-					logger.Debug("Waiting for all listeners to complete", "status", areAllComplete)
-					return utils.SlicesEqual(areAllComplete, true)
-				} else {
-					logger.Debug("Waiting for first listening to complete", "state", areAnyComplete)
-					return areAnyComplete
-				}
-			})
-			if err != nil {
-				logger.Error("Error creating listening await", "error", err, "task", t.GetTaskName())
+			if err := t.await(ctx, timeout, isAll, areAnyComplete, areAllComplete); err != nil {
 				return nil, err
-			}
-			if !ok {
-				logger.Warn("Await timeout", "task", t.GetTaskName())
-				return nil, fmt.Errorf("timeout")
 			}
 		}
 
 		return nil, nil
 	}, nil
+}
+
+func (t *ListenTaskBuilder) await(
+	ctx workflow.Context, timeout time.Duration, isAll, areAnyComplete bool, areAllComplete []bool,
+) error {
+	logger := workflow.GetLogger(ctx)
+
+	logger.Debug("Wait for listener", "task", t.GetTaskName())
+	ok, err := workflow.AwaitWithTimeout(ctx, timeout, func() bool {
+		// Calculate if the task has finished
+		if isAll {
+			logger.Debug("Waiting for all listeners to complete", "status", areAllComplete)
+			return utils.SlicesEqual(areAllComplete, true)
+		} else {
+			logger.Debug("Waiting for first listening to complete", "state", areAnyComplete)
+			return areAnyComplete
+		}
+	})
+	if err != nil {
+		logger.Error("Error creating listening await", "error", err, "task", t.GetTaskName())
+		return err
+	}
+	if !ok {
+		logger.Warn("Await timeout", "task", t.GetTaskName())
+		return fmt.Errorf("timeout")
+	}
+
+	return nil
 }
 
 func (t *ListenTaskBuilder) configureQuery(
@@ -150,30 +160,7 @@ func (t *ListenTaskBuilder) configureQuery(
 	handler := func() (any, error) {
 		logger.Debug("New query received", "event", event.With.ID)
 
-		// Deep clone the additional map so we get the uninterpolated template out each time
-		additional := swUtil.DeepClone(event.With.Additional)
-
-		if tpl, ok := additional["data"]; ok {
-			templateKey := "template"
-
-			obj, err := utils.TraverseAndEvaluateObj(
-				model.NewObjectOrRuntimeExpr(map[string]any{
-					// Put in a map as the template could be anything
-					templateKey: tpl,
-				}),
-				state,
-			)
-			if err != nil {
-				logger.Error("Error parsing data", "event", event.With.ID)
-				return nil, err
-			}
-
-			// Return the data
-			return obj[templateKey], nil
-		}
-
-		// Nothing to return
-		return nil, nil
+		return t.processReply(ctx, event, state)
 	}
 
 	return workflow.SetQueryHandlerWithOptions(ctx, event.With.ID, handler, workflow.QueryHandlerOptions{})
@@ -181,7 +168,7 @@ func (t *ListenTaskBuilder) configureQuery(
 
 func (t *ListenTaskBuilder) configureSignal(
 	ctx workflow.Context, event *model.EventFilter, state *utils.State, onSuccess func(),
-) error {
+) {
 	logger := workflow.GetLogger(ctx)
 	logger.Debug("Creating signal", "signal", event.With.ID)
 
@@ -200,12 +187,37 @@ func (t *ListenTaskBuilder) configureSignal(
 
 		onSuccess()
 	})
-
-	return nil
 }
 
-func (t *ListenTaskBuilder) configureUpdate() error {
-	return fmt.Errorf("updates not supported yet")
+func (t *ListenTaskBuilder) configureUpdate(
+	ctx workflow.Context, event *model.EventFilter, state *utils.State, onSuccess func(),
+) error {
+	logger := workflow.GetLogger(ctx)
+
+	handler := func(ctx workflow.Context, data any) (any, error) {
+		logger.Debug("New update received", "event", event.With.ID)
+
+		// Store the received data
+		state.AddData(map[string]any{
+			event.With.ID: data,
+		})
+
+		res, err := t.processReply(ctx, event, state)
+
+		onSuccess()
+
+		return res, err
+	}
+
+	return workflow.SetUpdateHandlerWithOptions(
+		ctx,
+		event.With.ID,
+		handler,
+		workflow.UpdateHandlerOptions{
+			Validator: func(ctx workflow.Context, _ any) error {
+				return nil
+			},
+		})
 }
 
 func (t *ListenTaskBuilder) listEvents() (events []*model.EventFilter, isAll bool, err error) {
@@ -243,6 +255,35 @@ func (t *ListenTaskBuilder) listEvents() (events []*model.EventFilter, isAll boo
 	}
 
 	return events, isAll, err
+}
+
+func (t *ListenTaskBuilder) processReply(ctx workflow.Context, event *model.EventFilter, state *utils.State) (any, error) {
+	logger := workflow.GetLogger(ctx)
+
+	// Deep clone the additional map so we get the uninterpolated template out each time
+	additional := swUtil.DeepClone(event.With.Additional)
+
+	if tpl, ok := additional["data"]; ok {
+		templateKey := "template"
+
+		obj, err := utils.TraverseAndEvaluateObj(
+			model.NewObjectOrRuntimeExpr(map[string]any{
+				// Put in a map as the template could be anything
+				templateKey: tpl,
+			}),
+			state,
+		)
+		if err != nil {
+			logger.Error("Error parsing data", "event", event.With.ID)
+			return nil, err
+		}
+
+		// Return the data
+		logger.Debug("Replied from event", "event", event.With.ID)
+
+		return obj[templateKey], nil
+	}
+	return nil, nil
 }
 
 func (t *ListenTaskBuilder) validateEventFilter(event *model.EventFilter) error {

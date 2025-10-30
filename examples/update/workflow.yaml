@@ -1,0 +1,28 @@
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: updates
+  version: 0.0.1
+  title: Listener Workflow (Update)
+  summary: Listen for Temporal update events
+do:
+  - callDoctor:
+      metadata:
+        timeout: 10s # Controls the AwaitWithTimeout timeout - defaults to 60s
+      listen:
+        to:
+          # Only progress after every update received
+          all:
+            - with:
+                # ID maps to the update name in Temporal
+                id: temperature
+                # Temporal update - used to make read/write request
+                type: update
+                data: ${ .data.temperature > 38 }
+            - with:
+                id: bpm
+                type: update
+                data: ${ .data.bpm < 60 or .data.bpm > 100 }
+  - wait:
+      wait:
+        seconds: 10
