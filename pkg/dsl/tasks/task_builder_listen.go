@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
+	swUtil "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -99,7 +100,7 @@ func (t *ListenTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 			case ListenTaskTypeQuery:
 				// Non-blocking
 				await = false
-				if err := t.configureQuery(); err != nil {
+				if err := t.configureQuery(ctx, event, state); err != nil {
 					return nil, fmt.Errorf("error setting signal: %w", err)
 				}
 			case ListenTaskTypeSignal:
@@ -141,8 +142,41 @@ func (t *ListenTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	}, nil
 }
 
-func (t *ListenTaskBuilder) configureQuery() error {
-	return fmt.Errorf("query not supported yet")
+func (t *ListenTaskBuilder) configureQuery(
+	ctx workflow.Context, event *model.EventFilter, state *utils.State,
+) error {
+	logger := workflow.GetLogger(ctx)
+
+	handler := func() (any, error) {
+		logger.Debug("New query received", "event", event.With.ID)
+
+		// Deep clone the additional map so we get the uninterpolated template out each time
+		additional := swUtil.DeepClone(event.With.Additional)
+
+		if tpl, ok := additional["data"]; ok {
+			templateKey := "template"
+
+			obj, err := utils.TraverseAndEvaluateObj(
+				model.NewObjectOrRuntimeExpr(map[string]any{
+					// Put in a map as the template could be anything
+					templateKey: tpl,
+				}),
+				state,
+			)
+			if err != nil {
+				logger.Error("Error parsing data", "event", event.With.ID)
+				return nil, err
+			}
+
+			// Return the data
+			return obj[templateKey], nil
+		}
+
+		// Nothing to return
+		return nil, nil
+	}
+
+	return workflow.SetQueryHandlerWithOptions(ctx, event.With.ID, handler, workflow.QueryHandlerOptions{})
 }
 
 func (t *ListenTaskBuilder) configureSignal(

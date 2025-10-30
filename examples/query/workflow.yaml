@@ -1,0 +1,55 @@
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: query
+  version: 0.0.1
+  title: Query Workflow
+  summary: Listen for events
+do:
+  - queryState:
+      listen:
+        to:
+          one:
+            with:
+              # ID maps to the query name in Temporal
+              id: get_state
+              # Temporal update - used to make read/write request
+              type: query
+              # This data will be returned as-is
+              # data: ${ .data.id }
+              data:
+                id: ${ .data.id }
+                progressPercentage: ${ .data.progressPercentage }
+                status: ${ .data.status }
+  - createState:
+      output:
+        as: data
+      set:
+        # Items created at top-level are persisted
+        id: ${ uuid }
+        status: not started
+        progressPercentage: 0
+  - wait:
+      wait:
+        seconds: 5
+  - updateState:
+      set:
+        progressPercentage: 33
+        status: running
+  - wait:
+      wait:
+        seconds: 5
+  - updateState:
+      set:
+        progressPercentage: 66
+        # status remains as "running" if it remains as top-level item
+  - wait:
+      wait:
+        seconds: 5
+  - stateComplete:
+      set:
+        progressPercentage: 100
+        status: finished
+  - wait:
+      wait:
+        seconds: 5
