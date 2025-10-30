@@ -3,8 +3,8 @@ document:
   namespace: temporal-dsl
   name: signal
   version: 0.0.1
-  title: Signal Workflow
-  summary: Listen for events
+  title: Listener Workflow (Signal)
+  summary: Listen for Temporal signal events
 do:
   - approve:
       metadata:
@@ -13,7 +13,7 @@ do:
         to:
           one:
             with:
-              # ID maps to the query name in Temporal
+              # ID maps to the signal name in Temporal - this blocks until received
               id: approve
               # Temporal signal - used to make write request
               type: signal

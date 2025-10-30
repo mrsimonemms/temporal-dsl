@@ -22,9 +22,10 @@ A collection of examples
 | [Basic Workflow](./basic) | An example of how to use Serverless Workflow to define Temporal Workflows |
 | [Conditional Workflow](./conditionally-execute) | Execute tasks conditionally |
 | [Multiple Workflows](./multiple-workflows) | Configure multiple Temporal workflows |
-| [Query Workflow](./query) | Listen for events |
-| [Signal Workflow](./signal) | Listen for events |
+| [Listener Workflow (Query)](./query) | Listen for Temporal query events |
+| [Listener Workflow (Signal)](./signal) | Listen for Temporal signal events |
 | [TypeScript](./typescript) | The basic example, but in TypeScript |
+| [Listener Workflow (Update)](./update) | Listen for Temporal update events |
 
 <!-- apps-end -->
 
