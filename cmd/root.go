@@ -155,7 +155,12 @@ var rootCmd = &cobra.Command{
 
 		log.Info().Str("task-queue", taskQueue).Msg("Starting workflow")
 
-		temporalWorker := worker.New(client, taskQueue, worker.Options{})
+		pollerAutoscaler := worker.NewPollerBehaviorAutoscaling(worker.PollerBehaviorAutoscalingOptions{})
+		temporalWorker := worker.New(client, taskQueue, worker.Options{
+			WorkflowTaskPollerBehavior: pollerAutoscaler,
+			ActivityTaskPollerBehavior: pollerAutoscaler,
+			NexusTaskPollerBehavior:    pollerAutoscaler,
+		})
 
 		// Add underscore to the prefix
 		prefix := rootOpts.EnvPrefix
