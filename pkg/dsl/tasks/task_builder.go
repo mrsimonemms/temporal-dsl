@@ -75,6 +75,8 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 		return NewForkTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.ListenTask:
 		return NewListenTaskBuilder(temporalWorker, t, taskName)
+	case *model.RaiseTask:
+		return NewRaiseTaskBuilder(temporalWorker, t, taskName)
 	case *model.SetTask:
 		return NewSetTaskBuilder(temporalWorker, t, taskName)
 	case *model.SwitchTask:

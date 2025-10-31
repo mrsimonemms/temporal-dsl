@@ -24,6 +24,7 @@ A collection of examples
 | [Conditional Workflow](./conditionally-execute) | Execute tasks conditionally |
 | [Multiple Workflows](./multiple-workflows) | Configure multiple Temporal workflows |
 | [Listener Workflow (Query)](./query) | Listen for Temporal query events |
+| [Erroring Workflow](./raise) | Raise a bug |
 | [Listener Workflow (Signal)](./signal) | Listen for Temporal signal events |
 | [Switch Workflow](./switch) | Perform a switch statement |
 | [TypeScript](./typescript) | The basic example, but in TypeScript |
