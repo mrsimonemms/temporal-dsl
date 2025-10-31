@@ -172,41 +172,85 @@ func (t *DoTaskBuilder) workflowExecutor(tasks []workflowFunc) TemporalWorkflowF
 		})
 
 		// Iterate through the tasks to create the workflow
-		for _, task := range tasks {
-			taskBase := task.GetTask().GetBase()
-
-			logger.Debug("Check if task should be run", "task", task.Name)
-			if toRun, err := task.ShouldRun(state); err != nil {
-				logger.Error("Error checking if statement", "error", err, "name", task.Name)
-				return nil, err
-			} else if !toRun {
-				logger.Debug("Skipping task as if statement resolve as false", "name", task.Name)
-				continue
-			}
-
-			// Check input for the task
-			logger.Debug("Validating input against task", "name", task.Name)
-			if err := t.validateInput(ctx, taskBase.Input, state); err != nil {
-				logger.Debug("Task input validation error", "error", err)
-				return nil, err
-			}
-
-			logger.Debug("Adding summary to activity context", "name", task.Name)
-			ao := workflow.GetActivityOptions(ctx)
-			ao.Summary = task.Name
-			ctx = workflow.WithActivityOptions(ctx, ao)
-
-			logger.Info("Running task", "name", task.Name)
-			output, err := task.Func(ctx, input, state)
-			if err != nil {
-				logger.Error("Error running task", "name", task.Name, "error", err)
-				return nil, err
-			}
-
-			// Set the output - this is only set if there's an export.as on the task
-			state.AddOutput(task.GetTask(), output)
+		if err := t.iterateTasks(ctx, tasks, input, state); err != nil {
+			return nil, err
 		}
 
 		return state.Output, nil
 	}
+}
+
+func (t *DoTaskBuilder) iterateTasks(
+	ctx workflow.Context, tasks []workflowFunc, input any, state *utils.State,
+) error {
+	var nextTargetName *string
+	logger := workflow.GetLogger(ctx)
+
+	for _, task := range tasks {
+		taskBase := task.GetTask().GetBase()
+
+		if nextTargetName != nil {
+			logger.Debug("Check if a next task is set and it's this one", "task", task.Name)
+			if task.Name == *nextTargetName {
+				logger.Debug("Task is next one to be run from flow directive", "task", task.Name)
+				// We've found the desired task - reset
+				nextTargetName = nil
+			} else {
+				// Not the task - skip
+				logger.Debug("Skipping task as not one set as next target", "task", task.Name, "nextTask", *nextTargetName)
+				continue
+			}
+		}
+
+		logger.Debug("Check if task should be run", "task", task.Name)
+		if toRun, err := task.ShouldRun(state); err != nil {
+			logger.Error("Error checking if statement", "error", err, "name", task.Name)
+			return err
+		} else if !toRun {
+			logger.Debug("Skipping task as if statement resolve as false", "name", task.Name)
+			continue
+		}
+
+		// Check input for the task
+		logger.Debug("Validating input against task", "name", task.Name)
+		if err := t.validateInput(ctx, taskBase.Input, state); err != nil {
+			logger.Debug("Task input validation error", "error", err)
+			return err
+		}
+
+		logger.Debug("Adding summary to activity context", "name", task.Name)
+		ao := workflow.GetActivityOptions(ctx)
+		ao.Summary = task.Name
+		ctx = workflow.WithActivityOptions(ctx, ao)
+
+		logger.Info("Running task", "name", task.Name)
+		output, err := task.Func(ctx, input, state)
+		if err != nil {
+			logger.Error("Error running task", "name", task.Name, "error", err)
+			return err
+		}
+
+		// Set the output - this is only set if there's an export.as on the task
+		state.AddOutput(task.GetTask(), output)
+
+		if then := taskBase.Then; then != nil {
+			flowDirective := then.Value
+			if then.IsTermination() {
+				logger.Debug("Workflow to be terminated", "flow", flowDirective)
+				break
+			}
+			if !then.IsEnum() {
+				logger.Debug("Next task targeted", "nextTask", flowDirective)
+				nextTargetName = &flowDirective
+				continue
+			}
+		}
+	}
+
+	if nextTargetName != nil {
+		logger.Error("Next target specified but not found", "targetTask", nextTargetName)
+		return fmt.Errorf("next target specified but not found: %s", *nextTargetName)
+	}
+
+	return nil
 }
