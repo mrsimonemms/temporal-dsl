@@ -20,6 +20,7 @@ A collection of examples
 | Name | Description |
 | --- | --- |
 | [Basic Workflow](./basic) | An example of how to use Serverless Workflow to define Temporal Workflows |
+| [Competing Concurrent Tasks](./competing-concurrent-tasks) | Have two tasks competing and the first to finish wins |
 | [Conditional Workflow](./conditionally-execute) | Execute tasks conditionally |
 | [Multiple Workflows](./multiple-workflows) | Configure multiple Temporal workflows |
 | [Listener Workflow (Query)](./query) | Listen for Temporal query events |

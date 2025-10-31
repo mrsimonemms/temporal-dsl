@@ -1,0 +1,67 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: competing-tasks # Workflow name
+  version: 0.0.1
+  title: Competing Concurrent Tasks
+  summary: Have two tasks competing and the first to finish wins
+timeout:
+  after:
+    minutes: 1
+do:
+  - state:
+      set:
+        id: ${ uuid }
+  - wait:
+      wait:
+        seconds: 1
+  # Fan out and the first to finish wins
+  - race:
+      fork:
+        export:
+          as: winner
+        compete: true # This is important - if false, they all run to completion in parallel
+        branches:
+          # Winning task
+          - task1:
+              do:
+                - getUser:
+                    call: http
+                    with:
+                      method: get
+                      endpoint: https://jsonplaceholder.typicode.com/users/2
+                - wait:
+                    wait:
+                      seconds: 2
+                - set:
+                    export:
+                      as: task
+                    set:
+                      winner: task1
+          # Losing task
+          - task2:
+              do:
+                - getUser:
+                    call: http
+                    with:
+                      method: get
+                      endpoint: https://jsonplaceholder.typicode.com/users/1
+                - wait:
+                    wait:
+                      seconds: 5
+                - set:
+                    export:
+                      as: task
+                    set:
+                      winner: task2
+  - wait:
+      wait:
+        seconds: 5
+  - set:
+      export:
+        as: data
+      set:
+        id: ${ .data.id }
+        winner: ${ .data.task.winner }
