@@ -158,6 +158,8 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 	logger := activity.GetLogger(ctx)
 	logger.Debug("Running call HTTP activity")
 
+	state = state.AddActivityInfo(ctx)
+
 	info := activity.GetInfo(ctx)
 
 	resp, method, url, reqHeaders, err := callHTTPAction(ctx, task, info.StartToCloseTimeout, state)
