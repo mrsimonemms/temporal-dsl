@@ -25,6 +25,7 @@ A collection of examples
 | [Multiple Workflows](./multiple-workflows) | Configure multiple Temporal workflows |
 | [Listener Workflow (Query)](./query) | Listen for Temporal query events |
 | [Listener Workflow (Signal)](./signal) | Listen for Temporal signal events |
+| [Switch Workflow](./switch) | Perform a switch statement |
 | [TypeScript](./typescript) | The basic example, but in TypeScript |
 | [Listener Workflow (Update)](./update) | Listen for Temporal update events |
 
