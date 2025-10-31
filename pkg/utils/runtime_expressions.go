@@ -18,10 +18,12 @@ package utils
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/itchyny/gojq"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/temporal"
 )
 
 type ExpressionWrapperFunc func(func() (any, error)) (any, error)
@@ -161,4 +163,30 @@ func evaluateJQExpression(expression string, state *State) (any, error) {
 	}
 
 	return v, nil
+}
+
+func CheckIfStatement(ifStatement *model.RuntimeExpression, state *State) (bool, error) {
+	if ifStatement == nil {
+		return true, nil
+	}
+
+	res, err := EvaluateString(ifStatement.String(), state)
+	if err != nil {
+		// Treat a parsing error as non-retryable
+		return false, temporal.NewNonRetryableApplicationError("Error parsing if statement", "If statement error", err)
+	}
+
+	// Response can be a boolean, "TRUE" (case-insensitive) or "1"
+	switch r := res.(type) {
+	case bool:
+		return r, nil
+	case string:
+		return strings.EqualFold(r, "TRUE") || r == "1", nil
+	default:
+		return false, temporal.NewNonRetryableApplicationError(
+			"If statement response type unknown",
+			"If statement error",
+			fmt.Errorf("response not string or bool"),
+		)
+	}
 }

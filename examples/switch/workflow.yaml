@@ -1,0 +1,72 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: switch # Workflow name
+  version: 0.0.1
+  title: Switch Workflow
+  summary: Perform a switch statement
+timeout:
+  after:
+    minutes: 1
+do:
+  # This is the primary workflow, called "switch" from above
+  - wait:
+      wait:
+        seconds: 2
+  - switcher:
+      switch:
+        - case1:
+            when: ${ .input.orderType == "electronic" }
+            then: processElectronicOrder
+        - case2:
+            when: ${ .input.orderType == "physical" }
+            then: processPhysicalOrder
+        - default:
+            then: handleUnknownOrderType
+  - wait:
+      wait:
+        seconds: 5
+  # These are declared as additional workflows
+  - processElectronicOrder:
+      do:
+        - validatePayment:
+            call: http
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/posts
+        - fulfillOrder:
+            call: http
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/posts
+  - processPhysicalOrder:
+      do:
+        - checkInventory:
+            call: http
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/posts
+        - packItems:
+            call: http
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/posts
+        - scheduleShipping:
+            call: http
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/posts
+  - handleUnknownOrderType:
+      do:
+        - logWarning:
+            call: http
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/posts
+        - notifyAdmin:
+            call: http
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/posts

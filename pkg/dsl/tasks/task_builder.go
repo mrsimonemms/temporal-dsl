@@ -18,11 +18,9 @@ package tasks
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 )
@@ -63,30 +61,7 @@ func (d *builder[T]) GetTaskName() string {
 }
 
 func (d *builder[T]) ShouldRun(state *utils.State) (bool, error) {
-	if ifStatement := d.task.GetBase().If; ifStatement != nil {
-		res, err := utils.EvaluateString(ifStatement.String(), state)
-		if err != nil {
-			// Treat a parsing error as non-retryable
-			return false, temporal.NewNonRetryableApplicationError("Error parsing if statement", "If statement error", err)
-		}
-
-		// Response can be a boolean, "TRUE" (case-insensitive) or "1"
-		switch r := res.(type) {
-		case bool:
-			return r, nil
-		case string:
-			return strings.EqualFold(r, "TRUE") || r == "1", nil
-		default:
-			return false, temporal.NewNonRetryableApplicationError(
-				"If statement response type unknown",
-				"If statement error",
-				fmt.Errorf("response not string or bool"),
-			)
-		}
-	}
-
-	// No statement - treat as true
-	return true, nil
+	return utils.CheckIfStatement(d.task.GetBase().If, state)
 }
 
 // Factory to create a TaskBuilder instance, or die trying
@@ -102,6 +77,8 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 		return NewListenTaskBuilder(temporalWorker, t, taskName)
 	case *model.SetTask:
 		return NewSetTaskBuilder(temporalWorker, t, taskName)
+	case *model.SwitchTask:
+		return NewSwitchTaskBuilder(temporalWorker, t, taskName)
 	case *model.WaitTask:
 		return NewWaitTaskBuilder(temporalWorker, t, taskName)
 	default:
