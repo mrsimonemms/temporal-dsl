@@ -21,6 +21,7 @@ import (
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 )
@@ -48,6 +49,10 @@ func (t *WaitTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		logger.Debug("Sleeping", "duration", duration.String())
 
 		if err := workflow.Sleep(ctx, duration); err != nil {
+			if temporal.IsCanceledError(err) {
+				return nil, nil
+			}
+
 			logger.Error("Error creating sleep instruction", "error", err)
 			return nil, fmt.Errorf("error creating sleep: %w", err)
 		}
