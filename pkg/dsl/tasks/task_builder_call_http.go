@@ -76,6 +76,10 @@ func (t *CallHTTPTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 		var res any
 		if err := workflow.ExecuteActivity(ctx, callHTTPActivity, t.task, input, state).Get(ctx, &res); err != nil {
+			if temporal.IsCanceledError(err) {
+				return nil, nil
+			}
+
 			logger.Error("Error calling HTTP task", "name", t.name, "error", err)
 			return nil, fmt.Errorf("error calling http task: %w", err)
 		}
