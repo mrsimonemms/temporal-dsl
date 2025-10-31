@@ -23,6 +23,7 @@ A collection of examples
 | [Child Workflow](./child-workflows) | An example of how to declare and use a child workflow |
 | [Competing Concurrent Tasks](./competing-concurrent-tasks) | Have two tasks competing and the first to finish wins |
 | [Conditional Workflow](./conditionally-execute) | Execute tasks conditionally |
+| [Money Transfer Demo](./money-transfer) | Temporal's world-famous Money Transfer Demo, in Serverless Workflow form |
 | [Multiple Workflows](./multiple-workflows) | Configure multiple Temporal workflows |
 | [Listener Workflow (Query)](./query) | Listen for Temporal query events |
 | [Erroring Workflow](./raise) | Raise a bug |
