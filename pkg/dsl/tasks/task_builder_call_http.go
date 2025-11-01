@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
+	swUtil "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
@@ -102,12 +103,20 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 ) {
 	logger := activity.GetLogger(ctx)
 
-	method = utils.MustEvaluateString(strings.ToUpper(task.With.Method), state).(string)
-	url = utils.MustEvaluateString(task.With.Endpoint.String(), state).(string)
-	body := utils.MustEvaluateString(string(task.With.Body), state).(string)
+	args, err := parseHTTPArguments(task, state)
+	if err != nil {
+		return resp,
+			method, url,
+			reqHeaders,
+			err
+	}
+
+	method = strings.ToUpper(args.Method)
+	url = args.Endpoint.String()
+	body := args.Body
 
 	logger.Debug("Making HTTP call", "method", method, "url", url)
-	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBufferString(body))
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(body))
 	if err != nil {
 		logger.Error("Error making HTTP request", "method", method, "url", url, "error", err)
 		return resp, method, url, reqHeaders, err
@@ -115,17 +124,15 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 
 	// Add in headers
 	reqHeaders = map[string]string{}
-	for k, v := range task.With.Headers {
-		val := utils.MustEvaluateString(v, state).(string)
-		req.Header.Add(k, val)
-		reqHeaders[k] = val
+	for k, v := range args.Headers {
+		req.Header.Add(k, v)
+		reqHeaders[k] = v
 	}
 
 	// Add in query strings
 	q := req.URL.Query()
-	for k, v := range task.With.Query {
-		val := utils.MustEvaluateString(v.(string), state).(string)
-		q.Add(k, val)
+	for k, v := range args.Query {
+		q.Add(k, v.(string))
 	}
 	req.URL.RawQuery = q.Encode()
 
@@ -133,7 +140,7 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 		Timeout: timeout,
 	}
 
-	if !task.With.Redirect {
+	if !args.Redirect {
 		client.CheckRedirect = func(_ *http.Request, _ []*http.Request) error {
 			return http.ErrUseLastResponse
 		}
@@ -221,6 +228,44 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 	}
 
 	return parseOutput(task.With.Output, httpResponse, bodyRes), err
+}
+
+// parseHTTPArguments note that I looked at the github.com/go-viper/mapstructure/v2.Decode
+// function, but this wasn't able to decode some of the more complex data types. This is
+// more heavyweight than I'd like, but it's fine for now.
+func parseHTTPArguments(task *model.CallHTTP, state *utils.State) (*model.HTTPArguments, error) {
+	// First, we need to convert it to map[string]any
+	b, err := json.Marshal(task.With)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling object to bytes: %w", err)
+	}
+
+	// Next, convert it to a map so we can traverse
+	var data map[string]any
+	if err := json.Unmarshal(b, &data); err != nil {
+		return nil, fmt.Errorf("error unmarshalling data to map: %w", err)
+	}
+
+	// Clone and traverse, interpolating the data
+	cloneData := swUtil.DeepClone(data)
+	obj, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(cloneData), state)
+	if err != nil {
+		return nil, fmt.Errorf("error traversing http data object: %w", err)
+	}
+
+	// Now, put it back to a JSON string
+	e, err := json.Marshal(obj)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling object to bytes: %w", err)
+	}
+
+	// Finally, convert back to HTTPArguments
+	var result model.HTTPArguments
+	if err := json.Unmarshal(e, &result); err != nil {
+		return nil, fmt.Errorf("error unmarshalling data to map: %w", err)
+	}
+
+	return &result, nil
 }
 
 func parseOutput(outputType string, httpResp HTTPResponse, raw []byte) any {
