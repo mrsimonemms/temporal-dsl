@@ -16,7 +16,6 @@ do:
               # Temporal query - used to make a non-blocking read request
               type: query
               # This data will be returned as-is
-              # data: ${ .data.id }
               data:
                 id: ${ .data.id }
                 progressPercentage: ${ .data.progressPercentage }
