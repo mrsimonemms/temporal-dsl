@@ -161,8 +161,8 @@ github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJ
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
-github.com/mrsimonemms/golang-helpers v0.4.0 h1:h5MJzg5aAB+IRTRnchfcmKMNW8Oxl2wIFNhC/QMIecI=
-github.com/mrsimonemms/golang-helpers v0.4.0/go.mod h1:Izfnt5dLLlvKOS4vb/dReY2MnsMAzH+gGKcExgrE/is=
+github.com/mrsimonemms/golang-helpers v0.4.1 h1:XsWfiS7acs0jzXFXtwyu5mDyXO2eULZYFdupDftr1eM=
+github.com/mrsimonemms/golang-helpers v0.4.1/go.mod h1:Il3BUnM8xb84LV9VPQNIwLHFUC6vrYKEBDtz4KP6RVc=
 github.com/mrsimonemms/temporal-codec-server/packages/golang v0.0.0-20250917111850-1e5f24c60fac h1:A5QbfVm5Lqf1NzPIgyba9dvTyXHlFv0SGamC8CjnVbQ=
 github.com/mrsimonemms/temporal-codec-server/packages/golang v0.0.0-20250917111850-1e5f24c60fac/go.mod h1:x3MdKcQj/pp+icPY0+FNDIQsp1O5qkV1A9rhrk4RJ/M=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=

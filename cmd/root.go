@@ -45,6 +45,8 @@ var rootOpts struct {
 	MetricsPrefix        string
 	TemporalAddress      string
 	TemporalAPIKey       string
+	TemporalMTLSCertPath string
+	TemporalMTLSKeyPath  string
 	TemporalTLSEnabled   bool
 	TemporalNamespace    string
 	Validate             bool
@@ -131,7 +133,11 @@ var rootCmd = &cobra.Command{
 			temporal.WithHostPort(rootOpts.TemporalAddress),
 			temporal.WithNamespace(rootOpts.TemporalNamespace),
 			temporal.WithTLS(rootOpts.TemporalTLSEnabled),
-			temporal.WithAPICredentials(rootOpts.TemporalAPIKey),
+			temporal.WithAuthDetection(
+				rootOpts.TemporalAPIKey,
+				rootOpts.TemporalMTLSCertPath,
+				rootOpts.TemporalMTLSKeyPath,
+			),
 			temporal.WithDataConverter(converter),
 			temporal.WithZerolog(&log.Logger),
 			temporal.WithPrometheusMetrics(rootOpts.MetricsListenAddress, rootOpts.MetricsPrefix),
@@ -259,13 +265,22 @@ func init() {
 		apiKey.DefValue = "***"
 	}
 
+	rootCmd.Flags().StringVar(
+		&rootOpts.TemporalMTLSCertPath, "tls-client-cert-path",
+		viper.GetString("temporal_tls_client_cert_path"), "Path to mTLS client cert, usually ending in .pem",
+	)
+
+	rootCmd.Flags().StringVar(
+		&rootOpts.TemporalMTLSKeyPath, "tls-client-key-path",
+		viper.GetString("temporal_tls_client_key_path"), "Path to mTLS client key, usually ending in .key",
+	)
+
 	viper.SetDefault("temporal_namespace", client.DefaultNamespace)
 	rootCmd.Flags().StringVarP(
 		&rootOpts.TemporalNamespace, "temporal-namespace", "n",
 		viper.GetString("temporal_namespace"), "Temporal namespace to use",
 	)
 
-	viper.SetDefault("temporal_tls", client.DefaultNamespace)
 	rootCmd.Flags().BoolVar(
 		&rootOpts.TemporalTLSEnabled, "temporal-tls",
 		viper.GetBool("temporal_tls"), "Enable TLS Temporal connection",
