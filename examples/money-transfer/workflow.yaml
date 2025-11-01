@@ -11,13 +11,13 @@
       headers:
         content-type: application/json
       # Send some JSON over
-      body: >
-        {
-          "amount": {{ .amount }},
-          "attempt": {{ ._ta_attempt }},
-          "idempotencyKey": {{ .idempotencyKey | quote }},
-          "name": {{ ._tw_workflow_type_name | quote }}
-        }
+      body:
+          amount: ${ .input.amount }
+          attempt: 4
+          # attempt: { ._ta_attempt }
+          idempotencyKey: ${ .data.idempotencyKey }
+          name: bum
+          # name: ${ ._tw_workflow_type_name }
 
   queryState: &queryState
     listen:
@@ -31,13 +31,13 @@
             # Convert the data to JSON - in Temporal, this gets converted to map[string]all so it gets serialized correctly
             datacontenttype: application/json
             # The data returned from the query - for application/json, this must be a string so Go interpolation works correctly
-            data: |
-              approvalTime: {{ .stateApprovalTime }}
+            data:
+              approvalTime: ${ .data.stateApprovalTime }
               chargeResult:
-                chargeId: {{ .stateChargeId }}
-              progressPercentage: {{ .stateProgressPercentage }}
-              transferState: {{ .stateTransferState }}
-              workflowStatus: {{ .stateWorkflowStatus }}
+                chargeId: ${ .data.stateChargeId }
+              progressPercentage: ${ .data.stateProgressPercentage }
+              transferState: ${ .data.stateTransferState }
+              workflowStatus: ${ .data.stateWorkflowStatus }
 
   sendNotification: &sendNotification
     call: http
@@ -56,9 +56,9 @@
 
   setup: &setup
     set:
-      idempotencyKey: "{{ uuidv4 }}"
+      idempotencyKey: ${ .data.uuid }
       stateApprovalTime: 30
-      stateChargeId: "{{ uuidv4 }}"
+      stateChargeId: ${ .data.uuid }
       stateProgressPercentage: 0
       stateTransferState: starting
       stateWorkflowStatus: ""
@@ -77,13 +77,17 @@
       headers:
         content-type: application/json
       # Send some JSON over
-      body: >
-        {
-          "amount": {{ .amount }},
-          "attempt": {{ ._ta_attempt }},
-          "idempotencyKey": {{ .idempotencyKey | quote }},
-          "name": {{ ._tw_workflow_type_name | quote }}
-        }
+      body:
+        amount: ${ .input.amount }
+        attempt: 4
+        # attempt: { ._ta_attempt }
+        idempotencyKey: ${ .data.idempotencyKey }
+        name: ${ .data.workflow.workflow_type_name }
+        # name: ${ ._tw_workflow_type_name }
+        # "amount": {{ .amount }},
+        # "attempt": {{ ._ta_attempt }},
+        # "idempotencyKey": {{ .idempotencyKey | quote }},
+        # "name": {{ ._tw_workflow_type_name | quote }}
 
   workflowScenarios: &workflowScenarios
     do:
@@ -180,7 +184,7 @@
 # Declare the Serverless Workflow spec
 document:
   dsl: 1.0.0
-  namespace: temporal-dsl
+  namespace: MoneyTransfer
   name: money-transfer # Workflow name
   version: 0.0.1
   title: Money Transfer Demo

@@ -106,6 +106,8 @@ func callHTTPAction(ctx context.Context, task *model.CallHTTP, timeout time.Dura
 	url = utils.MustEvaluateString(task.With.Endpoint.String(), state).(string)
 	body := utils.MustEvaluateString(string(task.With.Body), state).(string)
 
+	fmt.Println(body)
+
 	logger.Debug("Making HTTP call", "method", method, "url", url)
 	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBufferString(body))
 	if err != nil {
