@@ -1,0 +1,212 @@
+# Default values for temporal-dsl.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Number of replicas
+replicaCount: 1
+
+# -- Accepts any of the command line arguments
+config:
+  log-level: info
+  # temporal-address: temporal:7233
+
+# -- Additional environment variables
+envvars:
+  # - name: TEMPORAL_ADDRESS
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: temporal-config
+  #       key: address
+  # - name: TEMPORAL_API_KEY
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: temporal-config
+  #       key: api-key
+  # - name: TEMPORAL_NAMESPACE
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: temporal-config
+  #       key: namespace
+  # - name: TEMPORAL_TLS
+  #   value: "true"
+  # - name: LOG_LEVEL
+  #   value: trace
+  # - name: TDSL_EXAMPLE_ENVVAR
+  #   value: some-value
+
+workflow:
+  # -- Use the inline workflow. If false, you must declare a secret with the workflow in `workflow.yaml`
+  useInline: true
+  # -- Name of the secret containing `workflow.yaml`
+  secret: workflow
+  # -- Location the workflow volumes is mapped
+  file: /data/workflow.yaml
+  # -- Workflow YAML
+  inline:
+    document:
+      dsl: 1.0.0
+      namespace: temporal-dsl # Mapped to the task queue
+      name: basic # Workflow name
+      version: 0.0.1
+      title: Basic Workflow
+      summary: An example of how to use Serverless Workflow to define Temporal Workflows
+    # Optionally validate the input received
+    input:
+      schema:
+        format: json
+        document:
+          type: object
+          required:
+            - userId
+          properties:
+            userId:
+              type: number
+    timeout:
+      after:
+        minutes: 1
+    do:
+      - baseData:
+          export:
+            as: data
+          set:
+            # Set a variable from an envvar
+            envvar: ${ .env.EXAMPLE_ENVVAR }
+            uuid: ${ uuid }
+            object:
+              hello: world
+              uuid: ${ uuid }
+            inputUserId: ${ .input.userId }
+            array:
+              - ${ uuid }
+              - hello: world
+      - wait:
+          wait:
+            seconds: 5
+      - getUser:
+          call: http
+          export:
+            as: getUser
+          with:
+            method: get
+            endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+      - raiseAlarm:
+          # A fork is a series of child workflows running in parallel
+          export:
+            as: raiseAlarm
+          fork:
+            # If not competing, all tasks will run to the finish - this is the default behaviour
+            compete: false
+            branches:
+              # A single step is passed in by the Serverless Workflow task
+              - callNurse:
+                  call: http
+                  export:
+                    as: callNurse
+                  with:
+                    method: get
+                    endpoint: https://jsonplaceholder.typicode.com/users/2
+              # Multiple steps can be passed in by the Serverless Workflow do task
+              - multiStep:
+                  do:
+                    - wait1:
+                        wait:
+                          seconds: 3
+                    - wait2:
+                        wait:
+                          seconds: 2
+              # Another single step child workflow
+              - callDoctor:
+                  call: http
+                  export:
+                    as: callDoctor
+                  with:
+                    method: get
+                    endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+
+image:
+  # -- Image repositiory
+  repository: ghcr.io/mrsimonemms/temporal-dsl
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image tag - defaults to the chart's `Version` if not set
+  tag: ""
+
+# -- Docker registry secret names
+imagePullSecrets: []
+# -- String to partially override name
+nameOverride: ""
+# -- String to fully override names
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Pod [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/)
+podAnnotations: {}
+# -- Pod [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+podLabels: {}
+
+# -- Pod's [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context)
+podSecurityContext: {}
+
+# -- Container's security context
+securityContext: {}
+
+service:
+  # -- Service type
+  type: ClusterIP
+  health:
+    # -- Health service port
+    port: 3000
+  metrics:
+    # -- Metrics service port
+    port: 9090
+
+# -- Configure resources available
+resources: {}
+
+livenessProbe:
+  httpGet:
+    # -- Path to demonstrate app liveness
+    path: /health
+    # -- Port to demonstrate app liveness
+    port: health
+readinessProbe:
+  httpGet:
+    # -- Path to demonstrate app readiness
+    path: /health
+    # -- Port to demonstrate app readiness
+    port: health
+
+autoscaling:
+  # -- Autoscaling enabled
+  enabled: false
+  # -- Minimum replicas
+  minReplicas: 1
+  # -- Maximum replicas
+  maxReplicas: 100
+  # -- When to trigger a new replica
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# -- Additional volumes on the output Deployment definition.
+volumes: []
+
+# -- Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+
+# -- Node selector
+nodeSelector: {}
+
+# -- Node toleration
+tolerations: []
+
+# -- Node affinity
+affinity: {}
