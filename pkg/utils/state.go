@@ -23,6 +23,7 @@ import (
 	"github.com/rs/zerolog/log"
 	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/workflow"
 )
 
 type State struct {
@@ -64,6 +65,44 @@ func (s *State) AddOutput(task model.Task, output any) *State {
 			}
 		}
 	}
+
+	return s
+}
+
+func (s *State) AddWorkflowInfo(ctx workflow.Context) *State {
+	info := workflow.GetInfo(ctx)
+
+	workflowData := map[string]any{
+		"attempt":                    info.Attempt,
+		"binary_checksum":            info.BinaryChecksum,
+		"continued_execution_run_id": info.ContinuedExecutionRunID,
+		"cron_schedule":              info.CronSchedule,
+		"first_run_id":               info.FirstRunID,
+		"namespace":                  info.Namespace,
+		"original_run_id":            info.OriginalRunID,
+		"parent_workflow_namespace":  info.ParentWorkflowNamespace,
+		"priority_key":               info.Priority.PriorityKey,
+		"task_queue_name":            info.TaskQueueName,
+		"workflow_execution_id":      info.WorkflowExecution.ID,
+		"workflow_execution_run_id":  info.WorkflowExecution.RunID,
+		"workflow_execution_timeout": info.WorkflowExecutionTimeout,
+		"workflow_start_time":        info.WorkflowStartTime,
+		"workflow_type_name":         info.WorkflowType.Name,
+	}
+
+	if r := info.RootWorkflowExecution; r != nil {
+		workflowData["root_workflow_execution_id"] = r.ID
+		workflowData["root_workflow_execution_run_id"] = r.RunID
+	}
+
+	if p := info.ParentWorkflowExecution; p != nil {
+		workflowData["parent_workflow_execution_id"] = p.ID
+		workflowData["parent_workflow_execution_run_id"] = p.RunID
+	}
+
+	s.AddData(map[string]any{
+		"workflow": workflowData,
+	})
 
 	return s
 }
