@@ -211,6 +211,20 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 		)
 	}
 
+	if resp.StatusCode >= 500 && resp.StatusCode < 600 {
+		// Server error - treat as retryable error as we can't fix it
+		logger.Error("CallHTTP returned 5xx error", "statusCode", resp.StatusCode, "responseBody", content)
+		return nil, temporal.NewApplicationError(
+			"CallHTTP returned 5xx error",
+			"CallHTTP error",
+			errors.New(resp.Status),
+			map[string]any{
+				"statusCode": resp.StatusCode,
+				"content":    content,
+			},
+		)
+	}
+
 	respHeader := map[string]string{}
 	for k, v := range resp.Header {
 		respHeader[k] = strings.Join(v, ", ")
