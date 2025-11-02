@@ -191,7 +191,7 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 
 	// Treat redirects as an error - if you have "redirect = true", this will be ignored
 	if resp.StatusCode >= 300 && resp.StatusCode < 400 {
-		logger.Error("CallHTTP returned 3xx status")
+		logger.Error("CallHTTP returned 3xx status", "statusCode", resp.StatusCode, "responseBody", content)
 		return nil, temporal.NewNonRetryableApplicationError(
 			"CallHTTP returned 3xx status code",
 			"CallHTTP error",
@@ -202,7 +202,7 @@ func callHTTPActivity(ctx context.Context, task *model.CallHTTP, input any, stat
 
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 		// Client error - treat as non-retryable error as we need to fix it
-		logger.Error("CallHTTP returned 4xx error")
+		logger.Error("CallHTTP returned 4xx error", "statusCode", resp.StatusCode, "responseBody", content)
 		return nil, temporal.NewNonRetryableApplicationError(
 			"CallHTTP returned 4xx status code",
 			"CallHTTP error",
