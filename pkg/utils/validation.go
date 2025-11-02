@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dsl
+package utils
 
 import (
 	"fmt"
@@ -26,12 +26,40 @@ import (
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
+var ErrUnknownValidationError = fmt.Errorf("unknown validation error")
+
 type ValidationErrors struct {
 	Key     string
 	Message string
 }
 
-func Validate(wf *model.Workflow) ([]ValidationErrors, error) {
+type Validator struct {
+	validate *validator.Validate
+	trans    ut.Translator
+}
+
+func (v *Validator) ValidateStruct(data any) ([]ValidationErrors, error) {
+	// Store validation errors
+	var vErrs []ValidationErrors
+
+	// Check the data
+	if err := v.validate.Struct(data); err != nil {
+		if validationError, ok := err.(validator.ValidationErrors); !ok {
+			return nil, fmt.Errorf("%s: %w", ErrUnknownValidationError, err)
+		} else {
+			for _, e := range validationError {
+				vErrs = append(vErrs, ValidationErrors{
+					Key:     e.Tag(),
+					Message: e.Translate(v.trans),
+				})
+			}
+		}
+	}
+
+	return vErrs, nil
+}
+
+func NewValidator() (*Validator, error) {
 	enTrans := en.New()
 	uni := ut.New(enTrans)
 	trans, _ := uni.GetTranslator(enTrans.Locale())
@@ -42,22 +70,7 @@ func Validate(wf *model.Workflow) ([]ValidationErrors, error) {
 		return nil, fmt.Errorf("error registering validator translations: %w", err)
 	}
 
-	// Store validation errors
-	var vErrs []ValidationErrors
-
-	// Check the workflow
-	if err := validate.Struct(wf); err != nil {
-		if validationError, ok := err.(validator.ValidationErrors); !ok {
-			return nil, ErrUnknownValidationError
-		} else {
-			for _, v := range validationError {
-				vErrs = append(vErrs, ValidationErrors{
-					Key:     v.Tag(),
-					Message: v.Translate(trans),
-				})
-			}
-		}
-	}
-
-	return vErrs, nil
+	return &Validator{
+		validate: validate,
+	}, nil
 }

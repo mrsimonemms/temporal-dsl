@@ -31,6 +31,7 @@ import (
 type DoTaskOpts struct {
 	DisableRegisterWorkflow bool
 	Envvars                 map[string]any
+	Validator               *utils.Validator
 }
 
 func NewDoTaskBuilder(
@@ -189,6 +190,12 @@ func (t *DoTaskBuilder) iterateTasks(
 	for _, task := range tasks {
 		taskBase := task.GetTask().GetBase()
 
+		state.AddData(map[string]any{
+			"task": map[string]any{
+				"name": task.GetTaskName(),
+			},
+		})
+
 		if nextTargetName != nil {
 			logger.Debug("Check if a next task is set and it's this one", "task", task.Name)
 			if task.Name == *nextTargetName {
@@ -215,6 +222,12 @@ func (t *DoTaskBuilder) iterateTasks(
 		logger.Debug("Validating input against task", "name", task.Name)
 		if err := t.validateInput(ctx, taskBase.Input, state); err != nil {
 			logger.Debug("Task input validation error", "error", err)
+			return err
+		}
+
+		logger.Debug("Parse metadata", "name", task.Name)
+		if err := task.ParseMetadata(ctx, state); err != nil {
+			logger.Error("Error parsing metadata", "error", err)
 			return err
 		}
 

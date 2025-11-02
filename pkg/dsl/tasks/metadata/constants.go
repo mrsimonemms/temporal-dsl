@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-package dsl
+package metadata
 
-import "fmt"
-
-var ErrUnsupportedDSL = fmt.Errorf("unsupported dsl version")
+const MetadataSearchAttribute = "searchAttributes"
