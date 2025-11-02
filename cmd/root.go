@@ -96,7 +96,13 @@ var rootCmd = &cobra.Command{
 
 		if rootOpts.Validate {
 			log.Debug().Msg("Running validation")
-			if res, err := dsl.Validate(workflowDefinition); err != nil {
+
+			validator, err := utils.NewValidator()
+			if err != nil {
+				log.Fatal().Err(err).Msg("Error creating validator")
+			}
+
+			if res, err := validator.ValidateStruct(workflowDefinition); err != nil {
 				return gh.FatalError{
 					Cause: err,
 					Msg:   "Error creating validation stack",
