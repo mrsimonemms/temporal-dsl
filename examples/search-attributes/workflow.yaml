@@ -1,0 +1,55 @@
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: searchAttributes # Workflow name
+  version: 0.0.1
+  title: Custom Search Attributes
+  summary: An example of how to add custom search attribute data into your Temporal calls
+# Optionally validate the input received
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: number
+timeout:
+  after:
+    minutes: 1
+do:
+  - wait:
+      metadata:
+        searchAttributes:
+          waitTime:
+            type: int
+            value: 5
+      wait:
+        seconds: 5
+  - getUser:
+      call: http
+      metadata:
+        # The search attributes must be configured in your Temporal service - with great power comes great responsibility
+        searchAttributes:
+          hello:
+            type: text
+            value: world
+          call:
+            type: text
+            value: ${ .data.task.name }
+          userId:
+            type: int
+            value: ${ .input.userId }
+      with:
+        method: get
+        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+  - wait:
+      metadata:
+        searchAttributes:
+          waitTime:
+            type: int
+            value: 3
+      wait:
+        seconds: 3
