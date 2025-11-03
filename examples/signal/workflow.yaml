@@ -6,7 +6,7 @@ document:
   title: Listener Workflow (Signal)
   summary: Listen for Temporal signal events
 do:
-  - approve:
+  - approveListener:
       metadata:
         timeout: 10s # Controls the AwaitWithTimeout timeout - defaults to 60s
       listen:
@@ -17,6 +17,12 @@ do:
               id: approve
               # Temporal signal - used to make write request
               type: signal
+  - outputSignal:
+      export:
+        as: response
+      set:
+        # Get the data from the approveListener signal
+        signal: ${ .data.approveListener }
   - wait:
       wait:
         seconds: 5
