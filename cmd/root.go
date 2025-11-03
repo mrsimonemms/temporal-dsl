@@ -163,8 +163,25 @@ var rootCmd = &cobra.Command{
 
 		taskQueue := workflowDefinition.Document.Namespace
 
+		// Add underscore to the prefix
+		prefix := rootOpts.EnvPrefix
+		prefix += "_"
+
+		log.Debug().Str("prefix", prefix).Msg("Loading envvars to state")
+		envvars := utils.LoadEnvvars(prefix)
+
+		ctx := context.Background()
+
 		log.Debug().Msg("Starting health check service")
-		temporal.NewHealthCheck(context.Background(), taskQueue, rootOpts.HealthListenAddress, client)
+		temporal.NewHealthCheck(ctx, taskQueue, rootOpts.HealthListenAddress, client)
+
+		log.Info().Msg("Updating schedules")
+		if err := dsl.UpdateSchedules(ctx, client, workflowDefinition, envvars); err != nil {
+			return gh.FatalError{
+				Cause: err,
+				Msg:   "Error updating Temporal schedules",
+			}
+		}
 
 		log.Info().Str("task-queue", taskQueue).Msg("Starting workflow")
 
@@ -174,13 +191,6 @@ var rootCmd = &cobra.Command{
 			ActivityTaskPollerBehavior: pollerAutoscaler,
 			NexusTaskPollerBehavior:    pollerAutoscaler,
 		})
-
-		// Add underscore to the prefix
-		prefix := rootOpts.EnvPrefix
-		prefix += "_"
-
-		log.Debug().Str("prefix", prefix).Msg("Loading envvars to state")
-		envvars := utils.LoadEnvvars(prefix)
 
 		if err := dsl.NewWorkflow(temporalWorker, workflowDefinition, envvars); err != nil {
 			return gh.FatalError{

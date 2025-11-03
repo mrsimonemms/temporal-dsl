@@ -16,4 +16,10 @@
 
 package metadata
 
-const MetadataSearchAttribute = "searchAttributes"
+const MetadataSearchAttribute string = "searchAttributes"
+
+const (
+	MetadataScheduleID           string = "scheduleId"
+	MetadataScheduleWorkflowName string = "scheduleWorkflowName"
+	MetadataScheduleInput        string = "scheduleInput"
+)
