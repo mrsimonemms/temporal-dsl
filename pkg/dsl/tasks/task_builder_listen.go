@@ -24,6 +24,7 @@ import (
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	swUtil "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 )
@@ -141,7 +142,11 @@ func (t *ListenTaskBuilder) await(
 		}
 	})
 	if err != nil {
-		logger.Error("Error creating listening await", "error", err, "task", t.GetTaskName())
+		if temporal.IsCanceledError(err) {
+			logger.Debug("Listener cancelled", "task", t.GetTaskName())
+			return nil
+		}
+		logger.Error("Error creating listener await", "error", err, "task", t.GetTaskName())
 		return err
 	}
 	if !ok {
