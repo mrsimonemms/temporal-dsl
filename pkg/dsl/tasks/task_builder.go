@@ -19,7 +19,7 @@ package tasks
 import (
 	"fmt"
 
-	"github.com/mrsimonemms/temporal-dsl/pkg/dsl/tasks/metadata"
+	"github.com/mrsimonemms/temporal-dsl/pkg/dsl/metadata"
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
