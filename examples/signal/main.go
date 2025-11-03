@@ -72,14 +72,15 @@ func exec() error {
 		}
 	}()
 
-	if err := we.Get(ctx, nil); err != nil {
+	var res any
+	if err := we.Get(ctx, &res); err != nil {
 		return gh.FatalError{
 			Cause: err,
 			Msg:   "Error getting response",
 		}
 	}
 
-	log.Info().Msg("Workflow approved in time")
+	log.Info().Any("result", res).Msg("Workflow approved in time")
 
 	return nil
 }
