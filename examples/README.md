@@ -19,6 +19,7 @@ A collection of examples
 
 | Name | Description |
 | --- | --- |
+| [Authorise Change Request](./authorise-change-request) | Authorise and implement or reject a change request |
 | [Basic Workflow](./basic) | An example of how to use Serverless Workflow to define Temporal Workflows |
 | [Child Workflow](./child-workflows) | An example of how to declare and use a child workflow |
 | [Competing Concurrent Tasks](./competing-concurrent-tasks) | Have two tasks competing and the first to finish wins |
