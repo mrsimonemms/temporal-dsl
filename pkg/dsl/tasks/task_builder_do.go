@@ -190,7 +190,8 @@ func (t *DoTaskBuilder) iterateTasks(
 	for _, task := range tasks {
 		taskBase := task.GetTask().GetBase()
 
-		state.AddData(map[string]any{
+		// Clone the state to avoid the task polluting it
+		taskState := state.Clone().AddData(map[string]any{
 			"task": map[string]any{
 				"name": task.GetTaskName(),
 			},
@@ -210,7 +211,7 @@ func (t *DoTaskBuilder) iterateTasks(
 		}
 
 		logger.Debug("Check if task should be run", "task", task.Name)
-		if toRun, err := task.ShouldRun(state); err != nil {
+		if toRun, err := task.ShouldRun(taskState); err != nil {
 			logger.Error("Error checking if statement", "error", err, "name", task.Name)
 			return err
 		} else if !toRun {
@@ -220,13 +221,13 @@ func (t *DoTaskBuilder) iterateTasks(
 
 		// Check input for the task
 		logger.Debug("Validating input against task", "name", task.Name)
-		if err := t.validateInput(ctx, taskBase.Input, state); err != nil {
+		if err := t.validateInput(ctx, taskBase.Input, taskState); err != nil {
 			logger.Debug("Task input validation error", "error", err)
 			return err
 		}
 
 		logger.Debug("Parse metadata", "name", task.Name)
-		if err := task.ParseMetadata(ctx, state); err != nil {
+		if err := task.ParseMetadata(ctx, taskState); err != nil {
 			logger.Error("Error parsing metadata", "error", err)
 			return err
 		}
@@ -237,7 +238,7 @@ func (t *DoTaskBuilder) iterateTasks(
 		ctx = workflow.WithActivityOptions(ctx, ao)
 
 		logger.Info("Running task", "name", task.Name)
-		output, err := task.Func(ctx, input, state)
+		output, err := task.Func(ctx, input, taskState)
 		if err != nil {
 			logger.Error("Error running task", "name", task.Name, "error", err)
 			return err
