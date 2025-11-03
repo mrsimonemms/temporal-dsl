@@ -1,0 +1,33 @@
+# This is a simple Serverless Workflow that will be
+# translated into a Temporal workflow
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: schedule # Workflow name
+  version: 0.0.1
+  title: Serverless Workflow
+  summary: Schedule the tasks to be triggered automatically
+  metadata:
+    # Set the workflow name to trigger - this will either be the document.name or the Do task (see multiple-workflows example)
+    scheduleWorkflowName: schedule
+    # Optionally set the schedule ID name
+    scheduleId: some-schedule
+    # Optionally set any input for the workflow when triggered - this can receive envvars
+    scheduleInput:
+      - msg:
+          - hello
+          - world
+        envvars: ${ .env.EXAMPLE_ENVVAR }
+timeout:
+  after:
+    minutes: 1
+schedule:
+  # Every is supported as a Temporal interval - https://pkg.go.dev/go.temporal.io/sdk/client#ScheduleIntervalSpec
+  every:
+    minutes: 3
+  # Cron is supported as a Temporal cronjob - timezone is UTC
+  cron: "0 0 * * *"
+do:
+  - wait:
+      wait:
+        seconds: 5
