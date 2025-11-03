@@ -103,6 +103,8 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 		return NewCallHTTPTaskBuilder(temporalWorker, t, taskName)
 	case *model.DoTask:
 		return NewDoTaskBuilder(temporalWorker, t, taskName, doc)
+	case *model.ForTask:
+		return NewForTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.ForkTask:
 		return NewForkTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.ListenTask:
