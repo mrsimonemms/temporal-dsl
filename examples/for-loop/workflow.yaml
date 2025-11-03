@@ -1,0 +1,76 @@
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl # Mapped to the task queue
+  name: for-loop # Workflow name
+  version: 0.0.1
+  title: For loops
+  summary: An example of how to use the for loop task
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - map
+        - data
+      properties:
+        map:
+          type: object
+          required:
+            - key1
+            - key2
+            - key3
+          properties:
+            key1:
+              type: string
+            key2:
+              type: number
+            key3:
+              type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            required:
+              - userId
+            properties:
+              userId:
+                type: number
+do:
+  # Iterate over the map object
+  - forTaskMap:
+      export:
+        as: forMap
+      for:
+        in: ${ .input.map }
+      do:
+        - setData:
+            export:
+              as: response
+            set:
+              key: "${ \"hello: \" + .data.index }"
+              value: ${ .data.item }
+        - wait:
+            wait:
+              seconds: 2
+  # Iterate over the data array
+  - forTaskArray:
+      export:
+        as: forArray
+      for:
+        each: item
+        in: ${ .input.data }
+        at: index
+      # while: ${ .data.item.userId != 4 } # If this returns false, it will cut the iteration
+      do:
+        # Each iteration will run these tasks in order
+        - setData:
+            export:
+              as: response
+            set:
+              userId: ${ .data.item.userId } # Get the userId for this iteration
+              id: ${ .data.index } # Get the key
+              processed: true
+        - wait:
+            wait:
+              seconds: 1
