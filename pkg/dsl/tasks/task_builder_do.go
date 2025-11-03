@@ -239,6 +239,11 @@ func (t *DoTaskBuilder) iterateTasks(
 		logger.Info("Running task", "name", task.Name)
 		output, err := task.Func(ctx, input, state)
 		if err != nil {
+			if temporal.IsCanceledError(err) {
+				logger.Debug("Task cancelled", "name", task.Name)
+				return nil
+			}
+
 			logger.Error("Error running task", "name", task.Name, "error", err)
 			return err
 		}
