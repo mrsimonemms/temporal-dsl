@@ -1,7 +1,7 @@
 header:
   license:
     spdx-id: Apache-2.0
-    copyright-owner: "Simon Emms <simon@simonemms.com>"
+    copyright-owner: Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>
     copyright-year: 2025
   paths-ignore:
     - "**/dist"

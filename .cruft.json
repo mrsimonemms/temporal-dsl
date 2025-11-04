@@ -6,7 +6,7 @@
     "cookiecutter": {
       "project_name": "temporal-dsl",
       "description": "Build Temporal workflows from YAML",
-      "author": "Simon Emms <simon@simonemms.com>",
+      "author": "Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>",
       "repo": "github.com/mrsimonemms/temporal-dsl",
       "use_viper": false,
       "_template": "https://github.com/mrsimonemms/new",
