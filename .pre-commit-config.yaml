@@ -60,4 +60,11 @@ repos:
         entry: ./scripts/bin/cli.mjs generate-table ./examples/README.md ./examples/
         language: system
         pass_filenames: false
+  - repo: local
+    hooks:
+      - id: generate-authors
+        name: generate-authors
+        entry: ./scripts/generate-authors.sh
+        language: script
+        pass_filenames: false
 exclude: charts/.*/README.md
