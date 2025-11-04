@@ -27,6 +27,7 @@ A collection of examples
 | [For loops](./for-loop) | An example of how to use the for loop task |
 | [Money Transfer Demo](./money-transfer) | Temporal's world-famous Money Transfer Demo, in Serverless Workflow form |
 | [Multiple Workflows](./multiple-workflows) | Configure multiple Temporal workflows |
+| [Python](./python) | The basic example, but in Python |
 | [Listener Workflow (Query)](./query) | Listen for Temporal query events |
 | [Erroring Workflow](./raise) | Raise a bug |
 | [Serverless Workflow](./schedule) | Schedule the tasks to be triggered automatically |
