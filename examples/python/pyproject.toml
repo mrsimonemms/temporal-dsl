@@ -1,0 +1,12 @@
+[project]
+name = "temporal-dsl-python-example"
+version = "0.0.1"
+description = "The basic Temporal DSL example, but in Python."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "temporalio>=1.5.0,<2.0.0",
+]
+
+[tool.uv]
+package = false
