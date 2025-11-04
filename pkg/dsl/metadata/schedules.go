@@ -47,7 +47,6 @@ func GetScheduleInfo(workflow *model.Workflow, envvars map[string]any) (*Schedul
 			// Schedule ID is set in the metadata
 			scheduleID = sID
 		} else {
-			fmt.Println(sID)
 			return nil, fmt.Errorf("schedule id must be a string")
 		}
 	}
