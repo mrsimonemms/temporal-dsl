@@ -9,7 +9,7 @@ header:
     - LICENSE
     - "**/.*"
     - "**/go.*"
-    - "**/*.{json,md,yml,yaml,txt}"
+    - "**/*.{json,md,yml,yaml,txt,lock,toml}"
     - "**/.gitkeep"
   comment: on-failure
   language:
