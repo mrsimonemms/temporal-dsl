@@ -50,10 +50,8 @@ do:
       run:
         workflow:
           name: say-hello-workflow
-          namespace: default
+          namespace: python-child
           version: 0.0.1
-          input:
-            taskQueue: python-child
   - raiseAlarm:
       # A fork is a series of child workflows running in parallel
       export:

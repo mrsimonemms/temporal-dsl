@@ -76,13 +76,9 @@ func (t *RunTaskBuilder) runWorkflow(ctx workflow.Context, input any, state *uti
 		opts.ParentClosePolicy = enums.PARENT_CLOSE_POLICY_ABANDON
 	}
 
-	if t.task.Run.Workflow != nil && t.task.Run.Workflow.Input != nil {
-		if taskQueueRaw, ok := t.task.Run.Workflow.Input["taskQueue"]; ok {
-			if taskQueue, ok := taskQueueRaw.(string); ok && taskQueue != "" {
-				logger.Debug("Overriding child workflow task queue", "taskQueue", taskQueue, "task", t.GetTaskName())
-				opts.TaskQueue = taskQueue
-			}
-		}
+	if wf := t.task.Run.Workflow; wf != nil && wf.Namespace != "" {
+		logger.Debug("Overriding child workflow task queue from namespace", "taskQueue", wf.Namespace, "task", t.GetTaskName())
+		opts.TaskQueue = wf.Namespace
 	}
 
 	ctx = workflow.WithChildOptions(ctx, opts)
