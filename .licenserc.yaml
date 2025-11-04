@@ -6,11 +6,13 @@ header:
   paths-ignore:
     - "**/dist"
     - "**/tmp"
+    - AUTHORS
     - LICENSE
     - "**/.*"
     - "**/go.*"
     - "**/*.{json,md,yml,yaml,txt,lock,toml}"
     - "**/.gitkeep"
+    - scripts/generate-authors.sh
   comment: on-failure
   language:
     Go:
