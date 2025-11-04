@@ -207,3 +207,7 @@ jobs:
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
           update_dependencies: true
+
+      - name: Refresh Go Report Card
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: creekorful/goreportcard-action@v1.0
