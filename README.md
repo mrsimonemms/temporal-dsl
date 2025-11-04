@@ -1,146 +1,107 @@
-# Temporal DSL
+# Temporal DSL: Declarative workflows for Temporal
 
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg?style=flat)](https://github.com/mrsimonemms/temporal-dsl/issues)
 [![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/mrsimonemms/temporal-dsl/blob/master/LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/mrsimonemms/temporal-dsl?label=Release)](https://github.com/mrsimonemms/temporal-dsl/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/temporal-dsl)](https://goreportcard.com/report/github.com/mrsimonemms/temporal-dsl)
 
-Build [Temporal](https://temporal.io) workflows from YAML
+Temporal DSL provides a **simple and declarative way** to define and manage
+[Temporal](https://temporal.io) workflows using the
+[CNCF Serverless Workflow](https://serverlessworkflow.io) specification. It
+enables **low-code** and **no-code** workflow creation that's
+**easy to visualize, share, and maintain**, without sacrificing the power and
+reliability of Temporal.
 
-<!-- toc -->
+---
 
-* [Loom](#loom)
-* [Why?](#why)
-* [Architecture](#architecture)
-  * [Goals](#goals)
-* [Getting started](#getting-started)
-  * [Define your workflow](#define-your-workflow)
-  * [Start your Temporal server](#start-your-temporal-server)
-  * [Run](#run)
-    * [Running examples](#running-examples)
-* [Schema](#schema)
-  * [Variables](#variables)
-* [Future developments](#future-developments)
-  * [Implementation roadmap](#implementation-roadmap)
-* [Contributing](#contributing)
-  * [Open in a container](#open-in-a-container)
-  * [Commit style](#commit-style)
+## ✨ Features
 
-<!-- Regenerate with "pre-commit run -a markdown-toc" -->
+* ✅ **CNCF Standard** – fully aligned with Serverless Workflow v1.0+
+* ✅ **Low-code & Visual-ready** – ideal for UI workflow builders and orchestration
+  tools
+* ✅ **Powered by Temporal** – battle-tested reliability, retries, and state management
+* ✅ **Kubernetes-native** – includes a Helm chart for easy deployment
+* ✅ **Open & Extensible** – customize, extend, and contribute easily
 
-<!-- tocstop -->
+---
 
-## Loom
+## 🧩 Example
 
-Here's a Loom video explaining the idea
+Define a workflow declaratively in YAML:
 
-[![Video thumbnail](https://cdn.loom.com/sessions/thumbnails/ebd04b2eeda645bab5ad4426ba6f636a-18b80f0119063d98-full-play.gif)](https://www.loom.com/share/ebd04b2eeda645bab5ad4426ba6f636a)
-
-## Why?
-
-We regularly get asked about using a domain-specific language (DSL) to make Temporal
-workflows in a no/low-code format. For very good reasons, this is outside the scope
-of the Temporal project. [But still they come](https://www.youtube.com/watch?v=Poii8JAbtng&t=441s).
-
-[Serverless Workflow](https://serverlessworkflow.io) is a [CNCF](https://www.cncf.io/)-sponsored
-project to create a vendor-neutral method of defining a workflow.
-
-## Architecture
-
-This application is designed to replace the Temporal worker by generating the
-workflows and activities defined. This will be a long-running application.
-
-Triggering workflows defined by this application will be done in the normal
-Temporal way - see [examples](./examples) for more information.
-
-Conceptually, the items in the `do` array of the schema are things that a Temporal
-workflow can do. Sometimes these will be invoked by the [workflow](https://docs.temporal.io/workflows),
-but most will be [activities](https://docs.temporal.io/activities).
-
-### Goals
-
-This project has a number of goals:
-1. _Can_ a Temporal workflow be configured by a DSL?
-1. _Should_ a Temporal workflow be configured by a DSL?
-1. Would this be a useful addition to the Temporal ecosystem?
-
-From a deployment point of view, this is designed as a standalone application.
-This allows for it to be run in multiple different ways, such as in Kubernetes
-or on bare metal.
-
-## Getting started
-
-### Define your workflow
-
-Create a workflow in the [Serverless Workflow](https://serverlessworkflow.io)
-schema.
-
-An [example workflow is provided](./workflow.example.yaml).
-
-### Start your Temporal server
-
-This can be any flavour of Temporal (Cloud or self-hosted). To start a local
-development server, run:
-
-```sh
-temporal server start-dev
+```yaml
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl # Mapped to the task queue
+  name: example # Workflow name
+  version: 0.0.1
+  title: Example Workflow
+  summary: An example of how to use Serverless Workflow to define Temporal Workflows
+timeout:
+  after:
+    minutes: 1
+# Validate the input schema
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: number
+do:
+  # Set some data to the state
+  - step1:
+      set:
+        # Set a variable from an envvar
+        envvar: ${ .env.EXAMPLE_ENVVAR }
+        # Generate a UUID at a workflow level
+        uuid: ${ uuid }
+  # Pause the workflow
+  - wait:
+      wait:
+        seconds: 5
+  # Make an HTTP call, using the userId received from the input
+  - getUser:
+      call: http
+      # Expose the response to the output
+      export:
+        as: user
+      with:
+        method: get
+        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
 ```
 
-### Run
+Run it through Temporal DSL:
 
-There are many options available so it's best to look at the available options
-in the application's `help`.
-
-```sh
-go run . -h
+```bash
+temporal-dsl -f ./path/to/workflow.yaml
 ```
 
-At it's simplest, this will be:
+This builds your Temporal workflow and runs the workers — no additional Go
+boilerplate required.
 
-```sh
-go run . --temporal-address localhost:7233 --files ./workflow.example.yaml
-```
+You can now run it with any [Temporal SDK](https://docs.temporal.io/encyclopedia/temporal-sdks).
 
-It's now ready for all your workflow needs
+* [**Task Queue**](https://docs.temporal.io/task-queue): `temporal-dsl`
+* [**Workflow Type**](https://docs.temporal.io/workflows#intro-to-workflows):
+  `example`
 
-#### Running examples
+---
 
-See [examples](./examples) directory
+## 🧭 Related Projects
 
-## Schema
+* [Temporal](https://temporal.io)
+* [CNCF Serverless Workflow](https://serverlessworkflow.io)
+* [Helm Chart Repository](./charts//temporal-dsl)
 
-### Variables
+---
 
-Each call receives the input and output from previous calls, so that can be
-used in calls. This is done using the [Go template](https://pkg.go.dev/text/template)
-variable methods - if you set an `userId` variable, this can be retrieved by
-adding `{{ .userId }}` in your schema definition.
+## 🤝 Contributing
 
-Environment variables are also used, provided that the match the prefix - by default,
-this is `TDSL_`. These can also be parsed - the variable `TDSL_EXAMPLE_ENVVAR`
-would be retrieved by adding `{{ .TDSL_EXAMPLE_ENVVAR }}` to your schema definition.
-
-## Future developments
-
-This is largely dependent upon how much interest there in the community, so please
-add stars and [raise pull requests](#contributing).
-
-This is a very basic implementation, with only support for the basic Temporal
-workflow. Things that will be needed to make this a production-grade system (not
-exhaustive):
-* [Temporal worker versioning](https://docs.temporal.io/production-deployment/worker-deployments/worker-versioning)
-* Custom tasks, especially to call user-defined activities
-* Published release/Helm chart
-
-### Implementation roadmap
-
-The table below lists the current state of this implementation. This table is a
-roadmap for the project based on the
-[DSL Reference doc](https://github.com/serverlessworkflow/specification/blob/v1.0.0/dsl-reference.md).
-
-This project currently only supports DSL `1.0.0`.
-
-## Contributing
+Contributions are welcome!
 
 ### Open in a container
 
@@ -158,3 +119,20 @@ format.
 
 [optional footer(s)]
 ```
+
+---
+
+## ⭐️ Contributors
+
+<a href="https://github.com/mrsimonemms/temporal-dsl/graphs/contributors">
+  <img alt="Contributors"
+    src="https://contrib.rocks/image?repo=mrsimonemms/temporal-dsl" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
+---
+
+## 🪪 License
+
+[Apache-2.0](./LICENSE) © [Temporal DSL authors](https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>)
