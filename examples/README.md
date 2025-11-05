@@ -33,6 +33,7 @@ A collection of examples
 | [Custom Search Attributes](./search-attributes) | An example of how to add custom search attribute data into your Temporal calls |
 | [Listener Workflow (Signal)](./signal) | Listen for Temporal signal events |
 | [Switch Workflow](./switch) | Perform a switch statement |
+| [Try/Catch](./try-catch) | An example of how to catch an erroring workflow |
 | [TypeScript](./typescript) | The basic example, but in TypeScript |
 | [Listener Workflow (Update)](./update) | Listen for Temporal update events |
 

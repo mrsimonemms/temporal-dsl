@@ -1,0 +1,31 @@
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl # Mapped to the task queue
+  name: try-catch # Workflow name
+  version: 0.0.1
+  title: Try/Catch
+  summary: An example of how to catch an erroring workflow
+do:
+  - user:
+      export:
+        as: user
+      try:
+        - getUser:
+            call: http
+            export:
+              as: user
+            with:
+              method: get
+              endpoint: https://jsonplaceholder.typicode.com/users/2000
+      catch:
+        errors:
+          with:
+            type: https://serverlessworkflow.io/spec/1.0.0/errors/communication
+            status: 404
+        as: error
+        do:
+          - setError:
+              export:
+                as: err
+              set:
+                err: some error
