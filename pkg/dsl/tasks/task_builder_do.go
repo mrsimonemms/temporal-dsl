@@ -190,6 +190,8 @@ func (t *DoTaskBuilder) iterateTasks(
 	for _, task := range tasks {
 		taskBase := task.GetTask().GetBase()
 
+		workflow.GetInfo(ctx).GetContinueAsNewSuggested()
+
 		state.AddData(map[string]any{
 			"task": map[string]any{
 				"name": task.GetTaskName(),
