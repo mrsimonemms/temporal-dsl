@@ -112,6 +112,8 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 		return NewSetTaskBuilder(temporalWorker, t, taskName)
 	case *model.SwitchTask:
 		return NewSwitchTaskBuilder(temporalWorker, t, taskName)
+	case *model.TryTask:
+		return NewTryTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.WaitTask:
 		return NewWaitTaskBuilder(temporalWorker, t, taskName)
 	default:
