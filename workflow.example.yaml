@@ -10,33 +10,35 @@ document:
 timeout:
   after:
     minutes: 1
+# Validate the input schema
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: number
 do:
+  # Set some data to the state
   - step1:
       set:
         # Set a variable from an envvar
-        envvar: "{{ .TDSL_EXAMPLE_ENVVAR }}"
+        envvar: ${ .env.EXAMPLE_ENVVAR }
+        # Generate a UUID at a workflow level
+        uuid: ${ uuid }
+  # Pause the workflow
   - wait:
       wait:
         seconds: 5
+  # Make an HTTP call, using the userId received from the input
   - getUser:
       call: http
+      # Expose the response to the output
+      export:
+        as: user
       with:
         method: get
-        endpoint: https://jsonplaceholder.typicode.com/users/{{ .userId }}
-  - raiseAlarm:
-      fork:
-        compete: false
-        branches:
-          - callNurse:
-              call: http
-              with:
-                method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/1
-          - wait:
-              wait:
-                seconds: 5
-          - callDoctor:
-              call: http
-              with:
-                method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/3
+        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
