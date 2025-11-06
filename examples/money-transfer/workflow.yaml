@@ -1,226 +1,90 @@
-# This is a simple Serverless Workflow that will be
-# translated into a Temporal workflow
-
-# Use YAML anchors to declare reusable components
-.anchors:
-  deposit: &deposit
-    call: http
-    with:
-      method: post
-      endpoint: http://server:3000/deposit
-      headers:
-        content-type: application/json
-      # Send some JSON over
-      body:
-          amount: ${ .input.amount }
-          attempt: ${ .data.activity.attempt }
-          idempotencyKey: ${ .data.idempotencyKey }
-          name: ${ .data.workflow.workflow_type_name }
-
-  queryState: &queryState
-    listen:
-      to:
-        one:
-          with:
-            # ID maps to the query name in Temporal
-            id: transferStatus
-            # Temporal update - used to make read/write request
-            type: query
-            # Convert the data to JSON - in Temporal, this gets converted to map[string]all so it gets serialized correctly
-            datacontenttype: application/json
-            # The data returned from the query - for application/json, this must be a string so Go interpolation works correctly
-            data:
-              approvalTime: ${ .data.stateApprovalTime }
-              chargeResult:
-                chargeId: ${ .data.stateChargeId }
-              progressPercentage: ${ .data.stateProgressPercentage }
-              transferState: ${ .data.stateTransferState }
-              workflowStatus: ${ .data.stateWorkflowStatus }
-
-  sendNotification: &sendNotification
-    call: http
-    with:
-      method: post
-      endpoint: http://server:3000/notify
-      headers:
-        content-type: application/json
-      # Send some JSON over
-      body:
-        amount: ${ .input.amount }
-        fromAccount: ${ .input.fromAccount }
-        toAccount: ${ .input.toAccount }
-
-  setup: &setup
-    set:
-      idempotencyKey: ${ uuid }
-      stateApprovalTime: 30
-      stateChargeId: ${ uuid }
-      stateProgressPercentage: 0
-      stateTransferState: starting
-      stateWorkflowStatus: ""
-
-  validate: &validate
-    call: http
-    with:
-      method: post
-      endpoint: http://server:3000/validate
-
-  withdraw: &withdraw
-    call: http
-    with:
-      method: post
-      endpoint: http://server:3000/withdraw
-      headers:
-        content-type: application/json
-      # Send some JSON over
-      body:
-        amount: ${ .input.amount }
-        attempt: ${ .data.activity.attempt }
-        idempotencyKey: ${ .data.idempotencyKey }
-        name: ${ .data.workflow.workflow_type_name }
-
-  workflowScenarios: &workflowScenarios
-    do:
-      - queryState: *queryState
-      - setup: *setup
-      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
-      - advancedVisibility:
-          if: '${ .data.workflow.workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
-          metadata:
-            searchAttributes:
-              Step:
-                type: text
-                value: Validate
-          set:
-            step: validate
-      - validate: *validate
-      - updateState:
-          set:
-            stateProgressPercentage: 25
-            stateTransferState: running
-      - requireApprovalStatus:
-          if: '${ .data.workflow.workflow_type_name == "AccountTransferWorkflowHumanInLoop" }'
-          set:
-            stateProgressPercentage: 30
-            stateTransferState: waiting
-      - requireApprovalListener:
-          if: '${ .data.workflow.workflow_type_name == "AccountTransferWorkflowHumanInLoop" }'
-          metadata:
-            timeout: 30s
-          listen:
-            to:
-              one:
-                with:
-                  # ID maps to the query name in Temporal
-                  id: approveTransfer
-                  # Temporal signal - used to make write request
-                  type: signal
-      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
-      - advancedVisibility:
-          if: '${ .data.workflow.workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
-          metadata:
-            searchAttributes:
-              Step:
-                type: text
-                value: Withdraw
-          set:
-            step: withdraw
-      - withdraw: *withdraw
-      - bug:
-          if: '${ .data.workflow.workflow_type_name == "AccountTransferWorkflowRecoverableFailure" }'
-          raise:
-            error:
-              type: https://go.dev/panic
-              status: 500 # Ignore for panic
-              detail: Simulated bug - fix me!
-      - updateState:
-          set:
-            stateProgressPercentage: 50
-            # Set state to running - may have come from approveTransfer
-            stateTransferState: running
-      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
-      - advancedVisibility:
-          if: '${ .data.workflow.workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
-          metadata:
-            searchAttributes:
-              Step:
-                type: text
-                value: Deposit
-          set:
-            step: deposit
-      - deposit: *deposit
-      - updateState:
-          set:
-            stateProgressPercentage: 75
-      # The setter isn't used, but used as a safe way of setting a value in order to have an if statement
-      - advancedVisibility:
-          if: '${ .data.workflow.workflow_type_name == "AccountTransferWorkflowAdvancedVisibility" }'
-          metadata:
-            searchAttributes:
-              Step:
-                type: text
-                value: SendNotification
-          set:
-            step: sendNotification
-      - sendNotification: *sendNotification
-      - updateState:
-          set:
-            stateProgressPercentage: 100
-            stateTransferState: finished
-      - sleep:
-          wait:
-            seconds: 1
-
-# Declare the Serverless Workflow spec
 document:
   dsl: 1.0.0
-  namespace: MoneyTransfer
+  namespace: MoneyTransfer # Mapped to the task queue
   name: money-transfer # Workflow name
   version: 0.0.1
   title: Money Transfer Demo
-  summary: Temporal's world-famous Money Transfer Demo, in Serverless Workflow form
-timeout:
-  after:
-    minutes: 1
+  summary: Temporal's world-famous Money Transfer Demo, in DSL form
 do:
   # Happy path
   - AccountTransferWorkflow:
       do:
-        - queryState: *queryState
-        - setup: *setup
-        - validate: *validate
+        - queryState:
+            listen:
+              to:
+                one:
+                  with:
+                    # ID maps to the query name in Temporal
+                    id: transferStatus
+                    # Temporal query - used to make read requests
+                    type: query
+                    # The data returned from the query - for application/json, this must be a string so Go interpolation works correctly
+                    data:
+                      approvalTime: ${ .data.stateApprovalTime }
+                      chargeResult:
+                        chargeId: ${ .data.stateChargeId }
+                      progressPercentage: ${ .data.stateProgressPercentage }
+                      transferState: ${ .data.stateTransferState }
+                      workflowStatus: ${ .data.stateWorkflowStatus }
+        - setup:
+            set:
+              idempotencyKey: ${ uuid }
+              stateApprovalTime: 30
+              stateChargeId: ${ uuid }
+              stateProgressPercentage: 0
+              stateTransferState: starting
+              stateWorkflowStatus: ""
+        - validate:
+            call: http
+            with:
+              method: post
+              endpoint: http://server:3000/validate
         - updateState:
             set:
               stateProgressPercentage: 25
               stateTransferState: running
-        - sleep:
-            wait:
-              seconds: 1
-        - withdraw: *withdraw
+        - withdraw:
+            call: http
+            with:
+              method: post
+              endpoint: http://server:3000/withdraw
+              headers:
+                content-type: application/json
+              body:
+                amount: ${ .input.amount }
+                attempt: ${ .data.activity.attempt }
+                idempotencyKey: ${ .data.idempotencyKey }
+                name: ${ .data.workflow.workflow_type_name }
         - updateState:
             set:
               stateProgressPercentage: 50
-        - sleep:
-            wait:
-              seconds: 3
-        - deposit: *deposit
+        - deposit:
+            call: http
+            with:
+              method: post
+              endpoint: http://server:3000/deposit
+              headers:
+                content-type: application/json
+              body:
+                  amount: ${ .input.amount }
+                  attempt: ${ .data.activity.attempt }
+                  idempotencyKey: ${ .data.idempotencyKey }
+                  name: ${ .data.workflow.workflow_type_name }
         - updateState:
             set:
               stateProgressPercentage: 75
-        - sleep:
-            wait:
-              seconds: 1
-        - sendNotification: *sendNotification
+        - sendNotification:
+            call: http
+            with:
+              method: post
+              endpoint: http://server:3000/notify
+              headers:
+                content-type: application/json
+              body:
+                amount: ${ .input.amount }
+                fromAccount: ${ .input.fromAccount }
+                toAccount: ${ .input.toAccount }
         - updateState:
             set:
               stateProgressPercentage: 100
               stateTransferState: finished
-        - sleep:
-            wait:
-              seconds: 1
-  # Scenarios
-  - AccountTransferWorkflowAdvancedVisibility: *workflowScenarios
-  - AccountTransferWorkflowHumanInLoop: *workflowScenarios
-  - AccountTransferWorkflowAPIDowntime: *workflowScenarios
-  - AccountTransferWorkflowRecoverableFailure: *workflowScenarios
-  - AccountTransferWorkflowInvalidAccount: *workflowScenarios
