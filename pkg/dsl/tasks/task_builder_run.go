@@ -40,6 +40,9 @@ func NewRunTaskBuilder(
 	}, nil
 }
 
+// Ensure the task meets the TaskBuilder type
+var _ TaskBuilder = &RunTaskBuilder{}
+
 type RunTaskBuilder struct {
 	builder[*model.RunTask]
 }

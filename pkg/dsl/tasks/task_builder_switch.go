@@ -39,6 +39,9 @@ func NewSwitchTaskBuilder(
 	}, nil
 }
 
+// Ensure the task meets the TaskBuilder type
+var _ TaskBuilder = &SwitchTaskBuilder{}
+
 type SwitchTaskBuilder struct {
 	builder[*model.SwitchTask]
 }

@@ -50,11 +50,6 @@ type builder[T model.Task] struct {
 	temporalWorker worker.Worker
 }
 
-// This method is designed to be overridden
-func (d *builder[T]) Build() (TemporalWorkflowFunc, error) {
-	return nil, fmt.Errorf("task builder not implemented: %s", d.GetTaskName())
-}
-
 func (d *builder[T]) GetTask() model.Task {
 	return d.task
 }

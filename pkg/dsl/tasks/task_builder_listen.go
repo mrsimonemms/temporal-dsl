@@ -51,6 +51,9 @@ func NewListenTaskBuilder(
 	}, nil
 }
 
+// Ensure the task meets the TaskBuilder type
+var _ TaskBuilder = &ListenTaskBuilder{}
+
 type ListenTaskBuilder struct {
 	builder[*model.ListenTask]
 }

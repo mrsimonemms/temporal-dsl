@@ -36,6 +36,9 @@ func NewSetTaskBuilder(temporalWorker worker.Worker, task *model.SetTask, taskNa
 	}, nil
 }
 
+// Ensure the task meets the TaskBuilder type
+var _ TaskBuilder = &SetTaskBuilder{}
+
 type SetTaskBuilder struct {
 	builder[*model.SetTask]
 }

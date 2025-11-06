@@ -47,6 +47,9 @@ func NewForkTaskBuilder(
 	}, nil
 }
 
+// Ensure the task meets the TaskBuilder type
+var _ TaskBuilder = &ForkTaskBuilder{}
+
 type ForkTaskBuilder struct {
 	builder[*model.ForkTask]
 }

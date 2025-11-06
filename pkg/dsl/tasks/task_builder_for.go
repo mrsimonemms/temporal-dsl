@@ -45,6 +45,9 @@ func NewForTaskBuilder(
 
 var errForkIterationStop = fmt.Errorf("fork iteration stop")
 
+// Ensure the task meets the TaskBuilder type
+var _ TaskBuilder = &ForTaskBuilder{}
+
 type ForTaskBuilder struct {
 	builder[*model.ForTask]
 
