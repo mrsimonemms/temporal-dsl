@@ -289,7 +289,8 @@ func (t *ListenTaskBuilder) processReply(ctx workflow.Context, event *model.Even
 		// Return the data
 		logger.Debug("Replied from event", "event", event.With.ID)
 
-		return obj[templateKey], nil
+		// return obj[templateKey], nil
+		return obj, nil
 	}
 	return nil, nil
 }

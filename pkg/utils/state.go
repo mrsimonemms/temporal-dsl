@@ -19,11 +19,8 @@ package utils
 import (
 	"context"
 	"maps"
-	"strings"
 
-	"github.com/rs/zerolog/log"
 	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
-	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/workflow"
 )
@@ -32,7 +29,7 @@ type State struct {
 	Data   map[string]any `json:"data"`            // Data stored along the way
 	Env    map[string]any `json:"env"`             // Available environment variables
 	Input  any            `json:"input,omitempty"` // The input given by the caller
-	Output map[string]any `json:"output"`          // What will be output to the caller
+	Output any            `json:"output"`          // What will be output to the caller
 }
 
 func (s *State) init() *State {
@@ -41,9 +38,6 @@ func (s *State) init() *State {
 	}
 	if s.Data == nil {
 		s.Data = map[string]any{}
-	}
-	if s.Output == nil {
-		s.Output = map[string]any{}
 	}
 
 	return s
@@ -55,21 +49,21 @@ func (s *State) AddData(data map[string]any) *State {
 	return s
 }
 
-func (s *State) AddOutput(task model.Task, output any) *State {
-	if output != nil {
-		if export := task.GetBase().Export; export != nil {
-			if exportAs := export.As; exportAs != nil {
-				// Trim runtime expression wrapper
-				key := strings.Trim(exportAs.String(), "{}")
-				log.Debug().Any("key", key).Msg("Add task output to state")
+// func (s *State) AddOutput(task model.Task, output any) *State {
+// 	if output != nil {
+// 		if export := task.GetBase().Export; export != nil {
+// 			if exportAs := export.As; exportAs != nil {
+// 				// Trim runtime expression wrapper
+// 				key := strings.Trim(exportAs.String(), "{}")
+// 				log.Debug().Any("key", key).Msg("Add task output to state")
 
-				s.Output[key] = output
-			}
-		}
-	}
+// 				s.Output[key] = output
+// 			}
+// 		}
+// 	}
 
-	return s
-}
+// 	return s
+// }
 
 func (s *State) AddActivityInfo(ctx context.Context) *State {
 	info := activity.GetInfo(ctx)
@@ -153,12 +147,12 @@ func (s *State) Clone() *State {
 	s1.Data = swUtils.DeepClone(s.Data)
 	s1.Env = swUtils.DeepClone(s.Env)
 	s1.Input = swUtils.DeepCloneValue(s.Input)
-	s1.Output = swUtils.DeepClone(s.Output)
+	s1.Output = swUtils.DeepCloneValue(s.Output)
 
 	return s1
 }
 
-// Returns the state as a map. This can be used for
+// Returns the state as a map.
 func (s *State) GetAsMap() map[string]any {
 	s1 := s.Clone()
 

@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -65,8 +66,16 @@ func exec() error {
 
 	log.Info().Interface("result", result).Msg("Workflow completed")
 
+	d, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return gh.FatalError{
+			Cause: err,
+			Msg:   "Error marshalling JSON",
+		}
+	}
+
 	fmt.Println("===")
-	fmt.Printf("%+v\n", result)
+	fmt.Printf("%+v\n", string(d))
 	fmt.Println("===")
 
 	return nil

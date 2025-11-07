@@ -64,7 +64,7 @@ func (t *SetTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 		// Add the result to the state's data
 		logger.Debug("Setting data to the state")
-		state.AddData(result)
+		// state.AddData(result)
 
 		return result, nil
 	}, nil

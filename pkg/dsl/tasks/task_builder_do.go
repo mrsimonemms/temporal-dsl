@@ -253,7 +253,8 @@ func (t *DoTaskBuilder) iterateTasks(
 		}
 
 		// Set the output - this is only set if there's an export.as on the task
-		state.AddOutput(task.GetTask(), output)
+		// state.AddOutput(task.GetTask(), output)
+		fmt.Printf("%+v\n", output)
 
 		if then := taskBase.Then; then != nil {
 			flowDirective := then.Value

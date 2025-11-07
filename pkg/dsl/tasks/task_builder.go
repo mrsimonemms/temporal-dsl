@@ -19,9 +19,7 @@ package tasks
 import (
 	"fmt"
 
-	"github.com/mrsimonemms/temporal-dsl/pkg/dsl/metadata"
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
-	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -59,30 +57,30 @@ func (d *builder[T]) GetTaskName() string {
 }
 
 func (d builder[T]) ParseMetadata(ctx workflow.Context, state *utils.State) error {
-	logger := workflow.GetLogger(ctx)
+	// logger := workflow.GetLogger(ctx)
 
-	task := d.GetTask().GetBase()
+	// task := d.GetTask().GetBase()
 
-	if len(task.Metadata) == 0 {
-		// No metadata set - continue
-		return nil
-	}
+	// if len(task.Metadata) == 0 {
+	// 	// No metadata set - continue
+	// 	return nil
+	// }
 
-	// Clone the metadata to avoid pollution
-	mClone := swUtils.DeepClone(task.Metadata)
+	// // Clone the metadata to avoid pollution
+	// mClone := swUtils.DeepClone(task.Metadata)
 
-	parsed, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(mClone), state)
-	if err != nil {
-		return fmt.Errorf("error interpolating metadata: %w", err)
-	}
+	// parsed, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(mClone), state)
+	// if err != nil {
+	// 	return fmt.Errorf("error interpolating metadata: %w", err)
+	// }
 
-	if search, ok := parsed[metadata.MetadataSearchAttribute]; ok {
-		logger.Debug("Parsing search attributes")
-		if err := metadata.ParseSearchAttributes(ctx, search); err != nil {
-			logger.Error("Error parsing search attributes", "attributes", search, "error", err)
-			return fmt.Errorf("error parsing search attributes: %w", err)
-		}
-	}
+	// if search, ok := parsed[metadata.MetadataSearchAttribute]; ok {
+	// 	logger.Debug("Parsing search attributes")
+	// 	if err := metadata.ParseSearchAttributes(ctx, search); err != nil {
+	// 		logger.Error("Error parsing search attributes", "attributes", search, "error", err)
+	// 		return fmt.Errorf("error parsing search attributes: %w", err)
+	// 	}
+	// }
 
 	return nil
 }

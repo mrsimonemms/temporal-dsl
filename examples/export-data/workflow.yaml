@@ -9,12 +9,20 @@ timeout:
   after:
     minutes: 1
 do:
-  - baseData:
+  # Returns { "data1": { "key1" : "value1", "key2": "value2" } }
+  - data1:
       set:
-        data:
-          envvar: ${ .env.EXAMPLE_ENVVAR }
-          uuid: ${ uuid }
+        data1:
+          key1: value1
+          key2: value2
       export:
-        as:
-          total:
-            data: .
+        as: ${ . }
+  # Returns { "data2": { "key1": "value1", "key2": "value2" }, "input": { "shouldCall": true } }
+  - data2:
+      set:
+        data2: ${ $context.data1 }
+        input: ${ $input }
+  # { "data4": { "data2": { "key1": "value1", "key2": "value2" }, "input": { "shouldCall": true } } }
+  - data3:
+      set:
+        data4: ${ . }

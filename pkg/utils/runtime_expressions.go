@@ -87,24 +87,25 @@ func TraverseAndEvaluateObj(
 	runtimeExpr *model.ObjectOrRuntimeExpr,
 	state *State,
 	evaluationWrapper ...ExpressionWrapperFunc,
-) (map[string]any, error) {
+) (any, error) {
 	if runtimeExpr == nil {
-		return map[string]any{}, nil
+		return nil, nil
 	}
 
 	// Default to a simple pass-thru function
 	wrapperFn := buildEvaluationWrapperFn(evaluationWrapper...)
 
-	s, err := traverseAndEvaluate(runtimeExpr.AsStringOrMap(), state, wrapperFn)
-	if err != nil {
-		return nil, err
-	}
+	return traverseAndEvaluate(runtimeExpr.AsStringOrMap(), state, wrapperFn)
+	// s, err := traverseAndEvaluate(runtimeExpr.AsStringOrMap(), state, wrapperFn)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if v, isMap := s.(map[string]any); isMap {
-		return v, nil
-	} else {
-		return nil, fmt.Errorf("unknown data type")
-	}
+	// if v, isMap := s.(map[string]any); isMap {
+	// 	return v, nil
+	// } else {
+	// 	return nil, fmt.Errorf("unknown data type")
+	// }
 }
 
 func traverseAndEvaluate(node any, state *State, evaluationWrapper ExpressionWrapperFunc) (any, error) {
