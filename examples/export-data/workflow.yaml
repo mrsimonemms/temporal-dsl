@@ -1,0 +1,20 @@
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl # Mapped to the task queue
+  name: export # Workflow name
+  version: 0.0.1
+  title: Export Data
+  summary: How to configure the data export
+timeout:
+  after:
+    minutes: 1
+do:
+  - baseData:
+      set:
+        data:
+          envvar: ${ .env.EXAMPLE_ENVVAR }
+          uuid: ${ uuid }
+      export:
+        as:
+          total:
+            data: .
