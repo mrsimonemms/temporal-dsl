@@ -26,10 +26,11 @@ import (
 )
 
 type State struct {
-	Data   map[string]any `json:"data"`            // Data stored along the way
-	Env    map[string]any `json:"env"`             // Available environment variables
-	Input  any            `json:"input,omitempty"` // The input given by the caller
-	Output any            `json:"output"`          // What will be output to the caller
+	Data    map[string]any `json:"data"`            // Data stored along the way
+	Context any            `json:"context"`         // s
+	Env     map[string]any `json:"env"`             // Available environment variables
+	Input   any            `json:"input,omitempty"` // The input given by the caller
+	Output  any            `json:"output"`          // What will be output to the caller
 }
 
 func (s *State) init() *State {
@@ -157,14 +158,32 @@ func (s *State) GetAsMap() map[string]any {
 	s1 := s.Clone()
 
 	return map[string]any{
-		"data":   s1.Data,
-		"env":    s1.Env,
-		"input":  s1.Input,
-		"output": s1.Output,
+		// Standard Serverless Workflow variables
+		"$context": "",
+		"$input":   s1.Input,
+		"$output":  s1.Output,
+		"$runtime": map[string]any{
+			"name":    runtimeName,
+			"version": runtimeVersion,
+		},
+		"$task":     "",
+		"$workflow": "",
+
+		// Non-standard, but make sense in Temporaland
+		"$data": s1.Data, // @todo
+		"$env":  s1.Env,
 	}
 }
 
 func NewState() *State {
 	s := &State{}
 	return s.init()
+}
+
+const runtimeName = "Temporal DSL Specification"
+
+var runtimeVersion string
+
+func SetRuntimeVersion(v string) {
+	runtimeVersion = v
 }

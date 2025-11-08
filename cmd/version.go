@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -37,5 +38,7 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
+	utils.SetRuntimeVersion(Version)
+
 	rootCmd.AddCommand(versionCmd)
 }

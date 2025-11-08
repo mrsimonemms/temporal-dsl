@@ -252,9 +252,15 @@ func (t *DoTaskBuilder) iterateTasks(
 			return err
 		}
 
-		// Set the output - this is only set if there's an export.as on the task
-		// state.AddOutput(task.GetTask(), output)
-		fmt.Printf("%+v\n", output)
+		if output, err = t.processTaskOutput(taskBase, output); err != nil {
+			logger.Error("Output processing failed", "name", task.Name, "error", err)
+			return err
+		}
+
+		if err := t.processTaskExport(taskBase, output, taskState); err != nil {
+			logger.Error("Output processing failed", "name", task.Name, "error", err)
+			return err
+		}
 
 		if then := taskBase.Then; then != nil {
 			flowDirective := then.Value
@@ -276,4 +282,19 @@ func (t *DoTaskBuilder) iterateTasks(
 	}
 
 	return nil
+}
+
+func (t *DoTaskBuilder) processTaskExport(task *model.TaskBase, taskOutput any, state *utils.State) error {
+	fmt.Println(223344)
+	return nil
+}
+
+func (t *DoTaskBuilder) processTaskOutput(task *model.TaskBase, taskOutput any) (any, error) {
+	if task.Output == nil {
+		fmt.Println(2222)
+		return taskOutput, nil
+	}
+
+	// @todo(sje): handle the gubbins of output
+	return nil, nil
 }
