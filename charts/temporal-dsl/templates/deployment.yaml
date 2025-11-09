@@ -49,6 +49,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.Version }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
+            - run
             - --file={{ .Values.workflow.file }}
           {{- range $key, $value := .Values.config }}
             - {{ printf "--%s=%v" $key $value | quote }}

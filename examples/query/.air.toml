@@ -4,6 +4,7 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = [
+    "run",
     "--file ./workflow.yaml"
   ]
   bin = "./tmp/main"

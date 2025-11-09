@@ -12,6 +12,8 @@ timeout:
     minutes: 1
 do:
   - state:
+      export:
+        as: id
       set:
         id: ${ uuid }
   - wait:
@@ -63,5 +65,4 @@ do:
       export:
         as: data
       set:
-        id: ${ .data.id }
-        winner: ${ .data.task.winner }
+        winner: ${ .data.task.name }
