@@ -252,8 +252,11 @@ func (t *DoTaskBuilder) iterateTasks(
 			return err
 		}
 
-		// Set the output - this is only set if there's an export.as on the task
-		state.AddOutput(task.GetTask(), output)
+		// Set the output
+		if err := t.processTaskOutput(task, output, state); err != nil {
+			logger.Error("Error processing task output", "name", task.Name, "error", err)
+			return err
+		}
 
 		if then := taskBase.Then; then != nil {
 			flowDirective := then.Value
@@ -273,6 +276,28 @@ func (t *DoTaskBuilder) iterateTasks(
 		logger.Error("Next target specified but not found", "targetTask", nextTargetName)
 		return fmt.Errorf("next target specified but not found: %s", *nextTargetName)
 	}
+
+	return nil
+}
+
+func (t *DoTaskBuilder) processTaskOutput(
+	task workflowFunc,
+	taskOutput any,
+	state *utils.State,
+) error {
+	taskBase := task.GetTask().GetBase()
+
+	if taskBase.Output == nil {
+		state.Output = taskOutput
+		return nil
+	}
+
+	r, err := utils.TraverseAndEvaluateObj(taskBase.Output.As, taskOutput, state)
+	if err != nil {
+		return err
+	}
+
+	state.Output = r
 
 	return nil
 }

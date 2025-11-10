@@ -76,7 +76,7 @@ func (d builder[T]) ParseMetadata(ctx workflow.Context, state *utils.State) erro
 		return fmt.Errorf("error interpolating metadata: %w", err)
 	}
 
-	if search, ok := parsed[metadata.MetadataSearchAttribute]; ok {
+	if search, ok := parsed.(map[string]any)[metadata.MetadataSearchAttribute]; ok {
 		logger.Debug("Parsing search attributes")
 		if err := metadata.ParseSearchAttributes(ctx, search); err != nil {
 			logger.Error("Error parsing search attributes", "attributes", search, "error", err)

@@ -74,24 +74,15 @@ func TraverseAndEvaluateObj(
 	input any,
 	state *State,
 	evaluationWrapper ...ExpressionWrapperFunc,
-) (map[string]any, error) {
+) (any, error) {
 	if runtimeExpr == nil {
-		return map[string]any{}, nil
+		return nil, nil
 	}
 
 	// Default to a simple pass-thru function
 	wrapperFn := buildEvaluationWrapperFn(evaluationWrapper...)
 
-	s, err := traverseAndEvaluate(runtimeExpr.AsStringOrMap(), input, state, wrapperFn)
-	if err != nil {
-		return nil, err
-	}
-
-	if v, isMap := s.(map[string]any); isMap {
-		return v, nil
-	} else {
-		return nil, fmt.Errorf("unknown data type")
-	}
+	return traverseAndEvaluate(runtimeExpr.AsStringOrMap(), input, state, wrapperFn)
 }
 
 func traverseAndEvaluate(node, input any, state *State, evaluationWrapper ExpressionWrapperFunc) (any, error) {
@@ -169,31 +160,3 @@ func getVariableNamesAndValues(vars map[string]any) ([]string, []any) {
 	}
 	return names, values
 }
-
-// func evaluateJQExpression(expression string, state *State) (any, error) {
-// 	query, err := gojq.Parse(expression)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to parse jq expression: %s, error: %w", expression, err)
-// 	}
-
-// 	fns := make([]gojq.CompilerOption, 0)
-// 	for _, j := range jqFuncs {
-// 		fns = append(fns, gojq.WithFunction(j.Name, j.MinArgs, j.MaxArgs, j.Func))
-// 	}
-
-// 	code, err := gojq.Compile(query, fns...)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error compiling gojq code: %w", err)
-// 	}
-
-// 	iter := code.Run(state.GetAsMap())
-// 	v, ok := iter.Next()
-// 	if !ok {
-// 		return nil, fmt.Errorf("no result from jq evaluation")
-// 	}
-// 	if errVal, isErr := v.(error); isErr {
-// 		return nil, fmt.Errorf("jq evaluation error: %w", errVal)
-// 	}
-
-// 	return v, nil
-// }
