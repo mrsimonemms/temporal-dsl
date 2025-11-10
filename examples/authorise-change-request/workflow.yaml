@@ -14,7 +14,7 @@
         title: There is a change for you to review
         body:
           message: Review required.
-          changeId: ${ .input.changeId }
+          changeId: ${ $input.changeId }
         userId: 1
 
 document:
@@ -45,9 +45,9 @@ do:
               type: query
               datacontenttype: application/json
               data:
-                id: ${ .data.id }
-                approved: ${ .data.approved }
-                status: ${ .data.status }
+                id: ${ $data.id }
+                approved: ${ $data.approved }
+                status: ${ $data.status }
   # Configure the state
   - stateSetup:
       set:
@@ -105,15 +105,15 @@ do:
                       as: review
                     set:
                       # Get response from the signal
-                      approved: ${ .data.review.approved }
+                      approved: ${ $data.review.approved }
   # Update the status
   - updateState:
       set:
         status: moderated
-        approved: ${ .data.review.approved }
+        approved: ${ $data.review.approved }
   # If the change has been approved, apply it
   - applyChange:
-      if: ${ .data.approved == true }
+      if: ${ $data.approved == true }
       call: http
       with:
         # This is a call to a mocked API for testing purposes - in reality, this
@@ -128,7 +128,7 @@ do:
           title: Approved post
           body:
             message: This post has been approved.
-            changeId: ${ .input.changeId }
+            changeId: ${ $input.changeId }
           userId: 1
   # Notify the end user that the change has been reviewed
   - notifyResult:
@@ -146,6 +146,6 @@ do:
           title: Notify user of review
           body:
             message: This post has been reviewed.
-            changeId: ${ .input.changeId }
-            isApproved: ${ .data.approved }
+            changeId: ${ $input.changeId }
+            isApproved: ${ $data.approved }
           userId: 1

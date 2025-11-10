@@ -22,7 +22,7 @@ do:
         as: response
       set:
         # Get the data from the approveListener signal
-        signal: ${ .data.approveListener }
+        signal: ${ $data.approveListener }
   - wait:
       wait:
         seconds: 5

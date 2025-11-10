@@ -17,7 +17,7 @@ document:
       - msg:
           - hello
           - world
-        envvars: ${ .env.EXAMPLE_ENVVAR }
+        envvars: ${ $env.EXAMPLE_ENVVAR }
 timeout:
   after:
     minutes: 1

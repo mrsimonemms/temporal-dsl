@@ -71,7 +71,7 @@ func (d builder[T]) ParseMetadata(ctx workflow.Context, state *utils.State) erro
 	// Clone the metadata to avoid pollution
 	mClone := swUtils.DeepClone(task.Metadata)
 
-	parsed, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(mClone), state)
+	parsed, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(mClone), nil, state)
 	if err != nil {
 		return fmt.Errorf("error interpolating metadata: %w", err)
 	}

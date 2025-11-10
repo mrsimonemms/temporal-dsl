@@ -18,10 +18,10 @@ do:
   - switcher:
       switch:
         - case1:
-            when: ${ .input.orderType == "electronic" }
+            when: ${ $input.orderType == "electronic" }
             then: processElectronicOrder
         - case2:
-            when: ${ .input.orderType == "physical" }
+            when: ${ $input.orderType == "physical" }
             then: processPhysicalOrder
         - default:
             then: handleUnknownOrderType

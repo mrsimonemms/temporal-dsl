@@ -267,7 +267,7 @@ func parseHTTPArguments(task *model.CallHTTP, state *utils.State) (*model.HTTPAr
 
 	// Clone and traverse, interpolating the data
 	cloneData := swUtil.DeepClone(data)
-	obj, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(cloneData), state)
+	obj, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(cloneData), nil, state)
 	if err != nil {
 		return nil, fmt.Errorf("error traversing http data object: %w", err)
 	}

@@ -18,12 +18,10 @@ package utils
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/itchyny/gojq"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"go.temporal.io/sdk/temporal"
 )
 
 type ExpressionWrapperFunc func(func() (any, error)) (any, error)
@@ -46,14 +44,14 @@ var jqFuncs []jqFunc = []jqFunc{
 }
 
 // The return value could be any value depending upon how it's parsed
-func EvaluateString(str string, state *State, evaluationWrapper ...ExpressionWrapperFunc) (any, error) {
+func EvaluateString(str string, input any, state *State, evaluationWrapper ...ExpressionWrapperFunc) (any, error) {
 	// Check if the string is a runtime expression (e.g., ${ .some.path })
 	if model.IsStrictExpr(str) {
 		// Wrapper exists to allow JQ evaluation to be put inside a workflow to make deterministic
 		fn := buildEvaluationWrapperFn(evaluationWrapper...)
 
 		return fn(func() (any, error) {
-			return evaluateJQExpression(model.SanitizeExpr(str), state)
+			return evaluateJQExpression(model.SanitizeExpr(str), input, state)
 		})
 	}
 	return str, nil
@@ -73,6 +71,7 @@ func buildEvaluationWrapperFn(evaluationWrapper ...ExpressionWrapperFunc) Expres
 
 func TraverseAndEvaluateObj(
 	runtimeExpr *model.ObjectOrRuntimeExpr,
+	input any,
 	state *State,
 	evaluationWrapper ...ExpressionWrapperFunc,
 ) (map[string]any, error) {
@@ -83,7 +82,7 @@ func TraverseAndEvaluateObj(
 	// Default to a simple pass-thru function
 	wrapperFn := buildEvaluationWrapperFn(evaluationWrapper...)
 
-	s, err := traverseAndEvaluate(runtimeExpr.AsStringOrMap(), state, wrapperFn)
+	s, err := traverseAndEvaluate(runtimeExpr.AsStringOrMap(), input, state, wrapperFn)
 	if err != nil {
 		return nil, err
 	}
@@ -95,12 +94,12 @@ func TraverseAndEvaluateObj(
 	}
 }
 
-func traverseAndEvaluate(node any, state *State, evaluationWrapper ExpressionWrapperFunc) (any, error) {
+func traverseAndEvaluate(node, input any, state *State, evaluationWrapper ExpressionWrapperFunc) (any, error) {
 	switch v := node.(type) {
 	case map[string]any:
 		// Traverse a object
 		for key, value := range v {
-			evaluatedValue, err := traverseAndEvaluate(value, state, evaluationWrapper)
+			evaluatedValue, err := traverseAndEvaluate(value, input, state, evaluationWrapper)
 			if err != nil {
 				return nil, err
 			}
@@ -110,7 +109,7 @@ func traverseAndEvaluate(node any, state *State, evaluationWrapper ExpressionWra
 	case []any:
 		// Traverse an array
 		for i, value := range v {
-			evaluatedValue, err := traverseAndEvaluate(value, state, evaluationWrapper)
+			evaluatedValue, err := traverseAndEvaluate(value, input, state, evaluationWrapper)
 			if err != nil {
 				return nil, err
 			}
@@ -118,63 +117,83 @@ func traverseAndEvaluate(node any, state *State, evaluationWrapper ExpressionWra
 		}
 		return v, nil
 	case string:
-		return EvaluateString(v, state, evaluationWrapper)
+		return EvaluateString(v, input, state, evaluationWrapper)
 	default:
 		// Return as-is
 		return v, nil
 	}
 }
 
-func evaluateJQExpression(expression string, state *State) (any, error) {
+func evaluateJQExpression(expression string, input any, state *State) (any, error) {
 	query, err := gojq.Parse(expression)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse jq expression: %s, error: %w", expression, err)
 	}
 
-	fns := make([]gojq.CompilerOption, 0)
+	// Get the variable names & values in a single pass:
+	names, values := getVariableNamesAndValues(state.GetAsMap())
+
+	fns := []gojq.CompilerOption{
+		gojq.WithVariables(names),
+	}
 	for _, j := range jqFuncs {
 		fns = append(fns, gojq.WithFunction(j.Name, j.MinArgs, j.MaxArgs, j.Func))
 	}
 
 	code, err := gojq.Compile(query, fns...)
 	if err != nil {
-		return nil, fmt.Errorf("error compiling gojq code: %w", err)
+		return nil, fmt.Errorf("failed to compile jq expression: %s, error: %w", expression, err)
 	}
 
-	iter := code.Run(state.GetAsMap())
-	v, ok := iter.Next()
+	iter := code.Run(input, values...)
+	result, ok := iter.Next()
 	if !ok {
 		return nil, fmt.Errorf("no result from jq evaluation")
 	}
-	if errVal, isErr := v.(error); isErr {
+
+	// If there's an error from the jq engine, report it
+	if errVal, isErr := result.(error); isErr {
 		return nil, fmt.Errorf("jq evaluation error: %w", errVal)
 	}
 
-	return v, nil
+	return result, nil
 }
 
-func CheckIfStatement(ifStatement *model.RuntimeExpression, state *State) (bool, error) {
-	if ifStatement == nil {
-		return true, nil
-	}
+func getVariableNamesAndValues(vars map[string]any) ([]string, []any) {
+	names := make([]string, 0, len(vars))
+	values := make([]any, 0, len(vars))
 
-	res, err := EvaluateString(ifStatement.String(), state)
-	if err != nil {
-		// Treat a parsing error as non-retryable
-		return false, temporal.NewNonRetryableApplicationError("Error parsing if statement", "If statement error", err)
+	for k, v := range vars {
+		names = append(names, k)
+		values = append(values, v)
 	}
-
-	// Response can be a boolean, "TRUE" (case-insensitive) or "1"
-	switch r := res.(type) {
-	case bool:
-		return r, nil
-	case string:
-		return strings.EqualFold(r, "TRUE") || r == "1", nil
-	default:
-		return false, temporal.NewNonRetryableApplicationError(
-			"If statement response type unknown",
-			"If statement error",
-			fmt.Errorf("response not string or bool"),
-		)
-	}
+	return names, values
 }
+
+// func evaluateJQExpression(expression string, state *State) (any, error) {
+// 	query, err := gojq.Parse(expression)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to parse jq expression: %s, error: %w", expression, err)
+// 	}
+
+// 	fns := make([]gojq.CompilerOption, 0)
+// 	for _, j := range jqFuncs {
+// 		fns = append(fns, gojq.WithFunction(j.Name, j.MinArgs, j.MaxArgs, j.Func))
+// 	}
+
+// 	code, err := gojq.Compile(query, fns...)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error compiling gojq code: %w", err)
+// 	}
+
+// 	iter := code.Run(state.GetAsMap())
+// 	v, ok := iter.Next()
+// 	if !ok {
+// 		return nil, fmt.Errorf("no result from jq evaluation")
+// 	}
+// 	if errVal, isErr := v.(error); isErr {
+// 		return nil, fmt.Errorf("jq evaluation error: %w", errVal)
+// 	}
+
+// 	return v, nil
+// }

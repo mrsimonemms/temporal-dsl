@@ -279,6 +279,7 @@ func (t *ListenTaskBuilder) processReply(ctx workflow.Context, event *model.Even
 				// Put in a map as the template could be anything
 				templateKey: tpl,
 			}),
+			nil,
 			state,
 		)
 		if err != nil {

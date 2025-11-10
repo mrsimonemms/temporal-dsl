@@ -23,12 +23,12 @@ timeout:
 do:
   # If input is even, wait 5 seconds
   - waitIfEven:
-      if: ${ .input.integer % 2 == 0 }
+      if: ${ $input.integer % 2 == 0 }
       wait:
         seconds: 5
   # If input is odd, wait 10 seconds
   - waitIfOdd:
-      if: ${ .input.integer % 2 == 1 }
+      if: ${ $input.integer % 2 == 1 }
       wait:
         seconds: 10
   # Always wait 5 seconds at the end

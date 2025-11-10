@@ -27,12 +27,12 @@ do:
         as: data
       set:
         # Set a variable from an envvar
-        envvar: ${ .env.EXAMPLE_ENVVAR }
+        envvar: ${ $env.EXAMPLE_ENVVAR }
         uuid: ${ uuid }
         object:
           hello: world
           uuid: ${ uuid }
-        inputUserId: ${ .input.userId }
+        inputUserId: ${ $input.userId }
         array:
           - ${ uuid }
           - hello: world
@@ -45,7 +45,7 @@ do:
         as: getUser
       with:
         method: get
-        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + ($input.userId | tostring) }
   - raiseAlarm:
       # A fork is a series of child workflows running in parallel
       export:
@@ -78,4 +78,4 @@ do:
                 as: callDoctor
               with:
                 method: get
-                endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+                endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + ($input.userId | tostring) }

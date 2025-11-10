@@ -52,6 +52,7 @@ func (t *SetTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		logger.Debug("Traversing set data")
 		result, err := utils.TraverseAndEvaluateObj(
 			model.NewObjectOrRuntimeExpr(setObject),
+			nil,
 			state,
 			func(fn func() (any, error)) (any, error) {
 				logger.Debug("Setting set data as a side effect")

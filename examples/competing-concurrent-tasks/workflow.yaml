@@ -63,5 +63,5 @@ do:
       export:
         as: data
       set:
-        id: ${ .data.id }
-        winner: ${ .data.task.winner }
+        id: ${ $data.id }
+        winner: ${ $data.task.winner }

@@ -17,9 +17,9 @@ do:
               type: query
               # This data will be returned as-is
               data:
-                id: ${ .data.id }
-                progressPercentage: ${ .data.progressPercentage }
-                status: ${ .data.status }
+                id: ${ $data.id }
+                progressPercentage: ${ $data.progressPercentage }
+                status: ${ $data.status }
   - createState:
       output:
         as: data

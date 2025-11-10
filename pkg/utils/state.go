@@ -163,10 +163,10 @@ func (s *State) GetAsMap() map[string]any {
 	s1 := s.Clone()
 
 	return map[string]any{
-		"data":   s1.Data,
-		"env":    s1.Env,
-		"input":  s1.Input,
-		"output": s1.Output,
+		"$data":   s1.Data,
+		"$env":    s1.Env,
+		"$input":  s1.Input,
+		"$output": s1.Output,
 	}
 }
 
