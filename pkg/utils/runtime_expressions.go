@@ -45,18 +45,6 @@ var jqFuncs []jqFunc = []jqFunc{
 	},
 }
 
-func MustEvaluateString(
-	str string,
-	state *State,
-	evaluationWrapper ...ExpressionWrapperFunc,
-) any {
-	res, err := EvaluateString(str, state, evaluationWrapper...)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
 // The return value could be any value depending upon how it's parsed
 func EvaluateString(str string, state *State, evaluationWrapper ...ExpressionWrapperFunc) (any, error) {
 	// Check if the string is a runtime expression (e.g., ${ .some.path })
