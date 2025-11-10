@@ -192,7 +192,8 @@ func (t *DoTaskBuilder) iterateTasks(
 
 	for _, task := range tasks {
 		taskBase := task.GetTask().GetBase()
-		taskState := state.Clone()
+		// Output can only be passed down to later tasks if it's exported
+		taskState := state.Clone().ClearOutput()
 
 		taskState.AddData(map[string]any{
 			"task": map[string]any{
@@ -252,8 +253,14 @@ func (t *DoTaskBuilder) iterateTasks(
 			return err
 		}
 
-		// Set the output - this is only set if there's an export.as on the task
-		state.AddOutput(task.GetTask(), output)
+		// Set the output
+		if out, err := t.processTaskOutput(taskBase, task.Name, output, state); err != nil {
+			logger.Error("Error processing task output", "name", task.Name, "error", err)
+			return err
+		} else {
+			// Set the output to the state
+			state.Output = out
+		}
 
 		if then := taskBase.Then; then != nil {
 			flowDirective := then.Value
@@ -275,4 +282,17 @@ func (t *DoTaskBuilder) iterateTasks(
 	}
 
 	return nil
+}
+
+func (t *DoTaskBuilder) processTaskOutput(
+	task *model.TaskBase,
+	taskName string,
+	taskOutput any,
+	state *utils.State,
+) (output any, err error) {
+	if task.Output == nil {
+		return taskOutput, nil
+	}
+
+	return output, nil
 }

@@ -23,8 +23,9 @@ timeout:
     minutes: 1
 do:
   - baseData:
-      export:
-        as: data
+      # output:
+      #   as:
+      #     data: ${ . }
       set:
         # Set a variable from an envvar
         envvar: ${ .env.EXAMPLE_ENVVAR }
@@ -36,46 +37,46 @@ do:
         array:
           - ${ uuid }
           - hello: world
-  - wait:
-      wait:
-        seconds: 5
-  - getUser:
-      call: http
-      export:
-        as: getUser
-      with:
-        method: get
-        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
-  - raiseAlarm:
-      # A fork is a series of child workflows running in parallel
-      export:
-        as: raiseAlarm
-      fork:
-        # If not competing, all tasks will run to the finish - this is the default behaviour
-        compete: false
-        branches:
-          # A single step is passed in by the Serverless Workflow task
-          - callNurse:
-              call: http
-              export:
-                as: callNurse
-              with:
-                method: get
-                endpoint: https://jsonplaceholder.typicode.com/users/2
-          # Multiple steps can be passed in by the Serverless Workflow do task
-          - multiStep:
-              do:
-                - wait1:
-                    wait:
-                      seconds: 3
-                - wait2:
-                    wait:
-                      seconds: 2
-          # Another single step child workflow
-          - callDoctor:
-              call: http
-              export:
-                as: callDoctor
-              with:
-                method: get
-                endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+  # - wait:
+  #     wait:
+  #       seconds: 5
+  # - getUser:
+  #     call: http
+  #     export:
+  #       as: getUser
+  #     with:
+  #       method: get
+  #       endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+  # - raiseAlarm:
+  #     # A fork is a series of child workflows running in parallel
+  #     export:
+  #       as: raiseAlarm
+  #     fork:
+  #       # If not competing, all tasks will run to the finish - this is the default behaviour
+  #       compete: false
+  #       branches:
+  #         # A single step is passed in by the Serverless Workflow task
+  #         - callNurse:
+  #             call: http
+  #             export:
+  #               as: callNurse
+  #             with:
+  #               method: get
+  #               endpoint: https://jsonplaceholder.typicode.com/users/2
+  #         # Multiple steps can be passed in by the Serverless Workflow do task
+  #         - multiStep:
+  #             do:
+  #               - wait1:
+  #                   wait:
+  #                     seconds: 3
+  #               - wait2:
+  #                   wait:
+  #                     seconds: 2
+  #         # Another single step child workflow
+  #         - callDoctor:
+  #             call: http
+  #             export:
+  #               as: callDoctor
+  #             with:
+  #               method: get
+  #               endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
