@@ -21,8 +21,6 @@ do:
                 progressPercentage: ${ $data.progressPercentage }
                 status: ${ $data.status }
   - createState:
-      output:
-        as: data
       set:
         # Items created at top-level are persisted
         id: ${ uuid }

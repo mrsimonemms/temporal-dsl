@@ -64,7 +64,7 @@ func exec() error {
 
 		log.Info().Str("workflowId", we.GetID()).Str("runId", we.GetRunID()).Msg("Started workflow")
 
-		var result map[string]any
+		var result any
 		if err := we.Get(ctx, &result); err != nil {
 			return gh.FatalError{
 				Cause: err,

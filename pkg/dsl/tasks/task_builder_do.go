@@ -192,9 +192,8 @@ func (t *DoTaskBuilder) iterateTasks(
 
 	for _, task := range tasks {
 		taskBase := task.GetTask().GetBase()
-		taskState := state.Clone()
 
-		taskState.AddData(map[string]any{
+		state.AddData(map[string]any{
 			"task": map[string]any{
 				"name": task.GetTaskName(),
 			},
@@ -214,7 +213,7 @@ func (t *DoTaskBuilder) iterateTasks(
 		}
 
 		logger.Debug("Check if task should be run", "task", task.Name)
-		if toRun, err := task.ShouldRun(taskState); err != nil {
+		if toRun, err := task.ShouldRun(state); err != nil {
 			logger.Error("Error checking if statement", "error", err, "name", task.Name)
 			return err
 		} else if !toRun {
@@ -224,13 +223,13 @@ func (t *DoTaskBuilder) iterateTasks(
 
 		// Check input for the task
 		logger.Debug("Validating input against task", "name", task.Name)
-		if err := t.validateInput(ctx, taskBase.Input, taskState); err != nil {
+		if err := t.validateInput(ctx, taskBase.Input, state); err != nil {
 			logger.Debug("Task input validation error", "error", err)
 			return err
 		}
 
 		logger.Debug("Parse metadata", "name", task.Name)
-		if err := task.ParseMetadata(ctx, taskState); err != nil {
+		if err := task.ParseMetadata(ctx, state); err != nil {
 			logger.Error("Error parsing metadata", "error", err)
 			return err
 		}
@@ -241,7 +240,7 @@ func (t *DoTaskBuilder) iterateTasks(
 		ctx = workflow.WithActivityOptions(ctx, ao)
 
 		logger.Info("Running task", "name", task.Name)
-		output, err := task.Func(ctx, input, taskState)
+		output, err := task.Func(ctx, input, state)
 		if err != nil {
 			if temporal.IsCanceledError(err) {
 				logger.Debug("Task cancelled", "name", task.Name)
@@ -252,20 +251,17 @@ func (t *DoTaskBuilder) iterateTasks(
 			return err
 		}
 
-		// Set the output
-		if err := t.processTaskOutput(task, output, state); err != nil {
-			logger.Error("Error processing task output", "name", task.Name, "error", err)
+		if err := t.processTaskResponse(task, output, state); err != nil {
+			logger.Error("Error processing task response", "name", task.Name, "error", err)
 			return err
 		}
 
 		if then := taskBase.Then; then != nil {
 			flowDirective := then.Value
 			if then.IsTermination() {
-				logger.Debug("Workflow to be terminated", "flow", flowDirective)
 				break
 			}
 			if !then.IsEnum() {
-				logger.Debug("Next task targeted", "nextTask", flowDirective)
 				nextTargetName = &flowDirective
 				continue
 			}
@@ -280,11 +276,21 @@ func (t *DoTaskBuilder) iterateTasks(
 	return nil
 }
 
-func (t *DoTaskBuilder) processTaskOutput(
-	task workflowFunc,
-	taskOutput any,
-	state *utils.State,
-) error {
+func (t *DoTaskBuilder) processTaskResponse(task workflowFunc, taskOutput any, state *utils.State) error {
+	// Set the output
+	if err := t.processTaskOutput(task, taskOutput, state); err != nil {
+		return fmt.Errorf("error processing task output: %w", err)
+	}
+
+	// Set the export
+	if err := t.processTaskExport(task, taskOutput, state); err != nil {
+		return fmt.Errorf("error processing task export: %w", err)
+	}
+
+	return nil
+}
+
+func (t *DoTaskBuilder) processTaskOutput(task workflowFunc, taskOutput any, state *utils.State) error {
 	taskBase := task.GetTask().GetBase()
 
 	if taskBase.Output == nil {
@@ -292,12 +298,37 @@ func (t *DoTaskBuilder) processTaskOutput(
 		return nil
 	}
 
-	r, err := utils.TraverseAndEvaluateObj(taskBase.Output.As, taskOutput, state)
+	output, err := utils.TraverseAndEvaluateObj(taskBase.Output.As, taskOutput, state)
 	if err != nil {
 		return err
 	}
 
-	state.Output = r
+	if err := swUtil.ValidateSchema(output, taskBase.Output.Schema, task.Name); err != nil {
+		return err
+	}
+
+	state.Output = output
+
+	return nil
+}
+
+func (t *DoTaskBuilder) processTaskExport(task workflowFunc, taskOutput any, state *utils.State) error {
+	taskBase := task.GetTask().GetBase()
+
+	if taskBase.Export == nil {
+		return nil
+	}
+
+	export, err := utils.TraverseAndEvaluateObj(taskBase.Export.As, taskOutput, state)
+	if err != nil {
+		return err
+	}
+
+	if err := swUtil.ValidateSchema(export, taskBase.Export.Schema, task.Name); err != nil {
+		return err
+	}
+
+	state.Context = export
 
 	return nil
 }

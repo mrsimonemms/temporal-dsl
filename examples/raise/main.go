@@ -62,7 +62,9 @@ func exec() error {
 		}
 	}
 
-	return nil
+	return gh.FatalError{
+		Msg: "No error received",
+	}
 }
 
 func main() {

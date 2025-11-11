@@ -11,15 +11,11 @@ do:
         branches:
           - callHTTP:
               call: http
-              export:
-                as: callHTTP1
               with:
                 method: get
                 endpoint: http://localhost:8888/posts/1
           - callHTTP2:
               call: http
-              export:
-                as: callHTTP2
               with:
                 method: get
                 endpoint: http://localhost:8888/posts/2

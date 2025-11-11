@@ -52,29 +52,29 @@ func GetScheduleInfo(workflow *model.Workflow, envvars map[string]any) (*Schedul
 	}
 
 	// Optionally, get any input
-	// var input []any
-	// if in, ok := workflow.Document.Metadata[MetadataScheduleInput]; ok {
-	// 	if i, ok := in.([]any); ok {
-	// 		input = i
-	// 	} else {
-	// 		return nil, fmt.Errorf("schedule input must be in array format")
-	// 	}
-	// }
+	var input []any
+	if in, ok := workflow.Document.Metadata[MetadataScheduleInput]; ok {
+		if i, ok := in.([]any); ok {
+			input = i
+		} else {
+			return nil, fmt.Errorf("schedule input must be in array format")
+		}
+	}
 
 	// Parse any envvars in the input
 	state := utils.NewState()
 	state.Env = envvars
 
-	// parsedInput, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(map[string]any{
-	// 	"input": input,
-	// }), state)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error interpolating input for schedules: %w", err)
-	// }
+	parsedInput, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(map[string]any{
+		"input": input,
+	}), nil, state)
+	if err != nil {
+		return nil, fmt.Errorf("error interpolating input for schedules: %w", err)
+	}
 
 	return &ScheduleInfo{
 		ID:           scheduleID,
 		WorkflowName: workflowName,
-		// Input:        parsedInput["input"].([]any),
+		Input:        parsedInput.(map[string]any)["input"].([]any),
 	}, nil
 }

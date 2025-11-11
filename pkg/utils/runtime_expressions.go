@@ -150,9 +150,9 @@ func evaluateJQExpression(expression string, input any, state *State) (any, erro
 	return result, nil
 }
 
-func getVariableNamesAndValues(vars map[string]any) ([]string, []any) {
-	names := make([]string, 0, len(vars))
-	values := make([]any, 0, len(vars))
+func getVariableNamesAndValues(vars map[string]any) (names []string, values []any) {
+	names = make([]string, 0, len(vars))
+	values = make([]any, 0, len(vars))
 
 	for k, v := range vars {
 		names = append(names, k)

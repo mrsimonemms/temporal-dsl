@@ -40,37 +40,43 @@ do:
   # Iterate over the map object
   - forTaskMap:
       export:
-        as: forMap
+        as:
+          map: ${ . }
       for:
         in: ${ $input.map }
+        at: index # Optional: the loop's key, defaults to "index" available on $data
+        each: item # Optional: the loop's value, defaults to "item" available on $data
       do:
         - setData:
             export:
-              as: response
+              as: ${ . }
             set:
-              key: "${ \"hello: \" + $data.index }"
+              key: '${ "hello " + $data.index }'
               value: ${ $data.item }
         - wait:
+            output:
+              as: ${ $context }
             wait:
-              seconds: 2
+              seconds: 1
   # Iterate over the data array
   - forTaskArray:
-      export:
-        as: forArray
+      output:
+        as: '${ $context + { "array": . } }'
       for:
-        each: item
-        in: ${ $input$data }
-        at: index
-      # while: ${ $data.item.userId != 4 } # If this returns false, it will cut the iteration
+        in: ${ $input.data }
+      while: ${ $data.item.userId != 4 } # If this returns false, it will abort the iteration
       do:
         # Each iteration will run these tasks in order
         - setData:
             export:
-              as: response
+              as: ${ . }
             set:
               userId: ${ $data.item.userId } # Get the userId for this iteration
               id: ${ $data.index } # Get the key
               processed: true
+              uuid: ${ uuid }
         - wait:
+            output:
+              as: ${ $context }
             wait:
               seconds: 1

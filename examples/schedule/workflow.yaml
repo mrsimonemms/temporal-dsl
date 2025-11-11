@@ -31,3 +31,7 @@ do:
   - wait:
       wait:
         seconds: 5
+  - data:
+      set:
+        input: ${ $input }
+        uuid: ${ uuid }

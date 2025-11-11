@@ -48,7 +48,7 @@ func main() {
 
 	log.Info().Str("workflowId", we.GetID()).Str("runId", we.GetRunID()).Msg("Started workflow")
 
-	var result map[string]any
+	var result any
 	if err := we.Get(ctx, &result); err != nil {
 		log.Fatal().Err(err).Msg("Error getting response")
 	}

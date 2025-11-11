@@ -12,6 +12,8 @@ timeout:
     minutes: 1
 do:
   - state:
+      export:
+        as: ${ . }
       set:
         id: ${ uuid }
   - wait:
@@ -19,9 +21,9 @@ do:
         seconds: 1
   # Fan out and the first to finish wins
   - race:
+      export:
+        as: '${ $context + { "race": . } }'
       fork:
-        export:
-          as: winner
         compete: true # This is important - if false, they all run to completion in parallel
         branches:
           # Winning task
@@ -36,8 +38,6 @@ do:
                     wait:
                       seconds: 2
                 - set:
-                    export:
-                      as: task
                     set:
                       winner: task1
           # Losing task
@@ -52,16 +52,12 @@ do:
                     wait:
                       seconds: 5
                 - set:
-                    export:
-                      as: task
                     set:
                       winner: task2
   - wait:
       wait:
         seconds: 5
   - set:
-      export:
-        as: data
       set:
-        id: ${ $data.id }
-        winner: ${ $data.task.winner }
+        id: ${ $context.id }
+        winner: ${ $context.race.winner }

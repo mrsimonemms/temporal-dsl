@@ -26,10 +26,11 @@ import (
 )
 
 type State struct {
-	Data   map[string]any `json:"data"`            // Data stored along the way
-	Env    map[string]any `json:"env"`             // Available environment variables
-	Input  any            `json:"input,omitempty"` // The input given by the caller
-	Output any            `json:"output"`          // What will be output to the caller
+	Context any            `json:"context"`         // Output data exported to later tasks' output
+	Data    map[string]any `json:"data"`            // Data stored along the way
+	Env     map[string]any `json:"env"`             // Available environment variables
+	Input   any            `json:"input,omitempty"` // The input given by the caller
+	Output  any            `json:"output"`          // What will be output to the caller
 }
 
 func (s *State) init() *State {
@@ -128,6 +129,7 @@ func (s *State) ClearOutput() *State {
 func (s *State) Clone() *State {
 	s1 := NewState()
 
+	s1.Context = swUtils.DeepCloneValue(s.Context)
 	s1.Data = swUtils.DeepClone(s.Data)
 	s1.Env = swUtils.DeepClone(s.Env)
 	s1.Input = swUtils.DeepCloneValue(s.Input)
@@ -136,15 +138,16 @@ func (s *State) Clone() *State {
 	return s1
 }
 
-// Returns the state as a map. This can be used for
+// Returns the state as a map.
 func (s *State) GetAsMap() map[string]any {
 	s1 := s.Clone()
 
 	return map[string]any{
-		"$data":   s1.Data,
-		"$env":    s1.Env,
-		"$input":  s1.Input,
-		"$output": s1.Output,
+		"$context": s1.Context,
+		"$data":    s1.Data,
+		"$env":     s1.Env,
+		"$input":   s1.Input,
+		"$output":  s1.Output,
 	}
 }
 
