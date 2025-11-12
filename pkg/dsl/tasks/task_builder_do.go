@@ -192,9 +192,8 @@ func (t *DoTaskBuilder) iterateTasks(
 
 	for _, task := range tasks {
 		taskBase := task.GetTask().GetBase()
-		taskState := state.Clone()
 
-		taskState.AddData(map[string]any{
+		state.AddData(map[string]any{
 			"task": map[string]any{
 				"name": task.GetTaskName(),
 			},
@@ -214,7 +213,7 @@ func (t *DoTaskBuilder) iterateTasks(
 		}
 
 		logger.Debug("Check if task should be run", "task", task.Name)
-		if toRun, err := task.ShouldRun(taskState); err != nil {
+		if toRun, err := task.ShouldRun(state); err != nil {
 			logger.Error("Error checking if statement", "error", err, "name", task.Name)
 			return err
 		} else if !toRun {
@@ -224,13 +223,13 @@ func (t *DoTaskBuilder) iterateTasks(
 
 		// Check input for the task
 		logger.Debug("Validating input against task", "name", task.Name)
-		if err := t.validateInput(ctx, taskBase.Input, taskState); err != nil {
+		if err := t.validateInput(ctx, taskBase.Input, state); err != nil {
 			logger.Debug("Task input validation error", "error", err)
 			return err
 		}
 
 		logger.Debug("Parse metadata", "name", task.Name)
-		if err := task.ParseMetadata(ctx, taskState); err != nil {
+		if err := task.ParseMetadata(ctx, state); err != nil {
 			logger.Error("Error parsing metadata", "error", err)
 			return err
 		}
@@ -241,7 +240,7 @@ func (t *DoTaskBuilder) iterateTasks(
 		ctx = workflow.WithActivityOptions(ctx, ao)
 
 		logger.Info("Running task", "name", task.Name)
-		output, err := task.Func(ctx, input, taskState)
+		output, err := task.Func(ctx, input, state)
 		if err != nil {
 			if temporal.IsCanceledError(err) {
 				logger.Debug("Task cancelled", "name", task.Name)
