@@ -4,7 +4,11 @@
   "features": {
     "ghcr.io/mrsimonemms/devcontainers/cobra-cli:1": {},
     "ghcr.io/guiyomh/features/goreleaser:0": {},
-    "ghcr.io/devcontainers-extra/features/temporal-cli:1": {}
+    "ghcr.io/devcontainers-extra/features/temporal-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/gh-release:1": {
+      "repo": "operator-framework/operator-sdk",
+      "binaryNames": "operator-sdk"
+    }
   },
   "customizations": {
     "vscode": {
