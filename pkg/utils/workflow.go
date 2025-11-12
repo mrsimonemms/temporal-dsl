@@ -29,11 +29,16 @@ func CheckIfStatement(ifStatement *model.RuntimeExpression, state *State) (bool,
 		return true, nil
 	}
 
+	fmt.Printf("%+v\n", state.Data)
+	// fmt.Printf("%+v\n", state.Context)
+	fmt.Println(ifStatement.String())
+
 	res, err := EvaluateString(ifStatement.String(), nil, state)
 	if err != nil {
 		// Treat a parsing error as non-retryable
 		return false, temporal.NewNonRetryableApplicationError("Error parsing if statement", "If statement error", err)
 	}
+	fmt.Println(res)
 
 	// Response can be a boolean, "TRUE" (case-insensitive) or "1"
 	switch r := res.(type) {

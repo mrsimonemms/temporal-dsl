@@ -89,6 +89,7 @@ func exec(isApproved bool, delay time.Duration) error {
 					log.Fatal().Err(err).Msg("Error getting query result")
 				}
 				log.Info().Interface("Query result", state).Msg("Response from query")
+				fmt.Printf("%+v\n", state)
 
 				time.Sleep(time.Second * 2)
 			}
@@ -102,6 +103,7 @@ func exec(isApproved bool, delay time.Duration) error {
 
 		log.Info().Msg("Sending change review response")
 		workflowID := fmt.Sprintf("%s_fork_waitForApproval", we.GetID())
+		fmt.Println(isApproved)
 		if err := c.SignalWorkflow(ctx, workflowID, "", "review", map[string]any{
 			// Any data received here is set to the workflow's state
 			"approved": isApproved,
@@ -146,7 +148,7 @@ func main() {
 	}
 	zerolog.SetGlobalLevel(level)
 
-	delay := time.Second * 15
+	delay := time.Second * 2
 	input := map[string]inputData{
 		"approve": {question: "Do you approve of the change? (Y/n)"},
 		"delay":   {question: fmt.Sprintf("How long do you want to wait until replying? (%s)", delay)},
