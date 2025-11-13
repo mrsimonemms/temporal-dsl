@@ -20,7 +20,7 @@ do:
             call: http
             with:
               method: get
-              endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+              endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + ($input.userId | tostring) }
   - workflow2:
       do:
         - wait:
@@ -30,4 +30,4 @@ do:
             call: http
             with:
               method: get
-              endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+              endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + ($input.userId | tostring) }

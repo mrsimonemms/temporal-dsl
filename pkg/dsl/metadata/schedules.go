@@ -67,7 +67,7 @@ func GetScheduleInfo(workflow *model.Workflow, envvars map[string]any) (*Schedul
 
 	parsedInput, err := utils.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(map[string]any{
 		"input": input,
-	}), state)
+	}), nil, state)
 	if err != nil {
 		return nil, fmt.Errorf("error interpolating input for schedules: %w", err)
 	}
@@ -75,6 +75,6 @@ func GetScheduleInfo(workflow *model.Workflow, envvars map[string]any) (*Schedul
 	return &ScheduleInfo{
 		ID:           scheduleID,
 		WorkflowName: workflowName,
-		Input:        parsedInput["input"].([]any),
+		Input:        parsedInput.(map[string]any)["input"].([]any),
 	}, nil
 }

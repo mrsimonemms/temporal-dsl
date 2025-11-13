@@ -251,17 +251,17 @@ func (t *DoTaskBuilder) iterateTasks(
 			return err
 		}
 
-		// Set the output - this is only set if there's an export.as on the task
-		state.AddOutput(task.GetTask(), output)
+		if err := t.processTaskResponse(task, output, state); err != nil {
+			logger.Error("Error processing task response", "name", task.Name, "error", err)
+			return err
+		}
 
 		if then := taskBase.Then; then != nil {
 			flowDirective := then.Value
 			if then.IsTermination() {
-				logger.Debug("Workflow to be terminated", "flow", flowDirective)
 				break
 			}
 			if !then.IsEnum() {
-				logger.Debug("Next task targeted", "nextTask", flowDirective)
 				nextTargetName = &flowDirective
 				continue
 			}
@@ -272,6 +272,63 @@ func (t *DoTaskBuilder) iterateTasks(
 		logger.Error("Next target specified but not found", "targetTask", nextTargetName)
 		return fmt.Errorf("next target specified but not found: %s", *nextTargetName)
 	}
+
+	return nil
+}
+
+func (t *DoTaskBuilder) processTaskResponse(task workflowFunc, taskOutput any, state *utils.State) error {
+	// Set the output
+	if err := t.processTaskOutput(task, taskOutput, state); err != nil {
+		return fmt.Errorf("error processing task output: %w", err)
+	}
+
+	// Set the export
+	if err := t.processTaskExport(task, taskOutput, state); err != nil {
+		return fmt.Errorf("error processing task export: %w", err)
+	}
+
+	return nil
+}
+
+func (t *DoTaskBuilder) processTaskOutput(task workflowFunc, taskOutput any, state *utils.State) error {
+	taskBase := task.GetTask().GetBase()
+
+	if taskBase.Output == nil {
+		state.Output = taskOutput
+		return nil
+	}
+
+	output, err := utils.TraverseAndEvaluateObj(taskBase.Output.As, taskOutput, state)
+	if err != nil {
+		return err
+	}
+
+	if err := swUtil.ValidateSchema(output, taskBase.Output.Schema, task.Name); err != nil {
+		return err
+	}
+
+	state.Output = output
+
+	return nil
+}
+
+func (t *DoTaskBuilder) processTaskExport(task workflowFunc, taskOutput any, state *utils.State) error {
+	taskBase := task.GetTask().GetBase()
+
+	if taskBase.Export == nil {
+		return nil
+	}
+
+	export, err := utils.TraverseAndEvaluateObj(taskBase.Export.As, taskOutput, state)
+	if err != nil {
+		return err
+	}
+
+	if err := swUtil.ValidateSchema(export, taskBase.Export.Schema, task.Name); err != nil {
+		return err
+	}
+
+	state.Context = export
 
 	return nil
 }

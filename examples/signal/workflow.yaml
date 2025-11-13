@@ -19,10 +19,13 @@ do:
               type: signal
   - outputSignal:
       export:
-        as: response
+        as:
+          response: ${ . }
       set:
         # Get the data from the approveListener signal
-        signal: ${ .data.approveListener }
+        signal: ${ $data.approveListener }
   - wait:
+      output:
+        as: ${ $context }
       wait:
         seconds: 5

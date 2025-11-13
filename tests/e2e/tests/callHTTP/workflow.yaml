@@ -6,8 +6,6 @@ document:
 do:
   - callHTTP:
       call: http
-      export:
-        as: callHTTP
       with:
         method: get
         endpoint: http://localhost:8888/posts/2

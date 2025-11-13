@@ -81,7 +81,7 @@ func (t *ForTaskBuilder) exec() (TemporalWorkflowFunc, error) {
 	return func(ctx workflow.Context, input any, state *utils.State) (any, error) {
 		logger := workflow.GetLogger(ctx)
 
-		data, err := utils.EvaluateString(t.task.For.In, state)
+		data, err := utils.EvaluateString(t.task.For.In, nil, state)
 		if err != nil {
 			logger.Error("Error parsing for task data list", "data", t.task.For.In, "task", t.GetTaskName())
 			return nil, fmt.Errorf("error parsing for task data list: %w", err)
@@ -181,7 +181,7 @@ func (t *ForTaskBuilder) checkWhile(ctx workflow.Context, state *utils.State) (r
 		return
 	}
 
-	whileRes, err := utils.EvaluateString(t.task.While, state)
+	whileRes, err := utils.EvaluateString(t.task.While, nil, state)
 	if err != nil {
 		logger.Error("Error parsing for task while", "data", t.task.While, "task", t.GetTaskName())
 		err = fmt.Errorf("error parsing for task data list: %w", err)

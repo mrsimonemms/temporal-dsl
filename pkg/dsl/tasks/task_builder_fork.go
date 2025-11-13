@@ -19,7 +19,6 @@ package tasks
 import (
 	"fmt"
 	"maps"
-	"slices"
 	"time"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
@@ -57,6 +56,7 @@ type ForkTaskBuilder struct {
 type forkedTask struct {
 	task              *model.TaskItem
 	childWorkflowName string
+	taskName          string
 }
 
 func (t *ForkTaskBuilder) Build() (TemporalWorkflowFunc, error) {
@@ -68,6 +68,7 @@ func (t *ForkTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		forkedTasks = append(forkedTasks, &forkedTask{
 			task:              branch,
 			childWorkflowName: childWorkflowName,
+			taskName:          branch.Key,
 		})
 
 		if d := branch.AsDoTask(); d == nil {
@@ -146,7 +147,7 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 
 			logger.Info("Triggering forked child workflow", "name", branch.childWorkflowName)
 
-			futures.Add(branch.childWorkflowName, utils.CancellableFuture{
+			futures.Add(branch.taskName, utils.CancellableFuture{
 				Cancel:  cancelHandler,
 				Context: childCtx,
 				Future:  workflow.ExecuteChildWorkflow(childCtx, branch.childWorkflowName, input, childState),
@@ -189,10 +190,7 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 					winningCtx = ctx
 				}
 
-				if addData {
-					state.AddData(childData)
-					maps.Copy(output, childData)
-				}
+				t.resolveOutput(taskName, addData, isCompeting, output, childData)
 
 				i++
 			})
@@ -218,28 +216,19 @@ func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc,
 			futures.CancelOthers(winningCtx)
 		}
 
-		return t.resolveOutput(isCompeting, output), nil
+		return output, nil
 	}, nil
 }
 
-func (t *ForkTaskBuilder) resolveOutput(isCompeting bool, data map[string]any) any {
-	if isCompeting {
-		// If a competitive fork, return the only response as the response
-		// of the top-level export. A competitive fork is multiple workflows
-		// that only return one result.
-		//
-		// This still requires the export.as on the child task for the data
-		// to be included in the output.
-		v := slices.Collect(maps.Values(data))
-		if len(v) > 0 {
-			return v[0]
+func (t *ForkTaskBuilder) resolveOutput(taskName string, addData, isCompeting bool, output, childData map[string]any) {
+	if addData {
+		data := childData
+		if !isCompeting {
+			data = map[string]any{
+				taskName: childData,
+			}
 		}
-	} else {
-		// If a non-competitive fork, return all the response as children of
-		// the top-level export. A non-competitive fork is multiple workflows
-		// that returns all the responses.
-		return data
-	}
 
-	return nil
+		maps.Copy(output, data)
+	}
 }

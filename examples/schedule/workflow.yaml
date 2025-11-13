@@ -17,7 +17,7 @@ document:
       - msg:
           - hello
           - world
-        envvars: ${ .env.EXAMPLE_ENVVAR }
+        envvars: ${ $env.EXAMPLE_ENVVAR }
 timeout:
   after:
     minutes: 1
@@ -31,3 +31,7 @@ do:
   - wait:
       wait:
         seconds: 5
+  - data:
+      set:
+        input: ${ $input }
+        uuid: ${ uuid }

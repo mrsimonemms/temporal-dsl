@@ -7,13 +7,12 @@ document:
   summary: An example of how to catch an erroring workflow
 do:
   - user:
-      export:
-        as: user
       try:
         - getUser:
             call: http
-            export:
-              as: user
+            output:
+              as:
+                user: ${ . }
             with:
               method: get
               endpoint: https://jsonplaceholder.typicode.com/users/2000
@@ -25,7 +24,5 @@ do:
         as: error
         do:
           - setError:
-              export:
-                as: err
               set:
                 err: some error

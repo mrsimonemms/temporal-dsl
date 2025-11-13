@@ -41,6 +41,8 @@ do:
                         namespace: default
                         version: 0.0.0
         - wait:
+            output:
+              as: completed
             wait:
               seconds: 5
   - child-workflow1:

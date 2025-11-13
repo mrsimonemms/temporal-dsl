@@ -14,7 +14,7 @@
         title: There is a change for you to review
         body:
           message: Review required.
-          changeId: ${ .input.changeId }
+          changeId: ${ $input.changeId }
         userId: 1
 
 document:
@@ -45,9 +45,9 @@ do:
               type: query
               datacontenttype: application/json
               data:
-                id: ${ .data.id }
-                approved: ${ .data.approved }
-                status: ${ .data.status }
+                id: ${ $data.id }
+                approved: ${ $data.approved }
+                status: ${ $data.status }
   # Configure the state
   - stateSetup:
       set:
@@ -57,6 +57,8 @@ do:
   # Start an approval timer and trigger the review
   - startReview:
       fork:
+        export:
+          as: '${ $context + { "state": . } }'
         # First one to finish "wins"
         compete: true
         branches:
@@ -69,7 +71,8 @@ do:
                 # Output the fork's response
                 - autoApprove:
                     export:
-                      as: review
+                      as:
+                        state: ${ . }
                     set:
                       approved: true
           # Remind reviewer about the request after 30 seconds - this is designed
@@ -102,18 +105,22 @@ do:
                 # Output the fork's response
                 - set:
                     export:
-                      as: review
+                      as:
+                        state: ${ . }
                     set:
                       # Get response from the signal
-                      approved: ${ .data.review.approved }
+                      approved: ${ $data.review.approved }
   # Update the status
   - updateState:
+      export:
+        as:
+          state: ${ . }
       set:
         status: moderated
-        approved: ${ .data.review.approved }
+        approved: ${ $context }
   # If the change has been approved, apply it
   - applyChange:
-      if: ${ .data.approved == true }
+      if: ${ $data.approved == true }
       call: http
       with:
         # This is a call to a mocked API for testing purposes - in reality, this
@@ -128,7 +135,7 @@ do:
           title: Approved post
           body:
             message: This post has been approved.
-            changeId: ${ .input.changeId }
+            changeId: ${ $input.changeId }
           userId: 1
   # Notify the end user that the change has been reviewed
   - notifyResult:
@@ -146,6 +153,6 @@ do:
           title: Notify user of review
           body:
             message: This post has been reviewed.
-            changeId: ${ .input.changeId }
-            isApproved: ${ .data.approved }
+            changeId: ${ $input.changeId }
+            isApproved: ${ $data.approved }
           userId: 1

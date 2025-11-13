@@ -279,6 +279,7 @@ func (t *ListenTaskBuilder) processReply(ctx workflow.Context, event *model.Even
 				// Put in a map as the template could be anything
 				templateKey: tpl,
 			}),
+			nil,
 			state,
 		)
 		if err != nil {
@@ -289,7 +290,7 @@ func (t *ListenTaskBuilder) processReply(ctx workflow.Context, event *model.Even
 		// Return the data
 		logger.Debug("Replied from event", "event", event.With.ID)
 
-		return obj[templateKey], nil
+		return obj.(map[string]any)[templateKey], nil
 	}
 	return nil, nil
 }
