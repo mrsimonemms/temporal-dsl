@@ -21,7 +21,6 @@ do:
             run:
               workflow:
                 name: child-workflow1
-                namespace: default
                 version: 0.0.0
         # Do a fan-out child workflow - this will be asynchronously
         - fanOut:
@@ -32,13 +31,11 @@ do:
                     run:
                       workflow:
                         name: child-workflow1
-                        namespace: default
                         version: 0.0.0
                 - callWorkflow2:
                     run:
                       workflow:
                         name: child-workflow2
-                        namespace: default
                         version: 0.0.0
         - wait:
             wait:

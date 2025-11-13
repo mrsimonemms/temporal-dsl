@@ -2,6 +2,7 @@ dist
 tmp
 
 node_modules
+.venv
 
 .idea
 .DS_Store
