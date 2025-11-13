@@ -17,13 +17,14 @@
 package dsl
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"github.com/serverlessworkflow/sdk-go/v3/parser"
+	"sigs.k8s.io/yaml"
 )
 
 func LoadFromFile(file string) (*model.Workflow, error) {
@@ -32,9 +33,15 @@ func LoadFromFile(file string) (*model.Workflow, error) {
 		return nil, fmt.Errorf("error loading file: %w", err)
 	}
 
-	wf, err := parser.FromYAMLSource(data)
-	if err != nil {
-		return nil, fmt.Errorf("error loading yaml: %w", err)
+	// Load the workflow without validating - we'll do that later
+	var jsonBytes []byte
+	if jsonBytes, err = yaml.YAMLToJSON(data); err != nil {
+		return nil, fmt.Errorf("error converting yaml to json: %w", err)
+	}
+
+	var wf *model.Workflow
+	if err := json.Unmarshal(jsonBytes, &wf); err != nil {
+		return nil, fmt.Errorf("error unmarshaling json to workflow: %w", err)
 	}
 
 	c, err := semver.NewConstraint(">= 1.0.0, <2.0.0")
