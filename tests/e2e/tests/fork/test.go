@@ -17,8 +17,6 @@
 package fork
 
 import (
-	_ "embed"
-
 	"github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
 )
 
