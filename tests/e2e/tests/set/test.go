@@ -28,7 +28,7 @@ var testCase = utils.TestCase{
 			"number": float64(2345),
 		},
 	},
-	Test: utils.RunToCompletion,
+	Test: utils.RunToCompletion[map[string]any],
 }
 
 func init() {

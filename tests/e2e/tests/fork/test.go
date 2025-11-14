@@ -37,7 +37,7 @@ var testCase = utils.TestCase{
 			},
 		},
 	},
-	Test: utils.RunToCompletion,
+	Test: utils.RunToCompletion[map[string]any],
 }
 
 func init() {
