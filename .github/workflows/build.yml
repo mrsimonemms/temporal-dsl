@@ -75,6 +75,8 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    env:
+      TDSL_EXAMPLE_ENVVAR: some-example-envvar
     steps:
       - uses: actions/checkout@v4
 
