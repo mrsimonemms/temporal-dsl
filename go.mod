@@ -9,6 +9,7 @@ require (
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.28.0
+	github.com/google/go-cmp v0.7.0
 	github.com/itchyny/gojq v0.12.17
 	github.com/mrsimonemms/golang-helpers v0.4.1
 	github.com/mrsimonemms/temporal-codec-server/packages/golang v0.0.0-20250917111850-1e5f24c60fac
@@ -17,6 +18,7 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	go.temporal.io/sdk v1.37.0
+	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
@@ -86,5 +88,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
 	google.golang.org/grpc v1.76.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
-	sigs.k8s.io/yaml v1.6.0 // indirect
 )
