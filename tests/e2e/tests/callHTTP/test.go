@@ -28,7 +28,7 @@ var testCase = utils.TestCase{
 			"views": float64(200),
 		},
 	},
-	Test: utils.RunToCompletion,
+	Test: utils.RunToCompletion[map[string]any],
 }
 
 func init() {
