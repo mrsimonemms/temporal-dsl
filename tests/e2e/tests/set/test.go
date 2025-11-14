@@ -16,11 +16,7 @@
 
 package set
 
-import (
-	_ "embed"
-
-	"github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
-)
+import "github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
 
 var testCase = utils.TestCase{
 	Name:         "set",
