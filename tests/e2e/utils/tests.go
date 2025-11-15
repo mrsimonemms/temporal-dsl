@@ -32,12 +32,12 @@ type TestCase struct {
 	WorkflowPath   string
 	Workflow       *model.Workflow
 	Input          map[string]any
-	ExpectedOutput map[string]any
+	ExpectedOutput any
 	Test           func(t *testing.T, test TestCase)
 }
 
 // RunToCompletion simplest version of the test where it runs to completion and matches the output
-func RunToCompletion(t *testing.T, test TestCase) {
+func RunToCompletion[T any](t *testing.T, test TestCase) {
 	c, err := temporal.NewConnectionWithEnvvars(
 		temporal.WithZerolog(&zlog.Logger),
 	)

@@ -16,11 +16,7 @@
 
 package set
 
-import (
-	_ "embed"
-
-	"github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
-)
+import "github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
 
 var testCase = utils.TestCase{
 	Name:         "set",
@@ -32,7 +28,7 @@ var testCase = utils.TestCase{
 			"number": float64(2345),
 		},
 	},
-	Test: utils.RunToCompletion,
+	Test: utils.RunToCompletion[map[string]any],
 }
 
 func init() {

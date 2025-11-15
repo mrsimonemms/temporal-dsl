@@ -17,8 +17,6 @@
 package fork
 
 import (
-	_ "embed"
-
 	"github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
 )
 
@@ -39,7 +37,7 @@ var testCase = utils.TestCase{
 			},
 		},
 	},
-	Test: utils.RunToCompletion,
+	Test: utils.RunToCompletion[map[string]any],
 }
 
 func init() {

@@ -16,11 +16,7 @@
 
 package callhttp
 
-import (
-	_ "embed"
-
-	"github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
-)
+import "github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
 
 var testCase = utils.TestCase{
 	Name:         "callHTTP",
@@ -32,7 +28,7 @@ var testCase = utils.TestCase{
 			"views": float64(200),
 		},
 	},
-	Test: utils.RunToCompletion,
+	Test: utils.RunToCompletion[map[string]any],
 }
 
 func init() {

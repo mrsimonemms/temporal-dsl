@@ -1,0 +1,45 @@
+# This is designed to be the gold standard "does everything"
+# test.
+document:
+  dsl: 1.0.0
+  namespace: complete
+  name: workflow
+  version: 0.0.1
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: number
+do:
+  - query:
+      listen:
+        to:
+          one:
+            with:
+              id: state
+              type: query
+              data:
+                progress: ${ .data.progress }
+  - state:
+      export:
+        as: state
+      set:
+        envvar: ${ .env.EXAMPLE_ENVVAR }
+        uuid: ${ uuid }
+        input:
+          userId: ${ .input.userId }
+        progress: 0
+  - wait:
+      wait:
+        seconds: 1
+  - updateState:
+      set:
+        progress: 100
+  - wait:
+      wait:
+        seconds: 5
