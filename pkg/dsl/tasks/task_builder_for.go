@@ -120,6 +120,22 @@ func (t *ForTaskBuilder) exec() (TemporalWorkflowFunc, error) {
 			}
 
 			return output, nil
+		case int:
+			logger.Debug("Iterating data as a number", "task", t.GetTaskName())
+			output := make([]any, 0)
+			for i := range v {
+				res, err := t.iterator(ctx, i, i, state.Clone().ClearOutput())
+				if err != nil {
+					if errors.Is(err, errForkIterationStop) {
+						break
+					}
+					return nil, err
+				}
+
+				output = append(output, res)
+			}
+
+			return output, nil
 		default:
 			logger.Error("For task data is not iterable", "task", t.GetTaskName())
 			return nil, fmt.Errorf("for task data is not iterable")

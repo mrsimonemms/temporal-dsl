@@ -74,3 +74,17 @@ do:
         - wait:
             wait:
               seconds: 1
+  - forTaskNumber:
+      export:
+        as: forNumber
+      for:
+        in: ${ 5 }
+      do:
+        - setData:
+            export:
+              as: response
+            set:
+              number: ${ .data.item }
+        - wait:
+            wait:
+              seconds: 1
