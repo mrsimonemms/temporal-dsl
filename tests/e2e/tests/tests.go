@@ -18,6 +18,7 @@ package tests
 
 import (
 	_ "github.com/mrsimonemms/temporal-dsl/tests/e2e/tests/callHTTP"
+	_ "github.com/mrsimonemms/temporal-dsl/tests/e2e/tests/complete"
 	_ "github.com/mrsimonemms/temporal-dsl/tests/e2e/tests/fork"
 	_ "github.com/mrsimonemms/temporal-dsl/tests/e2e/tests/fork-compete"
 	_ "github.com/mrsimonemms/temporal-dsl/tests/e2e/tests/set"
