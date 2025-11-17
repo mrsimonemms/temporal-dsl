@@ -21,6 +21,7 @@ import (
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/dsl/metadata"
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
+	"github.com/rs/zerolog/log"
 	swUtils "github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"go.temporal.io/sdk/worker"
@@ -38,6 +39,7 @@ type TaskBuilder interface {
 	GetTask() model.Task
 	GetTaskName() string
 	ParseMetadata(workflow.Context, *utils.State) error
+	PostLoad() error
 	ShouldRun(*utils.State) (bool, error)
 }
 
@@ -87,6 +89,11 @@ func (d builder[T]) ParseMetadata(ctx workflow.Context, state *utils.State) erro
 	return nil
 }
 
+func (d *builder[T]) PostLoad() error {
+	log.Trace().Str("task", d.GetTaskName()).Msg("Task has no post load hook")
+	return nil
+}
+
 func (d *builder[T]) ShouldRun(state *utils.State) (bool, error) {
 	return utils.CheckIfStatement(d.task.GetBase().If, state)
 }
@@ -95,7 +102,7 @@ func (d *builder[T]) ShouldRun(state *utils.State) (bool, error) {
 func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Worker, doc *model.Workflow) (TaskBuilder, error) {
 	switch t := task.(type) {
 	case *model.CallHTTP:
-		return NewCallHTTPTaskBuilder(temporalWorker, t, taskName)
+		return NewCallHTTPTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.DoTask:
 		return NewDoTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.ForTask:
@@ -103,19 +110,19 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 	case *model.ForkTask:
 		return NewForkTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.ListenTask:
-		return NewListenTaskBuilder(temporalWorker, t, taskName)
+		return NewListenTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.RaiseTask:
-		return NewRaiseTaskBuilder(temporalWorker, t, taskName)
+		return NewRaiseTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.RunTask:
-		return NewRunTaskBuilder(temporalWorker, t, taskName)
+		return NewRunTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.SetTask:
-		return NewSetTaskBuilder(temporalWorker, t, taskName)
+		return NewSetTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.SwitchTask:
-		return NewSwitchTaskBuilder(temporalWorker, t, taskName)
+		return NewSwitchTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.TryTask:
 		return NewTryTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.WaitTask:
-		return NewWaitTaskBuilder(temporalWorker, t, taskName)
+		return NewWaitTaskBuilder(temporalWorker, t, taskName, doc)
 	default:
 		return nil, fmt.Errorf("unsupported task type '%T' for task '%s'", t, taskName)
 	}

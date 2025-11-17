@@ -44,6 +44,10 @@ func LoadFromFile(file string) (*model.Workflow, error) {
 		return nil, fmt.Errorf("error unmarshaling json to workflow: %w", err)
 	}
 
+	if err := newWorkflowPostLoad(wf); err != nil {
+		return nil, fmt.Errorf("error preparing workflow: %w", err)
+	}
+
 	c, err := semver.NewConstraint(">= 1.0.0, <2.0.0")
 	if err != nil {
 		return nil, fmt.Errorf("error creating semver constraint: %w", err)

@@ -41,9 +41,11 @@ func NewListenTaskBuilder(
 	temporalWorker worker.Worker,
 	task *model.ListenTask,
 	taskName string,
+	doc *model.Workflow,
 ) (*ListenTaskBuilder, error) {
 	return &ListenTaskBuilder{
 		builder: builder[*model.ListenTask]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,

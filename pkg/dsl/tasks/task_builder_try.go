@@ -50,15 +50,15 @@ type TryTaskBuilder struct {
 }
 
 func (t *TryTaskBuilder) Build() (TemporalWorkflowFunc, error) {
-	tasks := map[string]*model.TaskList{
-		"try":   t.task.Try,
-		"catch": t.task.Catch.Do,
-	}
-
-	for taskType, list := range tasks {
-		name, err := t.registerTaskList(taskType, list)
+	for taskType, list := range t.getTasks() {
+		name, builder, err := t.createBuilder(taskType, list)
 		if err != nil {
-			return nil, fmt.Errorf("erroring registring %s tasks for %s: %w", taskType, t.GetTaskName(), err)
+			return nil, fmt.Errorf("erroring registering %s tasks for %s: %w", taskType, t.GetTaskName(), err)
+		}
+
+		if _, err = builder.Build(); err != nil {
+			log.Error().Str("task", t.GetTaskName()).Str("taskType", taskType).Msg("Error building for workflow")
+			return nil, fmt.Errorf("error building for workflow: %w", err)
 		}
 
 		if taskType == "try" {
@@ -69,6 +69,22 @@ func (t *TryTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	}
 
 	return t.exec()
+}
+
+func (t *TryTaskBuilder) PostLoad() error {
+	for taskType, list := range t.getTasks() {
+		_, builder, err := t.createBuilder(taskType, list)
+		if err != nil {
+			return fmt.Errorf("erroring registering %s post load tasks for %s: %w", taskType, t.GetTaskName(), err)
+		}
+
+		if err = builder.PostLoad(); err != nil {
+			log.Error().Str("task", t.GetTaskName()).Str("taskType", taskType).Msg("Error building for workflow")
+			return fmt.Errorf("error building for post load workflow: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (t *TryTaskBuilder) exec() (TemporalWorkflowFunc, error) {
@@ -101,7 +117,16 @@ func (t *TryTaskBuilder) exec() (TemporalWorkflowFunc, error) {
 	}, nil
 }
 
-func (t *TryTaskBuilder) registerTaskList(taskType string, list *model.TaskList) (childWorkflowName string, err error) {
+func (t *TryTaskBuilder) getTasks() map[string]*model.TaskList {
+	return map[string]*model.TaskList{
+		"try":   t.task.Try,
+		"catch": t.task.Catch.Do,
+	}
+}
+
+func (t *TryTaskBuilder) createBuilder(
+	taskType string, list *model.TaskList,
+) (childWorkflowName string, builder TaskBuilder, err error) {
 	l := log.With().Str("task", t.GetTaskName()).Str("taskType", taskType).Logger()
 
 	if len(*list) == 0 {
@@ -111,18 +136,14 @@ func (t *TryTaskBuilder) registerTaskList(taskType string, list *model.TaskList)
 
 	childWorkflowName = utils.GenerateChildWorkflowName(taskType, t.GetTaskName())
 
-	builder, err := NewTaskBuilder(childWorkflowName, &model.DoTask{Do: list}, t.temporalWorker, t.doc)
+	b, err := NewTaskBuilder(childWorkflowName, &model.DoTask{Do: list}, t.temporalWorker, t.doc)
 	if err != nil {
 		l.Error().Msg("Error creating the for task builder")
 		err = fmt.Errorf("error creating the for task builder: %w", err)
 		return
 	}
 
-	if _, err = builder.Build(); err != nil {
-		l.Error().Msg("Error building for workflow")
-		err = fmt.Errorf("error building for workflow: %w", err)
-		return
-	}
+	builder = b
 
 	return
 }

@@ -56,9 +56,15 @@ type HTTPRequest struct {
 	Headers map[string]string `json:"headers,omitempty"`
 }
 
-func NewCallHTTPTaskBuilder(temporalWorker worker.Worker, task *model.CallHTTP, taskName string) (*CallHTTPTaskBuilder, error) {
+func NewCallHTTPTaskBuilder(
+	temporalWorker worker.Worker,
+	task *model.CallHTTP,
+	taskName string,
+	doc *model.Workflow,
+) (*CallHTTPTaskBuilder, error) {
 	return &CallHTTPTaskBuilder{
 		builder: builder[*model.CallHTTP]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,

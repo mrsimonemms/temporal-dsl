@@ -29,9 +29,11 @@ func NewSwitchTaskBuilder(
 	temporalWorker worker.Worker,
 	task *model.SwitchTask,
 	taskName string,
+	doc *model.Workflow,
 ) (*SwitchTaskBuilder, error) {
 	return &SwitchTaskBuilder{
 		builder: builder[*model.SwitchTask]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,

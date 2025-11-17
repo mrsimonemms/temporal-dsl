@@ -57,7 +57,58 @@ type forkedTask struct {
 }
 
 func (t *ForkTaskBuilder) Build() (TemporalWorkflowFunc, error) {
+	forkedTasks, builders, err := t.buildOrPostLoad()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, builder := range builders {
+		if _, err := builder.Build(); err != nil {
+			log.Error().Err(err).Msg("Error building forked workflow")
+			return nil, fmt.Errorf("error building forked workflow: %w", err)
+		}
+	}
+
+	return t.exec(forkedTasks)
+}
+
+func (t *ForkTaskBuilder) PostLoad() error {
+	_, builders, err := t.buildOrPostLoad()
+	if err != nil {
+		return err
+	}
+
+	for _, builder := range builders {
+		if err := builder.PostLoad(); err != nil {
+			log.Error().Err(err).Msg("Error post loading forked workflow")
+			return fmt.Errorf("error post loading forked workflow: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (t *ForkTaskBuilder) awaitCondition(
+	replyErr error, isCompeting bool, winningCtx workflow.Context, hasReplied []bool,
+) func() bool {
+	return func() bool {
+		if replyErr != nil {
+			return true
+		}
+
+		predicate := func(v bool) bool { return v }
+
+		if isCompeting {
+			return winningCtx != nil
+		}
+
+		return utils.SliceEvery(hasReplied, predicate)
+	}
+}
+
+func (t *ForkTaskBuilder) buildOrPostLoad() ([]*forkedTask, []TaskBuilder, error) {
 	forkedTasks := make([]*forkedTask, 0)
+	builders := make([]TaskBuilder, 0)
 
 	for _, branch := range *t.task.Fork.Branches {
 		childWorkflowName := utils.GenerateChildWorkflowName("fork", t.GetTaskName(), branch.Key)
@@ -81,34 +132,13 @@ func (t *ForkTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		builder, err := NewTaskBuilder(childWorkflowName, branch.Task, t.temporalWorker, t.doc)
 		if err != nil {
 			log.Error().Err(err).Msg("Error creating the forked task builder")
-			return nil, fmt.Errorf("error creating the forked task builder: %w", err)
+			return nil, nil, fmt.Errorf("error creating the forked task builder: %w", err)
 		}
 
-		if _, err := builder.Build(); err != nil {
-			log.Error().Err(err).Msg("Error building forked workflow")
-			return nil, fmt.Errorf("error building forked workflow: %w", err)
-		}
+		builders = append(builders, builder)
 	}
 
-	return t.exec(forkedTasks)
-}
-
-func (t *ForkTaskBuilder) awaitCondition(
-	replyErr error, isCompeting bool, winningCtx workflow.Context, hasReplied []bool,
-) func() bool {
-	return func() bool {
-		if replyErr != nil {
-			return true
-		}
-
-		predicate := func(v bool) bool { return v }
-
-		if isCompeting {
-			return winningCtx != nil
-		}
-
-		return utils.SliceEvery(hasReplied, predicate)
-	}
+	return forkedTasks, builders, nil
 }
 
 func (t *ForkTaskBuilder) exec(forkedTasks []*forkedTask) (TemporalWorkflowFunc, error) {

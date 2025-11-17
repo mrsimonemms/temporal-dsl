@@ -32,9 +32,11 @@ func NewRaiseTaskBuilder(
 	temporalWorker worker.Worker,
 	task *model.RaiseTask,
 	taskName string,
+	doc *model.Workflow,
 ) (*RaiseTaskBuilder, error) {
 	return &RaiseTaskBuilder{
 		builder: builder[*model.RaiseTask]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,

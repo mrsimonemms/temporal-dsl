@@ -30,9 +30,11 @@ func NewRunTaskBuilder(
 	temporalWorker worker.Worker,
 	task *model.RunTask,
 	taskName string,
+	doc *model.Workflow,
 ) (*RunTaskBuilder, error) {
 	return &RunTaskBuilder{
 		builder: builder[*model.RunTask]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,

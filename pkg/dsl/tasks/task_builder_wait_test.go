@@ -54,7 +54,7 @@ func TestWaitTaskBuilder(t *testing.T) {
 
 			w, err := tasks.NewWaitTaskBuilder(nil, &model.WaitTask{
 				Wait: dur,
-			}, test.Name)
+			}, test.Name, nil)
 			assert.NoError(t, err)
 
 			wf, err := w.Build()
