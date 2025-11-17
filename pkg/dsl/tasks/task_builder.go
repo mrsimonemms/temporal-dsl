@@ -120,3 +120,18 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 		return nil, fmt.Errorf("unsupported task type '%T' for task '%s'", t, taskName)
 	}
 }
+
+// Ensure the tasks meets the TaskBuilder type
+var (
+	_ TaskBuilder = &CallHTTPTaskBuilder{}
+	_ TaskBuilder = &DoTaskBuilder{}
+	_ TaskBuilder = &ForTaskBuilder{}
+	_ TaskBuilder = &ForkTaskBuilder{}
+	_ TaskBuilder = &ListenTaskBuilder{}
+	_ TaskBuilder = &RaiseTaskBuilder{}
+	_ TaskBuilder = &RunTaskBuilder{}
+	_ TaskBuilder = &SetTaskBuilder{}
+	_ TaskBuilder = &SwitchTaskBuilder{}
+	_ TaskBuilder = &TryTaskBuilder{}
+	_ TaskBuilder = &WaitTaskBuilder{}
+)
