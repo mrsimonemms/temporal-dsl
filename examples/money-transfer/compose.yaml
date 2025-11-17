@@ -26,7 +26,7 @@ services:
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
       TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-temporal:7233}
       TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
-      TEMPORAL_API_KEY: ${TEMPORAL_API_KEY}
+      TEMPORAL_API_KEY: ${TEMPORAL_API_KEY:-}
       TEMPORAL_TLS: ${TEMPORAL_TLS:-false}
       WORKFLOW_FILE: ./examples/money-transfer/workflow.yaml
     volumes:
@@ -48,7 +48,7 @@ services:
     environment:
       TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-temporal:7233}
       TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
-      TEMPORAL_API_KEY: ${TEMPORAL_API_KEY}
+      TEMPORAL_API_KEY: ${TEMPORAL_API_KEY:-}
     depends_on:
       temporal:
         condition: service_healthy
