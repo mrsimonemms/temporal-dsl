@@ -33,7 +33,7 @@ Define a workflow declaratively in YAML:
 document:
   dsl: 1.0.0
   namespace: MoneyTransfer # Mapped to the task queue
-  name: money-transfer # Workflow name
+  name: AccountTransferWorkflow # Workflow name
   version: 0.0.1
   title: Money Transfer Demo
   summary: Temporal's world-famous Money Transfer Demo, in DSL form
