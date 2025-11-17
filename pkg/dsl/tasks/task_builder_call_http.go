@@ -66,9 +66,6 @@ func NewCallHTTPTaskBuilder(temporalWorker worker.Worker, task *model.CallHTTP, 
 	}, nil
 }
 
-// Ensure the task meets the TaskBuilder type
-var _ TaskBuilder = &CallHTTPTaskBuilder{}
-
 type CallHTTPTaskBuilder struct {
 	builder[*model.CallHTTP]
 }

@@ -60,9 +60,6 @@ func NewDoTaskBuilder(
 	}, nil
 }
 
-// Ensure the task meets the TaskBuilder type
-var _ TaskBuilder = &DoTaskBuilder{}
-
 type DoTaskBuilder struct {
 	builder[*model.DoTask]
 	opts DoTaskOpts

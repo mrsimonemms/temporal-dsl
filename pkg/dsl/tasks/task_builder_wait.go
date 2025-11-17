@@ -36,9 +36,6 @@ func NewWaitTaskBuilder(temporalWorker worker.Worker, task *model.WaitTask, task
 	}, nil
 }
 
-// Ensure the task meets the TaskBuilder type
-var _ TaskBuilder = &WaitTaskBuilder{}
-
 type WaitTaskBuilder struct {
 	builder[*model.WaitTask]
 }

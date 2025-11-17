@@ -42,9 +42,6 @@ func NewRaiseTaskBuilder(
 	}, nil
 }
 
-// Ensure the task meets the TaskBuilder type
-var _ TaskBuilder = &RaiseTaskBuilder{}
-
 type RaiseTaskBuilder struct {
 	builder[*model.RaiseTask]
 }
