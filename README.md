@@ -180,4 +180,6 @@ Made with [contrib.rocks](https://contrib.rocks).
 
 ## 🪪 License
 
-[Apache-2.0](./LICENSE) © [Temporal DSL authors](https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>)
+Distributed under the [Apache-2.0](./LICENSE) license
+
+© 2025 [Temporal DSL authors](https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>)
