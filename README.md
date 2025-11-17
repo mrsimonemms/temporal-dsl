@@ -32,46 +32,91 @@ Define a workflow declaratively in YAML:
 ```yaml
 document:
   dsl: 1.0.0
-  namespace: temporal-dsl # Mapped to the task queue
-  name: example # Workflow name
+  namespace: MoneyTransfer # Mapped to the task queue
+  name: money-transfer # Workflow name
   version: 0.0.1
-  title: Example Workflow
-  summary: An example of how to use Serverless Workflow to define Temporal Workflows
-timeout:
-  after:
-    minutes: 1
-# Validate the input schema
-input:
-  schema:
-    format: json
-    document:
-      type: object
-      required:
-        - userId
-      properties:
-        userId:
-          type: number
+  title: Money Transfer Demo
+  summary: Temporal's world-famous Money Transfer Demo, in DSL form
 do:
-  # Set some data to the state
-  - step1:
+  - queryState:
+      listen:
+        to:
+          one:
+            with:
+              # ID maps to the query name in Temporal
+              id: transferStatus
+              # Temporal query - used to make read requests
+              type: query
+              # The data returned from the query - for application/json, this must be a string so Go interpolation works correctly
+              data:
+                approvalTime: ${ .data.stateApprovalTime }
+                chargeResult:
+                  chargeId: ${ .data.stateChargeId }
+                progressPercentage: ${ .data.stateProgressPercentage }
+                transferState: ${ .data.stateTransferState }
+                workflowStatus: ${ .data.stateWorkflowStatus }
+  - setup:
       set:
-        # Set a variable from an envvar
-        envvar: ${ .env.EXAMPLE_ENVVAR }
-        # Generate a UUID at a workflow level
-        uuid: ${ uuid }
-  # Pause the workflow
-  - wait:
-      wait:
-        seconds: 5
-  # Make an HTTP call, using the userId received from the input
-  - getUser:
+        idempotencyKey: ${ uuid }
+        stateApprovalTime: 30
+        stateChargeId: ${ uuid }
+        stateProgressPercentage: 0
+        stateTransferState: starting
+        stateWorkflowStatus: ""
+  - validate:
       call: http
-      # Expose the response to the output
-      export:
-        as: user
       with:
-        method: get
-        endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+        method: post
+        endpoint: http://server:3000/validate
+  - updateState:
+      set:
+        stateProgressPercentage: 25
+        stateTransferState: running
+  - withdraw:
+      call: http
+      with:
+        method: post
+        endpoint: http://server:3000/withdraw
+        headers:
+          content-type: application/json
+        body:
+          amount: ${ .input.amount }
+          attempt: ${ .data.activity.attempt }
+          idempotencyKey: ${ .data.idempotencyKey }
+          name: ${ .data.workflow.workflow_type_name }
+  - updateState:
+      set:
+        stateProgressPercentage: 50
+  - deposit:
+      call: http
+      with:
+        method: post
+        endpoint: http://server:3000/deposit
+        headers:
+          content-type: application/json
+        body:
+            amount: ${ .input.amount }
+            attempt: ${ .data.activity.attempt }
+            idempotencyKey: ${ .data.idempotencyKey }
+            name: ${ .data.workflow.workflow_type_name }
+  - updateState:
+      set:
+        stateProgressPercentage: 75
+  - sendNotification:
+      call: http
+      with:
+        method: post
+        endpoint: http://server:3000/notify
+        headers:
+          content-type: application/json
+        body:
+          amount: ${ .input.amount }
+          fromAccount: ${ .input.fromAccount }
+          toAccount: ${ .input.toAccount }
+  - updateState:
+      set:
+        stateProgressPercentage: 100
+        stateTransferState: finished
 ```
 
 Run it through Temporal DSL:
