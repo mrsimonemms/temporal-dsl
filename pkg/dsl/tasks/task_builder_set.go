@@ -26,9 +26,15 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func NewSetTaskBuilder(temporalWorker worker.Worker, task *model.SetTask, taskName string) (*SetTaskBuilder, error) {
+func NewSetTaskBuilder(
+	temporalWorker worker.Worker,
+	task *model.SetTask,
+	taskName string,
+	doc *model.Workflow,
+) (*SetTaskBuilder, error) {
 	return &SetTaskBuilder{
 		builder: builder[*model.SetTask]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,

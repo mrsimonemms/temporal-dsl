@@ -26,9 +26,15 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func NewWaitTaskBuilder(temporalWorker worker.Worker, task *model.WaitTask, taskName string) (*WaitTaskBuilder, error) {
+func NewWaitTaskBuilder(
+	temporalWorker worker.Worker,
+	task *model.WaitTask,
+	taskName string,
+	doc *model.Workflow,
+) (*WaitTaskBuilder, error) {
 	return &WaitTaskBuilder{
 		builder: builder[*model.WaitTask]{
+			doc:            doc,
 			name:           taskName,
 			task:           task,
 			temporalWorker: temporalWorker,

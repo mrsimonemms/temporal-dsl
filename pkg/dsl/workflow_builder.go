@@ -56,3 +56,26 @@ func NewWorkflow(temporalWorker worker.Worker, doc *model.Workflow, envvars map[
 
 	return nil
 }
+
+func newWorkflowPostLoad(doc *model.Workflow) error {
+	workflowName := doc.Document.Name
+	l := log.With().Str("workflowName", workflowName).Logger()
+
+	doBuilder, err := tasks.NewDoTaskBuilder(
+		nil,
+		&model.DoTask{Do: doc.Do},
+		workflowName,
+		doc,
+	)
+	if err != nil {
+		l.Error().Err(err).Msg("Error creating Do prep builder")
+		return fmt.Errorf("error creating do prep builder: %w", err)
+	}
+
+	if err := doBuilder.PostLoad(); err != nil {
+		l.Error().Err(err).Msg("Error post loading workflow")
+		return fmt.Errorf("error post loading workflow: %w", err)
+	}
+
+	return nil
+}

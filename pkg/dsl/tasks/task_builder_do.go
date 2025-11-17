@@ -121,6 +121,26 @@ func (t *DoTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 	return wf, nil
 }
 
+func (t *DoTaskBuilder) PostLoad() error {
+	for _, task := range *t.task.Do {
+		l := log.With().Str("task", task.Key).Logger()
+
+		// Build a task builder
+		l.Debug().Msg("Creating prep task builder")
+		builder, err := NewTaskBuilder(task.Key, task.Task, t.temporalWorker, t.doc)
+		if err != nil {
+			return fmt.Errorf("error creating task prep builder: %w", err)
+		}
+
+		// Run the postload task
+		l.Debug().Msg("Run post load task")
+		if err := builder.PostLoad(); err != nil {
+			return fmt.Errorf("error running task post load: %w", err)
+		}
+	}
+	return nil
+}
+
 // validateInput validates the input if it exists
 func (t *DoTaskBuilder) validateInput(ctx workflow.Context, inputDef *model.Input, state *utils.State) error {
 	logger := workflow.GetLogger(ctx)

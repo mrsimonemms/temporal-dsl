@@ -52,6 +52,40 @@ type ForTaskBuilder struct {
 }
 
 func (t *ForTaskBuilder) Build() (TemporalWorkflowFunc, error) {
+	builder, err := t.createBuilder()
+	if err != nil {
+		return nil, err
+	}
+	if builder == nil {
+		return nil, nil
+	}
+
+	if _, err := builder.Build(); err != nil {
+		log.Error().Str("task", t.childWorkflowName).Err(err).Msg("Error building for workflow")
+		return nil, fmt.Errorf("error building for workflow: %w", err)
+	}
+
+	return t.exec()
+}
+
+func (t *ForTaskBuilder) PostLoad() error {
+	builder, err := t.createBuilder()
+	if err != nil {
+		return err
+	}
+	if builder == nil {
+		return nil
+	}
+
+	if err := builder.PostLoad(); err != nil {
+		log.Error().Str("task", t.childWorkflowName).Err(err).Msg("Error building for workflow postload")
+		return fmt.Errorf("error building for workflow postload: %w", err)
+	}
+
+	return nil
+}
+
+func (t *ForTaskBuilder) createBuilder() (TaskBuilder, error) {
 	if len(*t.task.Do) == 0 {
 		log.Warn().Str("task", t.GetTaskName()).Msg("No do tasks detected in for task")
 		return nil, nil
@@ -66,12 +100,7 @@ func (t *ForTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 		return nil, fmt.Errorf("error creating the for task builder: %w", err)
 	}
 
-	if _, err := builder.Build(); err != nil {
-		log.Error().Str("task", t.childWorkflowName).Err(err).Msg("Error building for workflow")
-		return nil, fmt.Errorf("error building for workflow: %w", err)
-	}
-
-	return t.exec()
+	return builder, nil
 }
 
 func (t *ForTaskBuilder) exec() (TemporalWorkflowFunc, error) {
