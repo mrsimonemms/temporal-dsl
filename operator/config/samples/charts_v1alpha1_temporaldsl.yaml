@@ -1,0 +1,130 @@
+apiVersion: charts.simonemms.com/v1alpha1
+kind: TemporalDsl
+metadata:
+  name: temporaldsl-sample
+spec:
+  # Default values copied from <project_dir>/helm-charts/temporal-dsl/values.yaml
+  affinity: {}
+  autoscaling:
+    enabled: false
+    maxReplicas: 100
+    minReplicas: 1
+    targetCPUUtilizationPercentage: 80
+  config:
+    log-level: info
+  envvars: null
+  fullnameOverride: ""
+  image:
+    pullPolicy: IfNotPresent
+    repository: ghcr.io/mrsimonemms/temporal-dsl
+    tag: ""
+  imagePullSecrets: []
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: health
+  nameOverride: ""
+  nodeSelector: {}
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: health
+  replicaCount: 1
+  resources: {}
+  securityContext: {}
+  service:
+    health:
+      port: 3000
+    metrics:
+      port: 9090
+    type: ClusterIP
+  serviceAccount:
+    annotations: {}
+    automount: true
+    create: true
+    name: ""
+  tolerations: []
+  volumeMounts: []
+  volumes: []
+  workflow:
+    file: /data/workflow.yaml
+    inline:
+      do:
+      - baseData:
+          export:
+            as: data
+          set:
+            array:
+            - ${ uuid }
+            - hello: world
+            envvar: ${ .env.EXAMPLE_ENVVAR }
+            inputUserId: ${ .input.userId }
+            object:
+              hello: world
+              uuid: ${ uuid }
+            uuid: ${ uuid }
+      - wait:
+          wait:
+            seconds: 5
+      - getUser:
+          call: http
+          export:
+            as: getUser
+          with:
+            endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId
+              | tostring) }
+            method: get
+      - raiseAlarm:
+          export:
+            as: raiseAlarm
+          fork:
+            branches:
+            - callNurse:
+                call: http
+                export:
+                  as: callNurse
+                with:
+                  endpoint: https://jsonplaceholder.typicode.com/users/2
+                  method: get
+            - multiStep:
+                do:
+                - wait1:
+                    wait:
+                      seconds: 3
+                - wait2:
+                    wait:
+                      seconds: 2
+            - callDoctor:
+                call: http
+                export:
+                  as: callDoctor
+                with:
+                  endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId
+                    | tostring) }
+                  method: get
+            compete: false
+      document:
+        dsl: 1.0.0
+        name: basic
+        namespace: temporal-dsl
+        summary: An example of how to use Serverless Workflow to define Temporal Workflows
+        title: Basic Workflow
+        version: 0.0.1
+      input:
+        schema:
+          document:
+            properties:
+              userId:
+                type: number
+            required:
+            - userId
+            type: object
+          format: json
+      timeout:
+        after:
+          minutes: 1
+    secret: workflow
+    useInline: true

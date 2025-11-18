@@ -11,6 +11,7 @@ header:
     - "**/go.*"
     - "**/*.{json,md,yml,yaml,txt}"
     - "**/.gitkeep"
+    - "**/PROJECT"
   comment: on-failure
   language:
     Go:
