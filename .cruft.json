@@ -4,10 +4,10 @@
   "checkout": "main",
   "context": {
     "cookiecutter": {
-      "project_name": "temporal-dsl",
-      "description": "Build Temporal workflows from YAML",
-      "author": "Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>",
-      "repo": "github.com/mrsimonemms/temporal-dsl",
+      "project_name": "zigflow",
+      "description": "Turn your declarative YAML into production-ready Temporal workflows",
+      "author": "Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>",
+      "repo": "github.com/mrsimonemms/zigflow",
       "use_viper": false,
       "_template": "https://github.com/mrsimonemms/new",
       "_commit": "31026d30d7422cb70b7dc482b946e292a6e12434"

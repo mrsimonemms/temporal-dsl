@@ -2,7 +2,7 @@
 # translated into a Temporal workflow
 document:
   dsl: 1.0.0
-  namespace: temporal-dsl # Mapped to the task queue
+  namespace: zigflow # Mapped to the task queue
   name: conditional # Workflow name
   version: 0.0.1
   title: Conditional Workflow

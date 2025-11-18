@@ -1,4 +1,4 @@
-# Copyright 2025 Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>
+# Copyright 2025 Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 
 FROM golang AS builder
 ARG GIT_COMMIT
-ARG GIT_REPO="github.com/mrsimonemms/temporal-dsl"
-ARG PROJECT_NAME="temporal-dsl"
+ARG GIT_REPO="github.com/mrsimonemms/zigflow"
+ARG PROJECT_NAME="zigflow"
 ARG VERSION
 ENV CGO_ENABLED=0
 ENV GOOS=linux

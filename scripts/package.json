@@ -8,7 +8,7 @@
   "bin": {
     "scripts": "./bin/cli.mjs"
   },
-  "author": "Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>",
+  "author": "Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>",
   "license": "Apache-2.0",
   "dependencies": {
     "yaml": "^2.8.1",

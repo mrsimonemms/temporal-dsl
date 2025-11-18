@@ -2,7 +2,7 @@
 # translated into a Temporal workflow
 document:
   dsl: 1.0.0
-  namespace: temporal-dsl # Mapped to the task queue
+  namespace: zigflow # Mapped to the task queue
   name: workflow1 # Workflow name - not registered if every top-level task is a "do"
   version: 0.0.1
   title: Multiple Workflows

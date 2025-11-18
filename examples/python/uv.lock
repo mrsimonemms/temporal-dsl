@@ -53,7 +53,7 @@ wheels = [
 ]
 
 [[package]]
-name = "temporal-dsl-python-example"
+name = "zigflow-python-example"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [

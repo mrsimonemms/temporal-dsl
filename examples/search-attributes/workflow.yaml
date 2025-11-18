@@ -1,6 +1,6 @@
 document:
   dsl: 1.0.0
-  namespace: temporal-dsl
+  namespace: zigflow
   name: searchAttributes # Workflow name
   version: 0.0.1
   title: Custom Search Attributes

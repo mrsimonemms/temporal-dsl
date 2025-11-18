@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# Copyright 2025 Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>
+# Copyright 2025 Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,7 +45,7 @@ async def main() -> None:
         "basic-python",
         {"userId": 3},
         id=f"basic-{uuid.uuid4().hex}",
-        task_queue="temporal-dsl",
+        task_queue="zigflow",
     )
 
     print(f"Started workflow: {handle.id}")

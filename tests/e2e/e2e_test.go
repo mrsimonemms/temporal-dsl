@@ -1,7 +1,7 @@
 //go:build e2e
 
 /*
- * Copyright 2025 Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>
+ * Copyright 2025 Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
-	"github.com/mrsimonemms/temporal-dsl/tests/e2e/utils"
+	"github.com/mrsimonemms/zigflow/pkg/zigflow"
+	"github.com/mrsimonemms/zigflow/tests/e2e/utils"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/mrsimonemms/temporal-dsl/tests/e2e/tests"
+	_ "github.com/mrsimonemms/zigflow/tests/e2e/tests"
 )
 
 type harness struct {
@@ -67,7 +67,7 @@ func setup() (*harness, error) {
 	for _, c := range utils.GetTestCases() {
 		c.WorkflowPath = path.Join(cwd, "tests", c.Name, c.WorkflowPath)
 
-		workflowDefinition, err := dsl.LoadFromFile(c.WorkflowPath)
+		workflowDefinition, err := zigflow.LoadFromFile(c.WorkflowPath)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func setup() (*harness, error) {
 	}
 
 	// Build the binary
-	binaryFile, err := os.MkdirTemp("", "tdsl")
+	binaryFile, err := os.MkdirTemp("", "zigflow")
 	if err != nil {
 		return nil, fmt.Errorf("error creating temp file: %w", err)
 	}
@@ -87,7 +87,7 @@ func setup() (*harness, error) {
 	}
 
 	return &harness{
-		Binary: path.Join(binaryFile, "temporal-dsl"),
+		Binary: path.Join(binaryFile, "zigflow"),
 		Cases:  cases,
 	}, nil
 }
@@ -129,7 +129,7 @@ func TestE2E(t *testing.T) {
 				"--metrics-listen-address", fmt.Sprintf("localhost:%d", metricsPort),
 			}
 
-			// Start the Temporal DSL binary with the loaded workflow
+			// Start the Zigflow binary with the loaded workflow
 			go (func() {
 				//nolint
 				cmd := exec.CommandContext(cancellableCtx, h.Binary, args...)

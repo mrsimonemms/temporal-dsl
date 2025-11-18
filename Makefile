@@ -1,4 +1,4 @@
-# Copyright 2025 Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>
+# Copyright 2025 Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 EXAMPLES = ./examples
-TMP_IMG ?= ttl.sh/temporal-dsl
+TMP_IMG ?= ttl.sh/zigflow
 TMP_IMG_TAG ?= 24h
 
 cruft-update:
@@ -46,14 +46,14 @@ helm:
 		--cleanup-on-fail \
 		--create-namespace \
 		--install \
-		--namespace dsl \
+		--namespace zigflow \
 		--reset-values \
 		--set image.pullPolicy=Always \
 		--set image.repository=${TMP_IMG} \
 		--set image.tag=${TMP_IMG_TAG} \
 		--values ./values.example.yaml \
 		--wait \
-		dsl ./charts/temporal-dsl
+		zigflow ./charts/zigflow
 .PHONY: helm
 
 minikube:

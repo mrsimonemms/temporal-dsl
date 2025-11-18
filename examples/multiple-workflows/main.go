@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>
+ * Copyright 2025 Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ func exec() error {
 	defer c.Close()
 
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: "temporal-dsl",
+		TaskQueue: "zigflow",
 	}
 
 	// Map the workflow and the user ID

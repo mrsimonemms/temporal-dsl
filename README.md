@@ -1,11 +1,11 @@
-# Temporal DSL: Declarative workflows for Temporal
+# Zigflow: Declarative workflows for Temporal
 
-[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg?style=flat)](https://github.com/mrsimonemms/temporal-dsl/issues)
-[![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/mrsimonemms/temporal-dsl/blob/master/LICENSE)
-[![GitHub Release](https://img.shields.io/github/v/release/mrsimonemms/temporal-dsl?label=Release)](https://github.com/mrsimonemms/temporal-dsl/releases/latest)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/temporal-dsl)](https://goreportcard.com/report/github.com/mrsimonemms/temporal-dsl)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg?style=flat)](https://github.com/mrsimonemms/zigflow/issues)
+[![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/mrsimonemms/zigflow/blob/master/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/mrsimonemms/zigflow?label=Release)](https://github.com/mrsimonemms/zigflow/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/zigflow)](https://goreportcard.com/report/github.com/mrsimonemms/zigflow)
 
-Temporal DSL provides a **simple and declarative way** to define and manage
+Zigflow provides a **simple and declarative way** to define and manage
 [Temporal](https://temporal.io) workflows using the
 [CNCF Serverless Workflow](https://serverlessworkflow.io) specification. It
 enables **low-code** and **no-code** workflow creation that's
@@ -22,6 +22,15 @@ reliability of Temporal.
 * ✅ **Powered by Temporal** – battle-tested reliability, retries, and state management
 * ✅ **Kubernetes-native** – includes a Helm chart for easy deployment
 * ✅ **Open & Extensible** – customize, extend, and contribute easily
+
+---
+
+## ⚡️ ZigFlow?
+
+Ziggy is [Temporal's official mascot](https://temporal.io/blog/temporal-in-space).
+They're a microscopic animal that is basically indestructible.
+
+Sound familiar?
 
 ---
 
@@ -119,10 +128,10 @@ do:
         stateTransferState: finished
 ```
 
-Run it through Temporal DSL:
+Run it through Zigflow:
 
 ```bash
-temporal-dsl -f ./path/to/workflow.yaml
+zigflow -f ./path/to/workflow.yaml
 ```
 
 This builds your Temporal workflow and runs the workers — no additional Go
@@ -130,7 +139,7 @@ boilerplate required.
 
 You can now run it with any [Temporal SDK](https://docs.temporal.io/encyclopedia/temporal-sdks).
 
-* [**Task Queue**](https://docs.temporal.io/task-queue): `temporal-dsl`
+* [**Task Queue**](https://docs.temporal.io/task-queue): `zigflow`
 * [**Workflow Type**](https://docs.temporal.io/workflows#intro-to-workflows):
   `example`
 
@@ -140,7 +149,7 @@ You can now run it with any [Temporal SDK](https://docs.temporal.io/encyclopedia
 
 * [Temporal](https://temporal.io)
 * [CNCF Serverless Workflow](https://serverlessworkflow.io)
-* [Helm Chart Repository](./charts//temporal-dsl)
+* [Helm Chart Repository](./charts//zigflow)
 
 ---
 
@@ -169,9 +178,9 @@ format.
 
 ## ⭐️ Contributors
 
-<a href="https://github.com/mrsimonemms/temporal-dsl/graphs/contributors">
+<a href="https://github.com/mrsimonemms/zigflow/graphs/contributors">
   <img alt="Contributors"
-    src="https://contrib.rocks/image?repo=mrsimonemms/temporal-dsl" />
+    src="https://contrib.rocks/image?repo=mrsimonemms/zigflow" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
@@ -182,4 +191,4 @@ Made with [contrib.rocks](https://contrib.rocks).
 
 Distributed under the [Apache-2.0](./LICENSE) license
 
-© 2025 [Temporal DSL authors](https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>)
+© 2025 [Zigflow authors](https://github.com/mrsimonemms/zigflow/graphs/contributors>)

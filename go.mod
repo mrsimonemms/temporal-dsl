@@ -1,4 +1,4 @@
-module github.com/mrsimonemms/temporal-dsl
+module github.com/mrsimonemms/zigflow
 
 go 1.24.3
 
