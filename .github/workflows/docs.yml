@@ -1,0 +1,62 @@
+name: Docs
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+defaults:
+  run:
+    shell: bash
+    working-directory: ./docs
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      is_tag: ${{ steps.branch-name.outputs.is_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Get branch names
+        id: branch-name
+        uses: tj-actions/branch-names@v8
+        with:
+          strip_tag_prefix: v
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build docs
+        run: npm run build
+
+      - name: Upload docs
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./docs/build
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.is_tag == 'true'
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
