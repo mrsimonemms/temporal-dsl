@@ -1,6 +1,6 @@
 document:
   dsl: 1.0.0
-  namespace: temporal-dsl
+  namespace: zigflow
   name: updates
   version: 0.0.1
   title: Listener Workflow (Update)

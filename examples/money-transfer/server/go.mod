@@ -1,4 +1,4 @@
-module github.com/mrsimonemms/temporal-dsl/examples/money-transfer/server
+module github.com/mrsimonemms/zigflow/examples/money-transfer/server
 
 go 1.24.6
 

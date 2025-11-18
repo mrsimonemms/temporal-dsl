@@ -10,7 +10,7 @@
     "start": "node ./",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>",
+  "author": "Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>",
   "license": "Apache-2.0",
   "devDependencies": {
     "prettier": "^3.6.2",

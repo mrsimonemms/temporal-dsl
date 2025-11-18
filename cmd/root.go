@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Temporal DSL authors <https://github.com/mrsimonemms/temporal-dsl/graphs/contributors>
+ * Copyright 2025 Zigflow authors <https://github.com/mrsimonemms/zigflow/graphs/contributors>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import (
 	gh "github.com/mrsimonemms/golang-helpers"
 	"github.com/mrsimonemms/golang-helpers/temporal"
 	"github.com/mrsimonemms/temporal-codec-server/packages/golang/algorithms/aes"
-	"github.com/mrsimonemms/temporal-dsl/pkg/dsl"
-	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
+	"github.com/mrsimonemms/zigflow/pkg/utils"
+	"github.com/mrsimonemms/zigflow/pkg/zigflow"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -55,9 +55,9 @@ var rootOpts struct {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:           "temporal-dsl",
+	Use:           "zigflow",
 	Version:       Version,
-	Short:         "Build Temporal workflows from YAML",
+	Short:         "Turn your declarative YAML into production-ready Temporal workflows",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -89,7 +89,7 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
-		workflowDefinition, err := dsl.LoadFromFile(rootOpts.FilePath)
+		workflowDefinition, err := zigflow.LoadFromFile(rootOpts.FilePath)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Unable to load workflow file")
 		}
@@ -176,7 +176,7 @@ var rootCmd = &cobra.Command{
 		temporal.NewHealthCheck(ctx, taskQueue, rootOpts.HealthListenAddress, client)
 
 		log.Info().Msg("Updating schedules")
-		if err := dsl.UpdateSchedules(ctx, client, workflowDefinition, envvars); err != nil {
+		if err := zigflow.UpdateSchedules(ctx, client, workflowDefinition, envvars); err != nil {
 			return gh.FatalError{
 				Cause: err,
 				Msg:   "Error updating Temporal schedules",
@@ -192,7 +192,7 @@ var rootCmd = &cobra.Command{
 			NexusTaskPollerBehavior:    pollerAutoscaler,
 		})
 
-		if err := dsl.NewWorkflow(temporalWorker, workflowDefinition, envvars); err != nil {
+		if err := zigflow.NewWorkflow(temporalWorker, workflowDefinition, envvars); err != nil {
 			return gh.FatalError{
 				Cause: err,
 				Msg:   "Unable to build workflow from DSL",
@@ -237,7 +237,7 @@ func init() {
 		viper.GetString("workflow_file"), "Path to workflow file",
 	)
 
-	viper.SetDefault("env_prefix", "TDSL")
+	viper.SetDefault("env_prefix", "ZIGGY")
 	rootCmd.Flags().StringVar(
 		&rootOpts.EnvPrefix, "env-prefix",
 		viper.GetString("env_prefix"), "Load envvars with this prefix to the workflow",

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zigflow.fullname" . }}
+  labels: {{- include "zigflow.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.health.port }}
+      targetPort: health
+      protocol: TCP
+      name: health
+    - port: {{ .Values.service.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector: {{- include "zigflow.selectorLabels" . | nindent 4 }}

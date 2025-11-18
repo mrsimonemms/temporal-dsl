@@ -1,5 +1,0 @@
-apiVersion: v2
-name: temporal-dsl
-description: Build Temporal workflows from YAML
-type: application
-version: 0.0.0

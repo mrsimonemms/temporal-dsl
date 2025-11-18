@@ -1,5 +1,0 @@
-Deployed
-========
-
-App: {{ include "temporal-dsl.fullname" . }}
-Namespace: {{ .Release.Namespace }}

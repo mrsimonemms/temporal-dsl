@@ -18,14 +18,13 @@
     }
   },
   "postCreateCommand": {
-    "bootstrap": "ln -s $PWD/.cobra.yaml $HOME/.cobra.yaml && if [ ! -f \"go.mod\" ]; then go mod init \"github.com/mrsimonemms/temporal-dsl\"; fi && if [ ! -f \"main.go\" ]; then cobra-cli init && go mod tidy; fi",
     "install-air": "go install github.com/air-verse/air@latest"
   },
   "containerEnv": {
-    "CONVERTER_KEY_PATH": "/workspaces/temporal-dsl/keys.example.yaml",
-    "GIT_REPO": "github.com/mrsimonemms/temporal-dsl",
+    "CONVERTER_KEY_PATH": "/workspaces/zigflow/keys.example.yaml",
+    "GIT_REPO": "github.com/mrsimonemms/zigflow",
     "LOG_LEVEL": "trace",
-    "TDSL_EXAMPLE_ENVVAR": "some-example-envvar",
+    "ZIGGY_EXAMPLE_ENVVAR": "some-example-envvar",
     "WORKFLOW_FILE": "./workflow.example.yaml"
   },
   "forwardPorts": [

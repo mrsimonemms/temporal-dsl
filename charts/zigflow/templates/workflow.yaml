@@ -1,0 +1,11 @@
+{{- if .Values.workflow.useInline }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.workflow.secret }}
+  labels:
+    {{- include "zigflow.labels" . | nindent 4 }}
+data:
+  workflow.yaml: |
+    {{ .Values.workflow.inline | toYaml | b64enc }}
+{{- end }}
