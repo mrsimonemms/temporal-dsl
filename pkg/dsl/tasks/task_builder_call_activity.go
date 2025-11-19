@@ -23,7 +23,6 @@ import (
 	"math"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/mrsimonemms/temporal-dsl/pkg/utils"
@@ -131,7 +130,6 @@ type ActivityCallOptions struct {
 	ActivityID             string               `json:"activityId,omitempty"`
 	RetryPolicy            *ActivityRetryPolicy `json:"retryPolicy,omitempty"`
 	DisableEagerExecution  *bool                `json:"disableEagerExecution,omitempty"`
-	VersioningIntent       string               `json:"versioningIntent,omitempty"`
 	Summary                string               `json:"summary,omitempty"`
 	Priority               *ActivityPriority    `json:"priority,omitempty"`
 }
@@ -212,13 +210,6 @@ func applyActivityOverrides(base workflow.ActivityOptions, cfg *ActivityCallOpti
 	}
 	if cfg.DisableEagerExecution != nil {
 		base.DisableEagerExecution = *cfg.DisableEagerExecution
-	}
-	if cfg.VersioningIntent != "" {
-		vi, err := parseVersioningIntent(cfg.VersioningIntent)
-		if err != nil {
-			return base, err
-		}
-		base.VersioningIntent = vi
 	}
 	if cfg.Summary != "" {
 		base.Summary = cfg.Summary
@@ -341,24 +332,6 @@ func convertPriority(cfg *ActivityPriority) temporal.Priority {
 		priority.FairnessWeight = *cfg.FairnessWeight
 	}
 	return priority
-}
-
-var versioningIntentMap = map[string]temporal.VersioningIntent{
-	"unspecified":          temporal.VersioningIntentUnspecified,
-	"compatible":           temporal.VersioningIntentCompatible,
-	"default":              temporal.VersioningIntentDefault,
-	"inherit_build_id":     temporal.VersioningIntentInheritBuildID,
-	"inheritbuildid":       temporal.VersioningIntentInheritBuildID,
-	"use_assignment_rules": temporal.VersioningIntentUseAssignmentRules,
-	"useassignmentrules":   temporal.VersioningIntentUseAssignmentRules,
-}
-
-func parseVersioningIntent(val string) (temporal.VersioningIntent, error) {
-	key := strings.ToLower(val)
-	if intent, ok := versioningIntentMap[key]; ok {
-		return intent, nil
-	}
-	return temporal.VersioningIntentUnspecified, fmt.Errorf("invalid versioning intent '%s'", val)
 }
 
 func durationToTime(d *model.Duration) (time.Duration, error) {

@@ -19,7 +19,7 @@ A collection of examples
 
 | Name | Description |
 | --- | --- |
-| [Activity Call](./activity-call) | Invoke custom Temporal activities via the DSL |
+| [Activity Call Workflow](./activity-call) | Demonstrates invoking Temporal activities from the DSL |
 | [Authorise Change Request](./authorise-change-request) | Authorise and implement or reject a change request |
 | [Basic Workflow](./basic) | An example of how to use Serverless Workflow to define Temporal Workflows |
 | [Child Workflow](./child-workflows) | An example of how to declare and use a child workflow |
