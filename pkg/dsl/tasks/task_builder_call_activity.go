@@ -72,16 +72,16 @@ func (t *CallActivityTaskBuilder) Build() (TemporalWorkflowFunc, error) {
 
 		logger.Info("Executing Temporal activity", "activity", args.Name, "task", t.GetTaskName())
 
-		execCtx := ctx
+		var execCtx workflow.Context
 		if args.Local {
-			laOpts, err := applyLocalActivityOverrides(workflow.GetLocalActivityOptions(ctx), args.LocalOptions)
-			if err != nil {
+			laOpts := workflow.GetLocalActivityOptions(ctx)
+			if err := applyLocalActivityOverrides(&laOpts, args.LocalOptions); err != nil {
 				return nil, err
 			}
 			execCtx = workflow.WithLocalActivityOptions(ctx, laOpts)
 		} else {
-			aOpts, err := applyActivityOverrides(workflow.GetActivityOptions(ctx), args.Options)
-			if err != nil {
+			aOpts := workflow.GetActivityOptions(ctx)
+			if err := applyActivityOverrides(&aOpts, args.Options); err != nil {
 				return nil, err
 			}
 			execCtx = workflow.WithActivityOptions(ctx, aOpts)
@@ -184,16 +184,16 @@ func parseActivityCallArguments(task *model.CallFunction, state *utils.State) (*
 	return &args, nil
 }
 
-func applyActivityOverrides(base workflow.ActivityOptions, cfg *ActivityCallOptions) (workflow.ActivityOptions, error) {
+func applyActivityOverrides(base *workflow.ActivityOptions, cfg *ActivityCallOptions) error {
 	if cfg == nil {
-		return base, nil
+		return nil
 	}
 
 	if cfg.TaskQueue != "" {
 		base.TaskQueue = cfg.TaskQueue
 	}
-	if err := setActivityDurations(&base, cfg); err != nil {
-		return base, err
+	if err := setActivityDurations(base, cfg); err != nil {
+		return err
 	}
 	if cfg.WaitForCancellation != nil {
 		base.WaitForCancellation = *cfg.WaitForCancellation
@@ -204,7 +204,7 @@ func applyActivityOverrides(base workflow.ActivityOptions, cfg *ActivityCallOpti
 	if cfg.RetryPolicy != nil {
 		rp, err := convertRetryPolicy(cfg.RetryPolicy)
 		if err != nil {
-			return base, err
+			return err
 		}
 		base.RetryPolicy = rp
 	}
@@ -218,7 +218,7 @@ func applyActivityOverrides(base workflow.ActivityOptions, cfg *ActivityCallOpti
 		base.Priority = convertPriority(cfg.Priority)
 	}
 
-	return base, nil
+	return nil
 }
 
 func setActivityDurations(opts *workflow.ActivityOptions, cfg *ActivityCallOptions) error {
@@ -247,26 +247,26 @@ func setActivityDurations(opts *workflow.ActivityOptions, cfg *ActivityCallOptio
 	return nil
 }
 
-func applyLocalActivityOverrides(base workflow.LocalActivityOptions, cfg *LocalActivityCallOptions) (workflow.LocalActivityOptions, error) {
+func applyLocalActivityOverrides(base *workflow.LocalActivityOptions, cfg *LocalActivityCallOptions) error {
 	if cfg == nil {
-		return base, nil
+		return nil
 	}
 
 	var err error
 	if cfg.ScheduleToCloseTimeout != nil {
 		if base.ScheduleToCloseTimeout, err = durationToTime(cfg.ScheduleToCloseTimeout); err != nil {
-			return base, fmt.Errorf("invalid local scheduleToCloseTimeout: %w", err)
+			return fmt.Errorf("invalid local scheduleToCloseTimeout: %w", err)
 		}
 	}
 	if cfg.StartToCloseTimeout != nil {
 		if base.StartToCloseTimeout, err = durationToTime(cfg.StartToCloseTimeout); err != nil {
-			return base, fmt.Errorf("invalid local startToCloseTimeout: %w", err)
+			return fmt.Errorf("invalid local startToCloseTimeout: %w", err)
 		}
 	}
 	if cfg.RetryPolicy != nil {
 		rp, err := convertRetryPolicy(cfg.RetryPolicy)
 		if err != nil {
-			return base, err
+			return err
 		}
 		base.RetryPolicy = rp
 	}
@@ -274,7 +274,7 @@ func applyLocalActivityOverrides(base workflow.LocalActivityOptions, cfg *LocalA
 		base.Summary = cfg.Summary
 	}
 
-	return base, nil
+	return nil
 }
 
 func convertRetryPolicy(cfg *ActivityRetryPolicy) (*temporal.RetryPolicy, error) {

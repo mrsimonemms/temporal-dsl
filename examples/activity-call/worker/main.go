@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand/v2"
+	"os"
 	"time"
 
 	"github.com/mrsimonemms/golang-helpers/temporal"
@@ -29,17 +30,17 @@ import (
 )
 
 func fetchProfile(ctx context.Context, userID, requestID string) (map[string]any, error) {
-	log := activity.GetLogger(ctx)
-	log.Info("Fetching profile", "userId", userID)
+	logger := activity.GetLogger(ctx)
+	logger.Info("Fetching profile", "userId", userID)
 
 	tiers := []string{"gold", "silver", "bronze"}
-	tier := tiers[rand.IntN(len(tiers))]
+	tier := tiers[rand.IntN(len(tiers))] //nolint:gosec // pseudo-random data is fine for demo purposes
 
 	return map[string]any{
 		"userId":    userID,
 		"requestId": requestID,
 		"tier":      tier,
-		"visits":    rand.IntN(50) + 1,
+		"visits":    rand.IntN(50) + 1, //nolint:gosec // pseudo-random data is fine for demo purposes
 		"metadata": map[string]string{
 			"lastLogin": time.Now().UTC().Format(time.RFC3339),
 		},
@@ -66,7 +67,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Unable to create Temporal client")
 	}
-	defer c.Close()
 
 	w := worker.New(c, activityTaskQueue, worker.Options{})
 
@@ -75,6 +75,10 @@ func main() {
 
 	log.Info().Str("taskQueue", activityTaskQueue).Msg("Activity worker started - Waiting for commands")
 	if err := w.Run(worker.InterruptCh()); err != nil {
-		log.Fatal().Err(err).Msg("Worker exited with error")
+		log.Error().Err(err).Msg("Worker exited with error")
+		c.Close()
+		os.Exit(1)
 	}
+
+	c.Close()
 }
