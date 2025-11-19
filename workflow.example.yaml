@@ -42,3 +42,13 @@ do:
       with:
         method: get
         endpoint: ${ "https://jsonplaceholder.typicode.com/users/" + (.input.userId | tostring) }
+  # Run an existing Temporal activity with arguments from state
+  - enrichUser:
+      call: activity
+      with:
+        name: enrich-user-data
+        arguments:
+          - ${ .output.user }
+        options:
+          startToCloseTimeout:
+            seconds: 30

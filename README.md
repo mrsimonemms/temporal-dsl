@@ -119,6 +119,37 @@ do:
         stateTransferState: finished
 ```
 
+### Call existing Temporal activities
+
+Need to orchestrate existing workers? Use `call: activity` to invoke any
+registered Temporal activity (or local activity) directly from the DSL. All
+options exposed by [`workflow.ExecuteActivity`](https://pkg.go.dev/go.temporal.io/sdk/workflow#ExecuteActivity)
+are supported, plus Temporal retry policies and priorities:
+
+```yaml
+- capturePayment:
+    call: activity
+    export:
+      as: payment
+    with:
+      name: payments.charge-card
+      arguments:
+        - ${ .input.orderId }
+        - ${ .input.amount }
+      options:
+        taskQueue: payments-worker
+        startToCloseTimeout:
+          seconds: 30
+        retryPolicy:
+          maximumAttempts: 3
+          initialInterval: PT5S
+      local: false
+```
+
+Set `local: true` and provide `localOptions` to run the activity as a Temporal
+local activity. Each duration accepts inline objects (as above) or ISO-8601
+strings such as `PT30S`.
+
 Run it through Temporal DSL:
 
 ```bash

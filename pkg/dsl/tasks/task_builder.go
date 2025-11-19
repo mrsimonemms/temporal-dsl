@@ -103,6 +103,11 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 	switch t := task.(type) {
 	case *model.CallHTTP:
 		return NewCallHTTPTaskBuilder(temporalWorker, t, taskName, doc)
+	case *model.CallFunction:
+		if t.Call == "activity" {
+			return NewCallActivityTaskBuilder(temporalWorker, t, taskName, doc)
+		}
+		return nil, fmt.Errorf("unsupported call type '%s' for task '%s'", t.Call, taskName)
 	case *model.DoTask:
 		return NewDoTaskBuilder(temporalWorker, t, taskName, doc)
 	case *model.ForTask:
@@ -130,6 +135,7 @@ func NewTaskBuilder(taskName string, task model.Task, temporalWorker worker.Work
 
 // Ensure the tasks meets the TaskBuilder type
 var (
+	_ TaskBuilder = &CallActivityTaskBuilder{}
 	_ TaskBuilder = &CallHTTPTaskBuilder{}
 	_ TaskBuilder = &DoTaskBuilder{}
 	_ TaskBuilder = &ForTaskBuilder{}

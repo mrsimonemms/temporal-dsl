@@ -1,0 +1,64 @@
+# Temporal activity call example workflow
+# Run alongside the DSL worker to execute custom activities
+
+document:
+  dsl: 1.0.0
+  namespace: temporal-dsl
+  name: activity-call
+  version: 0.0.1
+  title: Activity Call Workflow
+  summary: Demonstrates invoking Temporal activities from the DSL
+
+input:
+  schema:
+    format: json
+    document:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          description: External user identifier
+
+timeout:
+  after:
+    minutes: 1
+
+do:
+  - activity-call:
+      do:
+        - captureInput:
+            set:
+              requestedUserId: ${ .input.userId }
+              requestId: ${ uuid }
+        - fetchProfile:
+            call: activity
+            export:
+              as: profile
+            with:
+              name: activitycall.FetchProfile
+              arguments:
+                - ${ .data.captureInput.requestedUserId }
+                - ${ .data.captureInput.requestId }
+              options:
+                taskQueue: activity-call-worker
+                startToCloseTimeout:
+                  seconds: 5
+        - generateWelcome:
+            call: activity
+            export:
+              as: welcome
+            with:
+              name: activitycall.GenerateWelcome
+              arguments:
+                - ${ .output.profile }
+              options:
+                taskQueue: activity-call-worker
+                startToCloseTimeout:
+                  seconds: 5
+        - finalize:
+            set:
+              workflowId: ${ .data.captureInput.requestId }
+              profile: ${ .output.profile }
+              message: ${ .output.welcome.message }
