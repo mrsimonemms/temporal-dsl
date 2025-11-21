@@ -191,4 +191,4 @@ Made with [contrib.rocks](https://contrib.rocks).
 
 Distributed under the [Apache-2.0](./LICENSE) license
 
-© 2025 [Zigflow authors](https://github.com/mrsimonemms/zigflow/graphs/contributors>)
+© 2025 [Zigflow authors](https://github.com/mrsimonemms/zigflow/graphs/contributors)
