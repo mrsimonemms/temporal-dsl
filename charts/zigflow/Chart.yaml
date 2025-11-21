@@ -1,6 +1,22 @@
 apiVersion: v2
 name: zigflow
-description: Build Temporal workflows from YAML
+description: Turn your declarative YAML into production-ready Temporal workflows
 type: application
 version: 0.0.0
 icon: https://images.ctfassets.net/0uuz8ydxyd9p/2W8B7bcLSPX9YaSwkfrhmv/eade3fc61520b8cee84cf8605dce3056/Temporal_Symbol_dark_1_2x.png
+home: https://zigflow.dev
+maintainers:
+  - name: Simon Emms
+    email: simon@simonemms.com
+    url: https://simonemms.com
+sources:
+  - https://github.com/mrsimonemms/zigflow
+keywords:
+  - DSL
+  - Durable Execution
+  - Serverless Workflow
+  - Temporal
+  - Workflow Management System
+  - Workflows
+annotations:
+  org.opencontainers.image.documentation: https://github.com/mrsimonemms/zigflow/tree/main/charts/zigflow

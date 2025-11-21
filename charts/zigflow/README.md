@@ -2,7 +2,19 @@
 
 ![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
-Build Temporal workflows from YAML
+Turn your declarative YAML into production-ready Temporal workflows
+
+**Homepage:** <https://zigflow.dev>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Simon Emms | <simon@simonemms.com> | <https://simonemms.com> |
+
+## Source Code
+
+* <https://github.com/mrsimonemms/zigflow>
 
 ## Values
 

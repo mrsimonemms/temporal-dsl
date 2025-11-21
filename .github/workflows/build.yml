@@ -196,6 +196,14 @@ jobs:
           GIT_REPO: ${{ steps.docker.outputs.gitRepo }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare chart README
+        if: steps.branch-name.outputs.is_tag == 'true'
+        run: |
+          go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
+          helm-docs
+          yq -i '.version = "${{ steps.branch-name.outputs.tag }}"' charts/zigflow/Chart.yaml
+          yq -i '.annotations."org.opencontainers.image.documentation" = "https://github.com/mrsimonemms/zigflow/blob/${{ steps.branch-name.outputs.tag }}/charts/zigflow/README.md"' charts/zigflow/Chart.yaml
+
       - name: Publish Helm chart
         if: steps.branch-name.outputs.is_tag == 'true'
         uses: appany/helm-oci-chart-releaser@v0.5.0
