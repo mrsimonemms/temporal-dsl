@@ -36,6 +36,7 @@ ARG GIT_COMMIT
 ARG VERSION
 ENV GIT_COMMIT="${GIT_COMMIT}"
 ENV VERSION="${VERSION}"
+ENV WORKFLOW_FILE=/workflow.yaml
 WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /go/bin/app /app
